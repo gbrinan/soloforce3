@@ -1,0 +1,373 @@
+[
+  {
+    "review": {
+      "id": "e5448d5908fee3f100f20c537d9da3f8779f31969afeed6d29deba9f4d10be12",
+      "scope": {
+        "orgId": "synthetic",
+        "projectId": "windows-collaboration"
+      },
+      "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+      "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+      "unitId": "u-d1dccd2bef9bd4c4541f393b",
+      "needIndex": 0,
+      "verdict": "accept",
+      "reason": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+      "conditionsChecked": true,
+      "baseSnapshot": null,
+      "knowledgeId": "K-4e36a47c-d4f8-4048-8b1b-9b3cc32b1cd0",
+      "expectedRevision": null,
+      "reviewer": "codex:synthetic-test",
+      "recordedAt": "2026-09-14T01:45:25.357Z",
+      "coverage": {
+        "totalUnits": 1,
+        "selectedUnitIds": [
+          "u-d1dccd2bef9bd4c4541f393b"
+        ],
+        "omittedUnitIds": [],
+        "pendingUnits": [],
+        "pendingRoutes": []
+      }
+    },
+    "canonical": {
+      "snapshot": "43da9c079cbc423489cc645e024aa0bddb87703feaa02e19ec53492e48d507ee",
+      "knowledge": {
+        "claim_status": "source_reported",
+        "conditions": {
+          "coverage": {
+            "omittedUnitIds": [],
+            "pendingRoutes": [],
+            "pendingUnits": [],
+            "selectedUnitIds": [
+              "u-d1dccd2bef9bd4c4541f393b"
+            ],
+            "totalUnits": 1
+          },
+          "note": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+          "status": "human_checked_selected_units",
+          "unread_dependencies": "unverified"
+        },
+        "departments": [
+          "unknown"
+        ],
+        "details": [
+          "적용 시작일: 2026-10-01",
+          "시스템의 역할은 주문 초안 작성으로 한정됨",
+          "담당 부서는 본문에서 아직 정해지지 않았다고 명시됨"
+        ],
+        "domains": [],
+        "evidence": [
+          "2026-10-01부터 시스템은 주문 초안만 작성한다."
+        ],
+        "id": "K-4e36a47c-d4f8-4048-8b1b-9b3cc32b1cd0",
+        "kind": "constraint",
+        "lifecycle": "current",
+        "origin": {
+          "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+          "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+          "needIndex": 0,
+          "unitId": "u-d1dccd2bef9bd4c4541f393b"
+        },
+        "owner_scope": {
+          "orgId": "synthetic",
+          "projectId": "windows-collaboration"
+        },
+        "patterns": [],
+        "provenance": {
+          "corpus_revision": "4ca08b177ea33be9609da3a4ea4bb3ddb92bf4f6c1b0e925a00660ec39ab792b",
+          "corpus_source_id": "e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "evidence_kind": "EXTRACTED",
+          "locator": "본문 1행",
+          "source_id": "corpus:e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "source_revision": "c46c2275611be5808e7a01a576777adc710bf0e21265002986c7f9782f20274f"
+        },
+        "recorded_at": "2026-09-14T01:45:25.357Z",
+        "review_id": "e5448d5908fee3f100f20c537d9da3f8779f31969afeed6d29deba9f4d10be12",
+        "revision": 1,
+        "semantic_review": "accepted",
+        "statement": "2026-10-01부터 시스템은 주문 초안만 작성한다.",
+        "title": "시스템의 주문 초안 작성 제한",
+        "valid_from": "unknown",
+        "valid_to": "unknown"
+      },
+      "sourceState": "unchanged"
+    }
+  },
+  {
+    "review": {
+      "id": "b1644ac04551f67adb717bc1b7aee4e5667d813efb31b81399d43a71136ef321",
+      "scope": {
+        "orgId": "synthetic",
+        "projectId": "windows-collaboration"
+      },
+      "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+      "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+      "unitId": "u-d1dccd2bef9bd4c4541f393b",
+      "needIndex": 1,
+      "verdict": "accept",
+      "reason": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+      "conditionsChecked": true,
+      "baseSnapshot": "43da9c079cbc423489cc645e024aa0bddb87703feaa02e19ec53492e48d507ee",
+      "knowledgeId": "K-3d1c5522-9298-41e7-8433-0c912c61331e",
+      "expectedRevision": null,
+      "reviewer": "codex:synthetic-test",
+      "recordedAt": "2026-09-14T01:45:25.626Z",
+      "coverage": {
+        "totalUnits": 1,
+        "selectedUnitIds": [
+          "u-d1dccd2bef9bd4c4541f393b"
+        ],
+        "omittedUnitIds": [],
+        "pendingUnits": [],
+        "pendingRoutes": []
+      }
+    },
+    "canonical": {
+      "snapshot": "621b521b6f1ac749f1978cd1a573521942bc2ea1d2f3ca9162cdacdb4bcdd9d4",
+      "knowledge": {
+        "claim_status": "source_reported",
+        "conditions": {
+          "coverage": {
+            "omittedUnitIds": [],
+            "pendingRoutes": [],
+            "pendingUnits": [],
+            "selectedUnitIds": [
+              "u-d1dccd2bef9bd4c4541f393b"
+            ],
+            "totalUnits": 1
+          },
+          "note": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+          "status": "human_checked_selected_units",
+          "unread_dependencies": "unverified"
+        },
+        "departments": [
+          "unknown"
+        ],
+        "details": [
+          "앞 문장에서 명시된 2026-10-01 적용 시점과 함께 기술됨",
+          "시스템이 아닌 사람이 최종 주문을 실행함",
+          "담당 부서는 본문에서 아직 정해지지 않았다고 명시됨"
+        ],
+        "domains": [],
+        "evidence": [
+          "최종 주문은 사람이 실행한다."
+        ],
+        "id": "K-3d1c5522-9298-41e7-8433-0c912c61331e",
+        "kind": "fact",
+        "lifecycle": "current",
+        "origin": {
+          "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+          "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+          "needIndex": 1,
+          "unitId": "u-d1dccd2bef9bd4c4541f393b"
+        },
+        "owner_scope": {
+          "orgId": "synthetic",
+          "projectId": "windows-collaboration"
+        },
+        "patterns": [],
+        "provenance": {
+          "corpus_revision": "4ca08b177ea33be9609da3a4ea4bb3ddb92bf4f6c1b0e925a00660ec39ab792b",
+          "corpus_source_id": "e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "evidence_kind": "EXTRACTED",
+          "locator": "본문 1행",
+          "source_id": "corpus:e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "source_revision": "c46c2275611be5808e7a01a576777adc710bf0e21265002986c7f9782f20274f"
+        },
+        "recorded_at": "2026-09-14T01:45:25.626Z",
+        "review_id": "b1644ac04551f67adb717bc1b7aee4e5667d813efb31b81399d43a71136ef321",
+        "revision": 1,
+        "semantic_review": "accepted",
+        "statement": "최종 주문은 사람이 실행한다.",
+        "title": "최종 주문 실행 주체는 사람",
+        "valid_from": "unknown",
+        "valid_to": "unknown"
+      },
+      "sourceState": "unchanged"
+    }
+  },
+  {
+    "review": {
+      "id": "8a107bf6135568078aeabe451dc7b48f7ba795b48b5d95c309caaf1309750128",
+      "scope": {
+        "orgId": "synthetic",
+        "projectId": "windows-collaboration"
+      },
+      "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+      "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+      "unitId": "u-d1dccd2bef9bd4c4541f393b",
+      "needIndex": 2,
+      "verdict": "accept",
+      "reason": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+      "conditionsChecked": true,
+      "baseSnapshot": "621b521b6f1ac749f1978cd1a573521942bc2ea1d2f3ca9162cdacdb4bcdd9d4",
+      "knowledgeId": "K-f1bad91a-1113-4cc3-a355-f6c4bd37e0a1",
+      "expectedRevision": null,
+      "reviewer": "codex:synthetic-test",
+      "recordedAt": "2026-09-14T01:45:25.944Z",
+      "coverage": {
+        "totalUnits": 1,
+        "selectedUnitIds": [
+          "u-d1dccd2bef9bd4c4541f393b"
+        ],
+        "omittedUnitIds": [],
+        "pendingUnits": [],
+        "pendingRoutes": []
+      }
+    },
+    "canonical": {
+      "snapshot": "809e580548c7573aa089937513c4f3bbb793d72dd364c35faf05d11259e76955",
+      "knowledge": {
+        "claim_status": "source_reported",
+        "conditions": {
+          "coverage": {
+            "omittedUnitIds": [],
+            "pendingRoutes": [],
+            "pendingUnits": [],
+            "selectedUnitIds": [
+              "u-d1dccd2bef9bd4c4541f393b"
+            ],
+            "totalUnits": 1
+          },
+          "note": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+          "status": "human_checked_selected_units",
+          "unread_dependencies": "unverified"
+        },
+        "departments": [
+          "unknown"
+        ],
+        "details": [
+          "앞 문장에서 명시된 2026-10-01 적용 시점과 함께 기술됨",
+          "자동 주문 방식은 금지 대상임",
+          "담당 부서는 본문에서 아직 정해지지 않았다고 명시됨"
+        ],
+        "domains": [],
+        "evidence": [
+          "자동 주문은 금지한다."
+        ],
+        "id": "K-f1bad91a-1113-4cc3-a355-f6c4bd37e0a1",
+        "kind": "constraint",
+        "lifecycle": "current",
+        "origin": {
+          "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+          "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+          "needIndex": 2,
+          "unitId": "u-d1dccd2bef9bd4c4541f393b"
+        },
+        "owner_scope": {
+          "orgId": "synthetic",
+          "projectId": "windows-collaboration"
+        },
+        "patterns": [],
+        "provenance": {
+          "corpus_revision": "4ca08b177ea33be9609da3a4ea4bb3ddb92bf4f6c1b0e925a00660ec39ab792b",
+          "corpus_source_id": "e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "evidence_kind": "EXTRACTED",
+          "locator": "본문 1행",
+          "source_id": "corpus:e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "source_revision": "c46c2275611be5808e7a01a576777adc710bf0e21265002986c7f9782f20274f"
+        },
+        "recorded_at": "2026-09-14T01:45:25.944Z",
+        "review_id": "8a107bf6135568078aeabe451dc7b48f7ba795b48b5d95c309caaf1309750128",
+        "revision": 1,
+        "semantic_review": "accepted",
+        "statement": "자동 주문은 금지한다.",
+        "title": "자동 주문 금지",
+        "valid_from": "unknown",
+        "valid_to": "unknown"
+      },
+      "sourceState": "unchanged"
+    }
+  },
+  {
+    "review": {
+      "id": "363677509e7303b1f665dcb81ec5accb99dd09276bb32d489b862fd2fbfdb7f0",
+      "scope": {
+        "orgId": "synthetic",
+        "projectId": "windows-collaboration"
+      },
+      "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+      "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+      "unitId": "u-d1dccd2bef9bd4c4541f393b",
+      "needIndex": 3,
+      "verdict": "accept",
+      "reason": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+      "conditionsChecked": true,
+      "baseSnapshot": "809e580548c7573aa089937513c4f3bbb793d72dd364c35faf05d11259e76955",
+      "knowledgeId": "K-86d2ffc2-74d2-439f-8492-7a1d3163e365",
+      "expectedRevision": null,
+      "reviewer": "codex:synthetic-test",
+      "recordedAt": "2026-09-14T01:45:26.227Z",
+      "coverage": {
+        "totalUnits": 1,
+        "selectedUnitIds": [
+          "u-d1dccd2bef9bd4c4541f393b"
+        ],
+        "omittedUnitIds": [],
+        "pendingUnits": [],
+        "pendingRoutes": []
+      }
+    },
+    "canonical": {
+      "snapshot": "84a66860f6d28a9e7e776a8c3fe690753cb13f0da38bd9e528241e3b6f080868",
+      "knowledge": {
+        "claim_status": "source_reported",
+        "conditions": {
+          "coverage": {
+            "omittedUnitIds": [],
+            "pendingRoutes": [],
+            "pendingUnits": [],
+            "selectedUnitIds": [
+              "u-d1dccd2bef9bd4c4541f393b"
+            ],
+            "totalUnits": 1
+          },
+          "note": "codex:synthetic-test: 실제 Sonnet 응답을 합성 원문과 대조. 적용일/초안 제한/사람의 최종 실행/자동 주문 금지/담당 부서 미정을 확인. 실제 사람의 업무 승인이 아니다.",
+          "status": "human_checked_selected_units",
+          "unread_dependencies": "unverified"
+        },
+        "departments": [
+          "unknown"
+        ],
+        "details": [
+          "본문에 담당 부서 지정 없음",
+          "결정 기한이나 승인 절차는 본문에 언급되지 않음"
+        ],
+        "domains": [],
+        "evidence": [
+          "담당 부서는 아직 정하지 않았다."
+        ],
+        "id": "K-86d2ffc2-74d2-439f-8492-7a1d3163e365",
+        "kind": "unknown",
+        "lifecycle": "current",
+        "origin": {
+          "candidateId": "2bed376190b877457d1dad704a70da8f2218d04156f3fab917ea87fb0cca0d59",
+          "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+          "needIndex": 3,
+          "unitId": "u-d1dccd2bef9bd4c4541f393b"
+        },
+        "owner_scope": {
+          "orgId": "synthetic",
+          "projectId": "windows-collaboration"
+        },
+        "patterns": [],
+        "provenance": {
+          "corpus_revision": "4ca08b177ea33be9609da3a4ea4bb3ddb92bf4f6c1b0e925a00660ec39ab792b",
+          "corpus_source_id": "e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "evidence_kind": "EXTRACTED",
+          "locator": "본문 1행",
+          "source_id": "corpus:e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+          "source_revision": "c46c2275611be5808e7a01a576777adc710bf0e21265002986c7f9782f20274f"
+        },
+        "recorded_at": "2026-09-14T01:45:26.227Z",
+        "review_id": "363677509e7303b1f665dcb81ec5accb99dd09276bb32d489b862fd2fbfdb7f0",
+        "revision": 1,
+        "semantic_review": "accepted",
+        "statement": "담당 부서는 아직 정하지 않았다.",
+        "title": "담당 부서 미정",
+        "valid_from": "unknown",
+        "valid_to": "unknown"
+      },
+      "sourceState": "unchanged"
+    }
+  }
+]

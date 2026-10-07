@@ -1,0 +1,36 @@
+# 정기 실행 루프 예시 — 평일 아침 브리핑 작성.
+# type을 명시하지 않으면 기본값 "task"(1회 위임 + 완료 대기, 반복 없음).
+loop:
+  id: morning-brief
+  version: "1"
+  owner: genie
+  description: "평일 아침 브리핑"
+  enabled: false # 검토 후 true로 바꾸세요.
+
+  trigger:
+    type: cron
+    cron: "0 8 * * 1-5" # 평일 오전 8시
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: write-brief
+      prompt: >
+        오늘의 일정, 미완료 작업, 어제 처리한 주요 작업을 정리해 짧은 아침 브리핑을
+        작성하고 사용자에게 채팅으로 전달하세요.
+      model_tier: cheap
+
+  budget:
+    max_cost_usd_per_run: 1
+    max_duration_minutes: 10
+    max_runs_per_day: 1
+
+  approval:
+    mode: draft_only # 외부 발신 금지 — 브리핑은 채팅 내부 보고로만 전달.
+
+  delivery:
+    on_success: summary
+    on_failure: full
+
+  expiry:
+    review_after_days: 30

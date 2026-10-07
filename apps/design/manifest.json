@@ -1,0 +1,84 @@
+{
+  "id": "design",
+  "name": "MyDesign",
+  "version": "0.1.2",
+  "icon": "🎨",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13204"
+  },
+  "ports": {
+    "http": 13204
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [
+    "design.create",
+    "design.edit",
+    "design.export",
+    "chat-popup"
+  ],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "MyDesign 벡터 디자인 도구 (Penpot 코어 — 캔버스·도형·레이어·AI 편집)",
+  "setupGuide": {
+    "intro": "이미지 생성 기능에는 OpenAI API 키가 필요합니다. 키가 없으면 이미지 생성만 비활성화되고 나머지 기능은 정상 동작합니다.",
+    "steps": [
+      {
+        "title": "OpenAI API 키 생성",
+        "detail": "platform.openai.com/api-keys에서 API 키를 생성합니다 (sk-로 시작)."
+      },
+      {
+        "title": "마이크루에 키 저장",
+        "detail": "마이크루 설정 > 키 관리 > 앱 외부 서비스 연동에서 '디자인' 항목에 키를 입력하고 저장하면 앱이 자동 재시작됩니다."
+      }
+    ],
+    "envVars": [
+      {
+        "name": "OPENAI_API_KEY",
+        "label": "OpenAI API Key",
+        "required": true
+      }
+    ],
+    "services": [
+      {
+        "name": "OpenAI Platform",
+        "url": "https://platform.openai.com/api-keys",
+        "desc": "이미지 생성용 API — 사용량 과금"
+      }
+    ],
+    "docsUrl": "https://platform.openai.com/docs"
+  },
+  "aiCapabilities": [
+    {
+      "id": "run",
+      "route": "/api/design/run",
+      "title": "자연어 디자인 편집",
+      "desc": "말로 지시하면 캔버스를 편집합니다."
+    },
+    {
+      "id": "clone",
+      "route": "/api/design/clone",
+      "title": "웹 화면 클론",
+      "desc": "스크린샷을 벡터 디자인으로 재현합니다."
+    },
+    {
+      "id": "critique",
+      "route": "/api/design/critique",
+      "title": "디자인 비평",
+      "desc": "정렬·간격·대비를 점검해 개선안을 제시합니다."
+    },
+    {
+      "id": "palette",
+      "route": "/api/design/palette",
+      "title": "컬러 팔레트",
+      "desc": "브랜드 키워드로 어울리는 팔레트를 생성합니다."
+    },
+    {
+      "id": "restyle",
+      "route": "/api/design/restyle",
+      "title": "참조 이미지 리스타일",
+      "desc": "무드보드 이미지의 톤을 현재 디자인에 이식합니다."
+    }
+  ]
+}

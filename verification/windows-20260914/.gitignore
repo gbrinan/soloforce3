@@ -1,0 +1,8 @@
+*.log
+*.jsonl
+live-attempt.json
+claude-probe.json
+claude-probe.stderr
+run-checks.sh
+合成*/
+합성*/

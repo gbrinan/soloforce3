@@ -1,0 +1,49 @@
+# "완료까지 반복" 루프 예시 — 테스트가 통과할 때까지 밤사이 자동 재시도.
+# done_condition.check: exit 0이면 완료로 간주. 반드시 있어야 함(모델이 스스로 "완료"라고
+# 우기는 것을 막는 안전장치).
+loop:
+  id: nightly-qa
+  version: "1"
+  owner: genie
+  description: "테스트 통과까지 야간 자동 수정"
+  enabled: false # 프로젝트 경로(project)를 실제 값으로 채운 뒤 true로 바꾸세요.
+
+  trigger:
+    type: cron
+    cron: "0 2 * * *" # 매일 새벽 2시
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  session:
+    mode: isolated
+    state_files:
+      - "history/loops/nightly-qa/notes.md"
+
+  steps:
+    - id: fix-until-green
+      type: until_done
+      prompt: >
+        npm test 실행 결과를 확인하고 실패하는 테스트를 최소한의 변경으로 고쳐주세요.
+        기존 동작을 보존하면서 실패 원인만 수정하세요.
+      project: "" # 예: mycrew-works/my-project (프로젝트 절대/상대 경로)
+      model_tier: standard
+      done_condition:
+        check: "npm test"
+      max_iterations: 5
+      no_progress_after: 2
+
+  budget:
+    max_cost_usd_per_run: 5
+    max_duration_minutes: 60
+    max_runs_per_day: 1
+    monthly_cap_usd: 50
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: summary
+    on_failure: full
+
+  expiry:
+    review_after_days: 30

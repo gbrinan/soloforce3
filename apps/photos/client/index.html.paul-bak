@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>MyCrew Photos</title>
+<link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet">
+<style>
+  /* ===== mycrew-system 디자인 토큰 (단일 소스) =====
+     ⚠️ 새 컴포넌트 추가 시 hex 코드 직접 사용 금지 — 반드시 아래 :root 변수 사용.
+     라이트 모드는 html[data-theme="light"]에서 자동 분기. */
+  :root {
+    color-scheme: light dark;
+    /* Dark theme — Google Photos 이상 polish */
+    --bg-canvas: #0a0a0f;
+    --bg-surface: #16161d;
+    --bg-card: #1a1a24;
+    --bg-muted: #1e1e2a;
+    --bg-elevated: #25253a;
+    --bg-accent: #1f1b2e;
+    --text-primary: #e8eaed;
+    --text-secondary: #c2c6cd;
+    --text-muted: #9aa0a6;
+    --border-default: #2a2a38;
+    --border-subtle: #1f1f2c;
+    --ring: #a78bfa;
+    --ring-strong: #c4b5fd;
+    --ring-soft: rgba(167,139,250,0.16);
+    --ring-shadow: rgba(167,139,250,0.32);
+    --hover-overlay: rgba(255,255,255,0.04);
+    --hover-overlay-strong: rgba(255,255,255,0.08);
+    --topbar-bg: rgba(10,10,15,0.78);
+    --accent-success: #34D399;
+    --accent-danger: #F87171;
+    --accent-warning: #FBBF24;
+    --accent-info: #818CF8;
+    --font-s: 12px;
+    --font-m: 14px;
+    --font-l: 16px;
+    --font-xl: 18px;
+    --font-2xl: 22px;
+    --font-label: 11px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-pill: 999px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.20);
+    --shadow-md: 0 4px 14px rgba(0,0,0,0.35);
+    --shadow-lg: 0 12px 36px rgba(0,0,0,0.45);
+    --shadow-focus: 0 0 0 3px var(--ring-shadow);
+    --overlay-canvas: rgba(10,10,15,0.86);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --t-fast: 150ms;
+    --t-base: 200ms;
+    --t-slow: 300ms;
+  }
+  html[data-theme="light"] {
+    --bg-canvas: #ffffff;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --bg-muted: #f1f3f4;
+    --bg-elevated: #e8eaed;
+    --bg-accent: #efeaff;
+    --text-primary: #1f1f1f;
+    --text-secondary: #3c4043;
+    --text-muted: #5f6368;
+    --border-default: #e8eaed;
+    --border-subtle: #f1f3f4;
+    --ring: #7c3aed;
+    --ring-strong: #6d28d9;
+    --ring-soft: rgba(124,58,237,0.10);
+    --ring-shadow: rgba(124,58,237,0.22);
+    --hover-overlay: rgba(0,0,0,0.04);
+    --hover-overlay-strong: rgba(0,0,0,0.08);
+    --topbar-bg: rgba(255,255,255,0.78);
+    --accent-success: #047857;
+    --accent-danger: #DC2626;
+    --accent-warning: #B45309;
+    --accent-info: #4F46E5;
+    --shadow-sm: 0 1px 2px rgba(60,64,67,0.08);
+    --shadow-md: 0 2px 10px rgba(60,64,67,0.14);
+    --shadow-lg: 0 12px 32px rgba(60,64,67,0.20);
+    --overlay-canvas: rgba(255,255,255,0.92);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html { transition: background-color var(--t-slow) var(--ease-out); }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', 'Pretendard',
+                     'Segoe UI', 'Noto Sans KR', sans-serif;
+         background: var(--bg-canvas); color: var(--text-primary);
+         min-height: 100vh; min-height: 100dvh; display: flex; font-size: var(--font-m);
+         -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+         letter-spacing: -0.01em;
+         transition: background-color var(--t-slow) var(--ease-out),
+                     color var(--t-slow) var(--ease-out); }
+
+  /* Sidebar — Google Photos style pill nav */
+  .sidebar { width: 240px; flex: 0 0 240px; min-width: 240px;
+             background: var(--bg-surface);
+             padding: 20px 12px; display: flex; flex-direction: column; gap: 2px;
+             overflow-y: auto;
+             transition: width var(--t-base) var(--ease-out),
+                         flex-basis var(--t-base) var(--ease-out),
+                         min-width var(--t-base) var(--ease-out),
+                         padding var(--t-base) var(--ease-out); }
+  .sidebar.collapsed { width: 68px; flex: 0 0 68px; min-width: 68px; padding: 20px 6px; }
+  .sidebar.collapsed .sidebar-item { padding: 10px 8px; justify-content: center; gap: 0; }
+  .sidebar.collapsed .sidebar-item > span:nth-child(2),
+  .sidebar.collapsed .sidebar-count,
+  .sidebar.collapsed .sidebar-section { display: none; }
+  .sidebar.collapsed .sidebar-divider { margin: 8px 4px; }
+  /* margin-top: -8px → 햄버거 버튼 중심을 topbar 검색 박스 중심선(상단 32px)에 정렬.
+     사이드바 padding-top(20) - 8 + 40/2 = 32px == topbar padding-top(12) + search-box(40)/2. */
+  .sidebar-toggle { background: transparent; border: none; color: var(--text-secondary);
+                    font-size: 18px; cursor: pointer; padding: 8px 12px;
+                    margin: -8px 0 8px; border-radius: var(--radius-pill);
+                    display: flex; align-items: center; justify-content: center;
+                    width: 40px; height: 40px; align-self: flex-start;
+                    transition: background-color var(--t-base) var(--ease-out),
+                                color var(--t-base) var(--ease-out); }
+  .sidebar-toggle:hover { background: var(--hover-overlay); color: var(--text-primary); }
+  .sidebar.collapsed .sidebar-toggle { align-self: center; }
+  /* 모바일 햄버거(topbar) — 데스크톱 숨김, 모바일 미디어쿼리에서 inline-flex */
+  .mobile-menu-btn { display: none; background: transparent; border: none;
+                     color: var(--text-secondary); cursor: pointer;
+                     width: 36px; height: 36px; border-radius: var(--radius-pill);
+                     font-size: 20px; line-height: 1;
+                     align-items: center; justify-content: center; flex: 0 0 auto; }
+  .mobile-menu-btn:hover { background: var(--hover-overlay); color: var(--text-primary); }
+  .sidebar-backdrop { display: none; }
+  .sidebar-section { font-size: var(--font-label); font-weight: 600;
+                     color: var(--text-muted); text-transform: uppercase;
+                     letter-spacing: 1.5px; padding: 12px 16px 6px;
+                     user-select: none; }
+  .sidebar-item { position: relative; padding: 10px 16px;
+                  border-radius: var(--radius-pill);
+                  cursor: pointer; font-size: var(--font-m); font-weight: 500;
+                  color: var(--text-secondary);
+                  display: flex; align-items: center; gap: 14px;
+                  white-space: nowrap; overflow: hidden;
+                  transition: background-color var(--t-base) var(--ease-out),
+                              color var(--t-base) var(--ease-out); }
+  .sidebar-item > span { white-space: nowrap; }
+  .sidebar-item > span:first-child { font-size: 18px; line-height: 1; flex-shrink: 0;
+                                     width: 22px; text-align: center; }
+  .sidebar-item > span:nth-child(2) { flex: 1 1 auto; min-width: 0;
+                                      overflow: hidden; text-overflow: ellipsis; }
+  .sidebar-item:hover { background: var(--hover-overlay); color: var(--text-primary); }
+  .sidebar-item.active { background: var(--ring-soft); color: var(--ring);
+                         font-weight: 600; }
+  .sidebar-count { margin-left: auto; flex-shrink: 0;
+                   font-size: var(--font-s); color: var(--text-muted);
+                   font-weight: 500; }
+  .sidebar-item.active .sidebar-count { color: var(--ring); }
+  .bc-scan-btn { display: none; background: transparent; border: 0; cursor: pointer;
+                 padding: 0 4px; margin-left: 4px; font-size: 14px;
+                 color: var(--text-muted); flex-shrink: 0; line-height: 1; }
+  body.embedded .bc-scan-btn { display: inline-flex; align-items: center; }
+  .bc-scan-btn:hover { color: var(--ring); }
+  .sidebar.collapsed .bc-scan-btn { display: none; }
+  .sidebar-divider { height: 1px; background: var(--border-subtle); margin: 12px 8px; }
+
+  /* Main */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column;
+          background: var(--bg-canvas); }
+  .topbar { position: sticky; top: 0; z-index: 50;
+            display: flex; align-items: center; flex-wrap: wrap;
+            gap: 10px; padding: 12px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--topbar-bg);
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%); }
+  .topbar h1 { margin: 0; font-size: var(--font-xl); font-weight: 600;
+               white-space: nowrap; flex-shrink: 0;
+               color: var(--text-primary); letter-spacing: -0.02em; }
+  .topbar .grow { flex: 1 1 auto; min-width: 0; }
+
+  /* Search pill — Google Photos style */
+  .search-wrapper { position: relative; flex: 1 1 320px;
+                    min-width: 160px; max-width: 540px; }
+  .search-wrapper::before { content: '🔎'; position: absolute; left: 16px; top: 50%;
+                            transform: translateY(-50%); font-size: 16px;
+                            opacity: 0.6; pointer-events: none; line-height: 1; }
+  .search-box { width: 100%; height: 40px;
+                padding: 0 16px 0 44px; border-radius: var(--radius-pill);
+                background: var(--bg-muted); border: 1px solid transparent;
+                color: var(--text-primary); font-size: var(--font-m);
+                font-family: inherit;
+                transition: background-color var(--t-base) var(--ease-out),
+                            border-color var(--t-base) var(--ease-out),
+                            box-shadow var(--t-base) var(--ease-out); }
+  .search-box::placeholder { color: var(--text-muted); }
+  .search-box:hover { background: var(--bg-elevated); }
+  .search-box:focus { outline: none; background: var(--bg-surface);
+                      border-color: var(--ring);
+                      box-shadow: var(--shadow-focus); }
+  /* Standalone (non-search) date input keeps pill shape, no icon */
+  input.search-box[type="date"] { padding: 0 16px; height: 40px;
+                                  border-radius: var(--radius-pill);
+                                  background: var(--bg-muted);
+                                  color: var(--text-primary); }
+  input.search-box[type="date"]:hover { background: var(--bg-elevated); }
+  input.search-box[type="date"]:focus { background: var(--bg-surface); }
+
+  .btn { height: 40px; padding: 0 18px; border-radius: var(--radius-pill);
+         border: 1px solid transparent; cursor: pointer; font-size: var(--font-m);
+         background: transparent; color: var(--text-primary); font-weight: 500;
+         white-space: nowrap; flex-shrink: 0;
+         display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+         font-family: inherit;
+         transition: background-color var(--t-base) var(--ease-out),
+                     color var(--t-base) var(--ease-out),
+                     border-color var(--t-base) var(--ease-out),
+                     box-shadow var(--t-base) var(--ease-out),
+                     filter var(--t-base) var(--ease-out); }
+  .btn:hover { background: var(--hover-overlay); }
+  .btn.primary { background: var(--ring); color: #ffffff; font-weight: 600;
+                 box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+  .btn.primary:hover { background: var(--ring-strong); filter: none;
+                       box-shadow: 0 4px 14px var(--ring-shadow); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn.icon { width: 40px; height: 40px; padding: 0; border-radius: 50%;
+              display: inline-flex; align-items: center; justify-content: center;
+              background: transparent; font-size: var(--font-l); }
+  .btn.icon:hover { background: var(--hover-overlay); }
+  .btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+  /* Toggle group active state (settings theme/lang buttons) */
+  .btn.toggle-opt.active,
+  .modal-card .btn.toggle-opt.active,
+  .modal-overlay .btn.toggle-opt.active { background: var(--ring); color: #ffffff; font-weight: 600;
+                            border-color: var(--ring);
+                            box-shadow: 0 0 0 2px var(--ring-shadow), 0 1px 2px rgba(0,0,0,0.22); }
+  .btn.toggle-opt.active:hover,
+  .modal-card .btn.toggle-opt.active:hover { background: var(--ring-strong); color: #ffffff; }
+
+  /* Map markers: thumbnail + photo-count badge */
+  .map-thumb-marker { position: relative; width: 56px; height: 56px; border-radius: 50%;
+                      background: var(--bg-surface); border: 2px solid var(--ring);
+                      box-shadow: 0 4px 14px var(--ring-shadow); cursor: pointer;
+                      overflow: visible; }
+  .map-thumb-marker img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+  .map-thumb-marker .map-thumb-badge { position: absolute; top: -6px; right: -6px;
+                                       min-width: 22px; height: 22px; padding: 0 6px;
+                                       background: var(--ring); color: #ffffff; border-radius: 11px;
+                                       border: 2px solid var(--bg-surface);
+                                       font-size: 12px; font-weight: 700; line-height: 18px;
+                                       text-align: center; box-sizing: border-box; }
+
+  /* Date range row in toolbar */
+  .date-range-row { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+  .date-range-row .date-range-sep { color: var(--text-muted); font-size: 13px; }
+
+  /* Confirm/prompt modal (iframe-safe replacement for window.prompt) */
+  .ui-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+                      display: none; align-items: center; justify-content: center; z-index: 9999; }
+  .ui-modal-overlay.show { display: flex; }
+  .ui-modal-card { background: var(--bg-surface); padding: 24px; border-radius: var(--radius-md);
+                    min-width: 320px; max-width: 480px; box-shadow: 0 24px 64px rgba(0,0,0,0.4); }
+  .ui-modal-card h4 { margin: 0 0 12px 0; font-size: var(--font-l); color: var(--text-primary); }
+  .ui-modal-card input { width: 100%; padding: 10px 14px; border-radius: var(--radius-pill);
+                          background: var(--bg-muted); border: 1px solid transparent;
+                          color: var(--text-primary); font-size: var(--font-m); font-family: inherit;
+                          box-sizing: border-box; margin-bottom: 16px; }
+  .ui-modal-card input:focus { outline: none; border-color: var(--ring); box-shadow: var(--shadow-focus); }
+  .ui-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .ui-modal-actions .btn.primary.danger { background: var(--accent-danger); color: #ffffff; }
+  .ui-modal-actions .btn.primary.danger:hover { filter: brightness(1.08); }
+
+  /* Embedded mode — mycrew 셸 iframe 내부일 때 자체 헤더 h1 숨김 (이중 헤더 차단).
+     셸이 ?embedded=1 파라미터를 박지 않더라도 window.self !== window.top일 때
+     자동으로 body.embedded 클래스가 부여되어 동작한다. */
+  body.embedded .topbar h1 { display: none; }
+  body.embedded .topbar { padding-top: 8px; padding-bottom: 8px; }
+  input[type=file] { display: none; }
+
+  .container { padding: 16px; flex: 1; overflow-y: auto; }
+
+  /* Memories */
+  .memories { margin-bottom: 24px; padding: 16px;
+              background: var(--bg-card); border-radius: var(--radius-md);
+              border: 1px solid var(--border-default); }
+  .memories h3 { margin: 0 0 12px; font-size: var(--font-m); color: var(--text-primary); }
+  .memories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+  .memory-card { aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden;
+                 position: relative; cursor: pointer; background: var(--bg-muted); }
+  .memory-card img { width: 100%; height: 100%; object-fit: cover; }
+  .memory-label { position: absolute; bottom: 4px; left: 4px; right: 4px; text-align: center;
+                  background: var(--overlay-canvas); padding: 4px;
+                  border-radius: var(--radius-sm); font-size: var(--font-s); font-weight: 600;
+                  color: var(--text-primary); }
+
+  /* Map */
+  #map-container { width: 100%; height: 100%; }
+  #map { width: 100%; height: 100%; }
+  .maplibregl-popup-content { background: var(--bg-surface); color: var(--text-primary);
+                              padding: 12px; border-radius: var(--radius-sm);
+                              border: 1px solid var(--border-default);
+                              box-shadow: var(--shadow-md); }
+  .maplibregl-popup-content img { width: 120px; height: 120px; object-fit: cover;
+                                  border-radius: var(--radius-sm); margin-bottom: 8px; }
+  .maplibregl-popup-close-button { color: var(--text-primary); }
+
+  .empty { padding: 120px 24px; text-align: center; color: var(--text-muted);
+           max-width: 480px; margin: 0 auto; }
+  .empty .big { font-size: 72px; line-height: 1; margin-bottom: 24px; opacity: 0.35;
+                filter: grayscale(0.2); }
+  .empty strong { font-size: var(--font-xl); color: var(--text-primary);
+                  font-weight: 500; display: block; margin-bottom: 8px;
+                  letter-spacing: -0.01em; }
+  .empty .hint { font-size: var(--font-m); margin-top: 8px;
+                 color: var(--text-secondary); line-height: 1.55; }
+  .empty .hint b { color: var(--text-primary); font-weight: 600; }
+  .month { margin: 28px 0 14px; font-size: var(--font-m); font-weight: 600;
+           color: var(--text-secondary); border-bottom: 1px solid var(--border-subtle);
+           padding-bottom: 10px; letter-spacing: -0.005em; display: flex; align-items: center; }
+  .month .count { font-weight: 400; color: var(--text-muted); margin-left: 10px;
+                  font-size: var(--font-s); }
+  .month-checkbox { margin-right: 10px; width: 18px; height: 18px; cursor: pointer;
+                    accent-color: var(--primary, #007bff); flex-shrink: 0; }
+  .grid { display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(var(--thumb-size, 140px), 1fr));
+          gap: 6px; touch-action: pan-y pinch-zoom; }
+  .thumb-zoom-group { display: inline-flex; align-items: center; gap: 2px;
+                      border: 1px solid var(--border-default); border-radius: var(--radius-pill);
+                      padding: 2px; background: var(--bg-surface); }
+  .thumb-zoom-group .btn { width: 36px; height: 36px; padding: 0; min-width: 0;
+                            border-radius: var(--radius-pill);
+                            border: none; background: transparent;
+                            display: inline-flex; align-items: center; justify-content: center;
+                            font-size: var(--font-m);
+                            transition: border-radius var(--t-base) var(--ease-out),
+                                        background var(--t-base) var(--ease-out); }
+  .thumb-zoom-group .btn:hover { background: var(--hover-overlay); border-radius: 50%; }
+  .thumb-zoom-group .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* Modal form controls — Mycrew styled input/select with right-padded native arrow */
+  .mc-modal-input, .mc-modal-select {
+    width: 100%; padding: 10px 12px; box-sizing: border-box;
+    border: 1px solid var(--border-default); border-radius: var(--radius-md);
+    background: var(--bg-elevated); color: var(--text-primary);
+    font: inherit; font-size: var(--font-m); line-height: 1.4;
+    transition: border-color var(--t-base) var(--ease-out),
+                box-shadow var(--t-base) var(--ease-out);
+  }
+  .mc-modal-input:hover, .mc-modal-select:hover { border-color: var(--text-secondary); }
+  .mc-modal-input:focus, .mc-modal-select:focus {
+    outline: none; border-color: var(--ring);
+    box-shadow: var(--shadow-focus);
+  }
+  .mc-modal-select {
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    padding-right: 36px; cursor: pointer;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'><path d='M1 1.5L6 6.5L11 1.5' stroke='%23666' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px 8px;
+  }
+  .mc-modal-select::-ms-expand { display: none; }
+  .mc-modal-label {
+    display: block; font-size: var(--font-s); margin-bottom: 6px;
+    color: var(--text-muted);
+  }
+  /* 선택 모드 토글 시각화 */
+  #btn-select-mode[aria-pressed="true"] { background: var(--ring); color: #fff; border-color: var(--ring); }
+  .tile { aspect-ratio: 1 / 1; background: var(--bg-muted);
+          border-radius: var(--radius-md); overflow: hidden;
+          cursor: pointer; position: relative;
+          transition: transform var(--t-base) var(--ease-out),
+                      box-shadow var(--t-base) var(--ease-out); }
+  .tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .tile img, .tile video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tile .noimg { width: 100%; height: 100%; display: flex; align-items: center;
+                 justify-content: center; color: var(--text-muted); font-size: var(--font-s); }
+  .tile-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px;
+                  opacity: 0; transition: opacity 0.15s; }
+  .tile:hover .tile-actions { opacity: 1; }
+  .tile-action { width: 28px; height: 28px; border-radius: var(--radius-sm);
+                 background: var(--overlay-canvas); color: var(--text-primary);
+                 border: none; cursor: pointer; font-size: var(--font-m);
+                 display: flex; align-items: center; justify-content: center; }
+  .tile-action:hover { background: var(--bg-muted); }
+  .tile-action.active { background: var(--ring); color: white; }
+  .tile-action.kebab { font-weight: bold; font-size: 18px; line-height: 1; }
+  /* Tile overflow dropdown — appended to <body>, positioned via JS */
+  .tile-menu {
+    position: fixed; z-index: 9999; min-width: 180px;
+    background: var(--bg-elevated, #fff); color: var(--text-primary);
+    border: 1px solid var(--border-default, #ccc); border-radius: var(--radius-md, 8px);
+    box-shadow: var(--shadow-md, 0 6px 24px rgba(0,0,0,0.18));
+    padding: 4px; display: none;
+  }
+  .tile-menu.open { display: block; }
+  .tile-menu button {
+    display: block; width: 100%; text-align: left;
+    padding: 8px 12px; border: none; background: transparent;
+    color: inherit; cursor: pointer; font: inherit; font-size: var(--font-s, 13px);
+    border-radius: var(--radius-sm, 4px);
+  }
+  .tile-menu button:hover { background: var(--bg-muted, #f0f0f0); }
+  .tile-menu button.danger { color: var(--accent-danger, #d33); }
+  .tile-trash-actions { position: absolute; bottom: 4px; left: 4px; right: 4px;
+                        display: none; gap: 4px; }
+  .tile.trashed .tile-trash-actions { display: flex; }
+  .tile-trash-btn { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: none;
+                    background: var(--overlay-canvas); color: var(--text-primary);
+                    font-size: var(--font-s); cursor: pointer; }
+  .tile-trash-btn:hover { background: var(--bg-muted); }
+  .tile-trash-btn.danger { background: var(--accent-danger); color: white; }
+  .tile-trash-btn.danger:hover { filter: brightness(1.1); }
+
+  /* Selection */
+  .selection-bar { position: sticky; top: 64px; z-index: 40;
+                   background: var(--topbar-bg);
+                   backdrop-filter: blur(14px) saturate(140%);
+                   -webkit-backdrop-filter: blur(14px) saturate(140%);
+                   border-bottom: 1px solid var(--border-subtle); padding: 12px 20px;
+                   display: none; align-items: center; gap: 12px; }
+  .selection-bar.show { display: flex; }
+  .selection-count { font-weight: 600; color: var(--text-primary); }
+  .selection-actions { display: flex; gap: 8px; }
+  .tile.selectable { cursor: pointer; }
+  .tile.selectable::before { content: ''; position: absolute; top: 4px; left: 4px;
+                             width: 24px; height: 24px; border-radius: var(--radius-sm);
+                             background: var(--overlay-canvas);
+                             border: 2px solid var(--text-muted);
+                             transition: all 0.15s; }
+  .tile.selectable.selected::before { background: var(--ring); border-color: var(--ring); }
+  .tile.selectable.selected::after { content: '✓'; position: absolute; top: 4px; left: 4px;
+                                     width: 24px; height: 24px; display: flex;
+                                     align-items: center; justify-content: center;
+                                     color: white; font-size: var(--font-m); font-weight: bold; }
+
+  /* Albums */
+  .albums-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .album-card { aspect-ratio: 1; background: var(--bg-card); border-radius: var(--radius-md);
+                overflow: hidden; cursor: pointer; position: relative;
+                border: 1px solid var(--border-default);
+                transition: transform 0.15s, box-shadow 0.15s; }
+  .album-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .album-cover { width: 100%; height: 70%; object-fit: cover; background: var(--bg-muted); }
+  .album-info { padding: 8px 12px; }
+  .album-name { font-size: var(--font-m); font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+  .album-count { font-size: var(--font-s); color: var(--text-muted); }
+
+  /* People */
+  .people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .person-card { aspect-ratio: 1; background: var(--bg-card); border-radius: var(--radius-md);
+                 overflow: hidden; cursor: pointer; position: relative;
+                 border: 1px solid var(--border-default);
+                 transition: transform 0.15s, box-shadow 0.15s; }
+  .person-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .person-cover { width: 100%; height: 70%; object-fit: cover; background: var(--bg-muted); }
+  .person-info { padding: 8px 12px; }
+  .person-name { font-size: var(--font-m); font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+  .person-count { font-size: var(--font-s); color: var(--text-muted); }
+  .person-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .person-detail-header h2 { flex: 1; margin: 0; font-size: var(--font-l); color: var(--text-primary); }
+  .person-detail-header button { font-size: var(--font-m); }
+
+  .livephoto-hover { position: absolute; inset: 0; display: none; }
+  .livephoto-hover video { width: 100%; height: 100%; object-fit: contain; }
+  .album-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .album-detail-header h2 { flex: 1; margin: 0; font-size: var(--font-l); color: var(--text-primary); }
+  .create-album-btn { background: var(--ring); color: white; }
+  .create-album-btn:hover { background: var(--ring); filter: brightness(1.1); }
+
+  /* Toast */
+  .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+           background: var(--bg-elevated); color: var(--text-primary);
+           padding: 12px 16px; border-radius: var(--radius-lg);
+           box-shadow: var(--shadow-lg); border: 1px solid var(--border-default);
+           font-size: var(--font-m); max-width: 80%;
+           opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 200; }
+  .toast.show { opacity: 1; }
+  .toast.success { border-left: 4px solid var(--accent-success); }
+  .toast.error { border-left: 4px solid var(--accent-danger); }
+  .toast.warning { border-left: 4px solid var(--accent-warning); }
+
+  /* Lightbox */
+  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 500;
+              display: none; }
+  .lightbox.show { display: flex; }
+  .lightbox-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 32px; }
+  .lightbox-sidebar { width: 300px; background: var(--bg-surface);
+                      border-left: 1px solid var(--border-default);
+                      padding: 20px; overflow-y: auto; }
+  .lightbox img, .lightbox video { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .lightbox .close { position: absolute; top: 16px; right: 16px;
+                     background: var(--bg-elevated); color: var(--text-primary);
+                     border: none; padding: 8px 16px; border-radius: var(--radius-sm);
+                     cursor: pointer; font-size: var(--font-m); z-index: 10;
+                     box-shadow: var(--shadow-md); }
+  .lightbox .close:hover { background: var(--accent-danger); color: white; }
+
+  .exif-section { margin-bottom: 16px; }
+  .exif-section h4 { margin: 0 0 8px; font-size: var(--font-m); color: var(--text-secondary); }
+  .exif-row { display: flex; justify-content: space-between; padding: 8px 0;
+              border-bottom: 1px solid var(--border-default); font-size: var(--font-s); }
+  .exif-label { color: var(--text-muted); }
+  .exif-value { color: var(--text-primary); font-weight: 500; }
+
+  /* Modal helpers (settings 등) */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+                   z-index: 600; display: none;
+                   align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal-card { background: var(--bg-surface); padding: 24px;
+                border-radius: var(--radius-lg); width: 520px; max-width: 90%;
+                border: 1px solid var(--border-default); box-shadow: var(--shadow-lg);
+                position: relative; }
+  .modal-card h3 { margin: 0 0 16px; font-size: var(--font-l); color: var(--text-primary); }
+  .modal-card h4 { margin: 0 0 8px; font-size: var(--font-m); color: var(--text-secondary); }
+  .modal-close-x { position: absolute; top: 12px; right: 12px;
+                   width: 32px; height: 32px; padding: 0;
+                   background: var(--bg-elevated); color: var(--text-primary);
+                   border: 1px solid var(--border-default); border-radius: 50%;
+                   cursor: pointer; font-size: var(--font-m); line-height: 1;
+                   display: inline-flex; align-items: center; justify-content: center; }
+  .modal-close-x:hover { background: var(--accent-danger); color: #ffffff; border-color: var(--accent-danger); }
+  .modal-version { text-align: center; color: var(--text-muted);
+                   font-size: var(--font-s); margin-top: 12px;
+                   border-top: 1px solid var(--border-default); padding-top: 12px; }
+
+  /* Inputs 공통 */
+  .input-field { width: 100%; padding: 8px 12px; border-radius: var(--radius-sm);
+                 background: var(--bg-muted); border: 1px solid var(--border-default);
+                 color: var(--text-primary); font-size: var(--font-m);
+                 transition: border-color 0.15s, box-shadow 0.15s; }
+  .input-field::placeholder { color: var(--text-muted); }
+  .input-field:focus { outline: none; border-color: var(--ring);
+                       box-shadow: 0 0 0 3px var(--ring-shadow); }
+
+  /* FAB 제거됨 — MyCrewFab(호스트 우하단)이 통합 채팅 진입점 */
+
+  .bus-status { display: none; }
+
+  /* ===== Mobile responsive (<=720px) =====
+     모바일에서는 sidebar를 강제 collapsed(68px)로 두어 main 콘텐츠가 가려지지 않도록 함.
+     이전: body display:flex + sidebar 240px 고정 → 모바일 360~414px에서 main이 120~174px만 남아
+     콘텐츠가 보이지 않고 라이트 모드에서 흰 영역만 표시됐음. */
+  @media (max-width: 720px) {
+    /* 페이지 핀치줌·좌우 스와이프 차단 (앱 내부 핀치 핸들러는 자체 preventDefault) */
+    html, body { overflow-x: hidden; overscroll-behavior-x: none; touch-action: pan-y; }
+    body { min-height: 100vh; min-height: 100dvh; }
+    .main { min-height: 100vh; min-height: 100dvh; width: 100%; min-width: 0; }
+    .container { min-height: calc(100vh - 120px); min-height: calc(100dvh - 120px);
+                 padding: 4px; }
+
+    /* 사이드바 → 오버레이 드로어. 기본 숨김, .mobile-open 시 슬라이드 인. */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+      width: 260px !important; flex: 0 0 260px !important; min-width: 260px !important;
+      padding: 20px 12px !important;
+      transform: translateX(-100%);
+      box-shadow: var(--shadow-lg);
+      transition: transform var(--t-base) var(--ease-out);
+    }
+    .sidebar.mobile-open { transform: translateX(0); }
+    /* 모바일에서는 데스크톱 collapsed 상태를 시각적으로 무시 (펼친 상태로 노출) */
+    .sidebar.collapsed {
+      width: 260px !important; flex: 0 0 260px !important; min-width: 260px !important;
+      padding: 20px 12px !important;
+    }
+    .sidebar.collapsed .sidebar-item {
+      padding: 10px 16px; justify-content: flex-start; gap: 14px;
+    }
+    .sidebar.collapsed .sidebar-item > span:nth-child(2),
+    .sidebar.collapsed .sidebar-count,
+    .sidebar.collapsed .sidebar-section { display: initial; }
+    /* sidebar 안 ≡ 버튼은 모바일에서 닫기 역할 */
+    .sidebar-toggle { display: flex; }
+
+    /* 백드롭 */
+    .sidebar-backdrop {
+      display: block; position: fixed; inset: 0; z-index: 99;
+      background: rgba(0,0,0,0.45);
+      opacity: 0; pointer-events: none;
+      transition: opacity var(--t-base) var(--ease-out);
+    }
+    .sidebar-backdrop.show { opacity: 1; pointer-events: auto; }
+
+    /* topbar — 모바일 3행 레이아웃:
+       1행: ≡(메뉴 토글) + 검색박스 (남는 폭 전부)
+       2행: 데이트피커 시작/종료 (가로 한 행)
+       3행: 업로드 + 줌(−/+) + 선택모드/폴더/설정 (가로 한 행, 아이콘 압축)
+       구현: topbar-left/right 를 display:contents 로 투명화하여 자식들이 .topbar 의
+       flex item 이 되도록 평탄화 → flex-wrap:wrap + flex-basis 로 행 분할 */
+    .topbar { padding: 6px 8px; gap: 6px; row-gap: 6px; flex-wrap: wrap; align-items: center; }
+    .topbar h1 { display: none; }
+    .topbar > .grow { display: none !important; }
+    .mobile-menu-btn { display: inline-flex; flex: 0 0 auto; }
+    .topbar-left, .topbar-right { display: contents !important; }
+
+    /* 1행 — 검색박스 (햄버거 옆 같은 행) */
+    .search-wrapper { flex: 1 1 auto !important; max-width: none !important; min-width: 0 !important; }
+    .search-box { height: 36px; padding: 0 14px 0 40px; font-size: var(--font-m); }
+    .search-wrapper::before { left: 14px; font-size: 14px; }
+
+    /* 2행 — 데이트피커 가로 한 행 (flex-basis:100% 로 줄바꿈 강제) */
+    .date-range-row { flex: 1 1 100% !important; display: flex !important; flex-direction: row !important; align-items: center !important; flex-wrap: nowrap !important; gap: 4px; }
+    .date-range-row .search-box { flex: 1 1 auto !important; width: auto !important; max-width: none !important; min-width: 0 !important; height: 32px; padding: 0 8px; }
+    .date-range-row .date-range-sep { display: inline !important; }
+    .date-range-row #btn-date-range-clear { flex: 0 0 auto; }
+
+    /* 3행 — 업로드 + 줌 + 아이콘 3개 가로 한 행 */
+    .topbar label.btn[for="upload-input"] {
+      flex: 0 0 auto !important; width: auto !important;
+      padding: 0 10px !important; height: 32px; font-size: var(--font-s);
+      align-self: center;
+    }
+    .thumb-zoom-group { flex: 0 0 auto !important; display: flex !important; gap: 4px; }
+    .thumb-zoom-group .btn { flex: 0 0 32px; width: 32px !important; height: 32px; min-width: 0; padding: 0; font-size: var(--font-s); }
+
+    /* 아이콘 전용 — 선택/폴더/설정 텍스트 숨김 후 이모지 ::before */
+    #btn-select-mode,
+    #btn-import-folder,
+    #btn-settings {
+      flex: 0 0 auto !important;
+      width: 36px !important; max-width: 36px; min-width: 36px;
+      padding: 0 !important; height: 32px;
+      overflow: hidden;
+      text-indent: 200%; white-space: nowrap;
+      position: relative;
+    }
+    #btn-select-mode::before { content: '✓'; }
+    #btn-import-folder::before { content: '📁'; }
+    #btn-settings::before { content: '⚙️'; }
+    #btn-select-mode::before,
+    #btn-import-folder::before,
+    #btn-settings::before {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      text-indent: 0; font-size: 16px;
+    }
+
+    /* Row3 우측 정렬 — 줌(−/+)/선택모드/폴더가져오기/설정(⚙) 4종을 우측 그룹으로 (업로드만 좌측). 줌 그룹에 margin-left:auto 적용 시 그 시점부터 모든 후속 형제가 한 덩어리로 우측 정렬됨 */
+    .topbar .thumb-zoom-group { margin-left: auto !important; }
+
+    /* 갤러리 edge-to-edge — 구글 포토/애플 사진 스타일 */
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important;
+      gap: 2px !important;
+    }
+    .tile { border-radius: 2px; }
+    .tile:hover { transform: none; box-shadow: none; }
+    .tile-action { width: 24px; height: 24px; }
+    .month { margin: 16px 0 8px; padding-bottom: 6px; font-size: var(--font-s); }
+
+    .lightbox { height: 100dvh; }
+  }
+</style>
+<script src="./i18n.js?v=20260614c"></script>
+<script>
+  /* iframe-mount-aware base path. 호스트(3457)가 /api/apps/<id>/proxy/ 하위로 마운트해도
+     `/api/...` 절대경로 fetch/이미지가 호스트 root로 가서 404 나는 문제 차단.
+     단독(3201) 시 location.pathname이 / 라 BASE=''로 라우팅 무변경. */
+  (function () {
+    var m = (location.pathname || '').match(/^(.*\/proxy)(\/|$)/);
+    var APP_BASE = m ? m[1] : '';
+    window.APP_BASE = APP_BASE;
+    window.appUrl = function (path) {
+      if (!APP_BASE || typeof path !== 'string') return path;
+      if (path.charAt(0) !== '/' || path.indexOf('//') === 0) return path;
+      if (path.indexOf(APP_BASE + '/') === 0) return path;
+      return APP_BASE + path;
+    };
+    window.rewriteAssetUrlsDeep = function (obj) {
+      if (!APP_BASE || !obj) return;
+      if (Array.isArray(obj)) { for (var i = 0; i < obj.length; i++) window.rewriteAssetUrlsDeep(obj[i]); return; }
+      if (typeof obj !== 'object') return;
+      for (var k in obj) {
+        var v = obj[k];
+        if (typeof v === 'string' && v.charAt(0) === '/' && v.indexOf('/api/') === 0 && v.indexOf(APP_BASE + '/') !== 0) obj[k] = APP_BASE + v;
+        else if (v && typeof v === 'object') window.rewriteAssetUrlsDeep(v);
+      }
+    };
+    if (APP_BASE) {
+      var origFetch = window.fetch.bind(window);
+      window.fetch = function (input, init) {
+        if (typeof input === 'string') input = window.appUrl(input);
+        return origFetch(input, init);
+      };
+    }
+  })();
+</script>
+</head>
+<body>
+  <script>
+    /* 마이크루 셸 iframe 내부면 자체 헤더 h1 숨겨 이중 헤더 차단.
+       window.self !== window.top 비교는 cross-origin에서도 안전. */
+    try {
+      if (window.self !== window.top) document.body.classList.add('embedded');
+      var qs = new URLSearchParams(location.search);
+      if (qs.get('embedded') === '1') document.body.classList.add('embedded');
+    } catch (e) { document.body.classList.add('embedded'); }
+  </script>
+  <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" data-i18n-title="btn.sidebarToggle" title="사이드바 접기/펼치기" aria-label="toggle sidebar">≡</button>
+    <div class="sidebar-item active" data-filter="library">
+      <span>📚</span>
+      <span data-i18n="nav.library">라이브러리</span>
+      <span class="sidebar-count" id="count-library">0</span>
+    </div>
+    <div class="sidebar-item" data-filter="favorites">
+      <span>⭐</span>
+      <span data-i18n="nav.favorites">즐겨찾기</span>
+      <span class="sidebar-count" id="count-favorites">0</span>
+    </div>
+    <div class="sidebar-item" data-filter="archive">
+      <span>📦</span>
+      <span data-i18n="nav.archived">보관함</span>
+      <span class="sidebar-count" id="count-archive">0</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item" data-filter="albums">
+      <span>📂</span>
+      <span data-i18n="nav.albums">앨범</span>
+    </div>
+    <div class="sidebar-item" data-filter="people">
+      <span>👤</span>
+      <span data-i18n="nav.people">인물</span>
+    </div>
+    <div class="sidebar-item" data-filter="documents">
+      <span>📄</span>
+      <span data-i18n="nav.documents">문서</span>
+      <span class="sidebar-count" id="count-documents">0</span>
+    </div>
+    <div class="sidebar-item" data-filter="screenshots">
+      <span>📱</span>
+      <span data-i18n="nav.screenshots">스크린샷</span>
+      <span class="sidebar-count" id="count-screenshots">0</span>
+    </div>
+    <div class="sidebar-item" data-filter="businesscards">
+      <span>💼</span>
+      <span data-i18n="nav.businesscards">명함</span>
+      <span class="sidebar-count" id="count-businesscards">0</span>
+    </div>
+    <input type="file" id="bc-scan-input" accept="image/*" capture="environment" style="display:none">
+    <div class="sidebar-item" data-filter="map">
+      <span>🗺️</span>
+      <span data-i18n="nav.map">지도</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-item" data-filter="trash">
+      <span>🗑️</span>
+      <span data-i18n="nav.trash">휴지통</span>
+      <span class="sidebar-count" id="count-trash">0</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="mobile-menu-btn" id="mobile-menu-btn" type="button" aria-label="메뉴 열기" title="메뉴">☰</button>
+      <h1 id="page-title" data-i18n="pageTitle.library">📷 라이브러리</h1>
+      <div class="topbar-left" style="display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;flex-wrap:nowrap;">
+        <div class="search-wrapper" style="flex:1 1 260px;">
+          <input type="text" class="search-box" id="search-box" data-i18n-placeholder="search.unifiedPlaceholder" placeholder="검색 — OCR 텍스트, 태그, 카메라">
+        </div>
+        <div class="date-range-row">
+          <input type="date" class="search-box" id="search-date-start" style="width:150px;" aria-label="시작일">
+          <span class="date-range-sep">~</span>
+          <input type="date" class="search-box" id="search-date-end" style="width:150px;" aria-label="종료일">
+          <button type="button" class="btn icon" id="btn-date-range-clear" title="기간 초기화" aria-label="기간 초기화" style="width:32px;height:32px;font-size:14px;">✕</button>
+        </div>
+        <label class="btn primary" for="upload-input" data-i18n="common.upload">⬆ 업로드</label>
+        <input type="file" id="upload-input" multiple accept="image/*">
+      </div>
+      <span class="grow"></span>
+      <div class="topbar-right" style="display:flex;align-items:center;gap:8px;flex:0 0 auto;flex-wrap:nowrap;">
+        <div class="thumb-zoom-group" id="thumb-zoom-group" role="group" data-i18n-label="zoom.label" aria-label="썸네일 크기">
+          <button class="btn" id="btn-thumb-zoom-out" type="button" data-i18n-title="zoom.out" title="축소" aria-label="축소">−</button>
+          <button class="btn" id="btn-thumb-zoom-in" type="button" data-i18n-title="zoom.in" title="확대" aria-label="확대">+</button>
+        </div>
+        <button class="btn" id="btn-select-mode" data-i18n="common.selectMode" aria-pressed="false">✓ 선택 모드</button>
+        <button class="btn" id="btn-import-folder" data-i18n="btn.importFolder">📁 폴더 가져오기</button>
+        <button class="btn" id="btn-settings" data-i18n="btn.settings">⚙️ 설정</button>
+      </div>
+    </div>
+
+    <div class="selection-bar" id="selection-bar">
+      <span class="selection-count" id="selection-count">0</span>
+      <div class="selection-actions">
+        <button class="btn" id="btn-add-to-album" data-i18n="btn.addToAlbum">📂 앨범에 추가</button>
+        <button class="btn" id="btn-toggle-favorite" data-i18n="btn.toggleFavorite">⭐ 즐겨찾기</button>
+        <button class="btn" id="btn-toggle-archive" data-i18n="btn.toggleArchive">📦 보관함</button>
+        <button class="btn" id="btn-batch-trash" data-i18n="btn.batchTrash">🗑️ 휴지통</button>
+        <button class="btn" id="btn-batch-mail" data-i18n="btn.batchMail">✉️ 메일로 보내기</button>
+        <button class="btn" id="btn-batch-ocr-doc" data-i18n="btn.batchOcrDoc">📝 OCR 문서화</button>
+        <button class="btn" id="btn-cancel-select" data-i18n="common.cancel">취소</button>
+      </div>
+    </div>
+
+    <div class="container" id="container">
+      <div id="memories-section" style="display:none;"></div>
+      <div class="empty" id="empty-state">
+        <div class="big" id="empty-icon">📷</div>
+        <div><strong id="empty-title" data-i18n="empty.noPhotosTitle">사진이 아직 없습니다</strong></div>
+        <div class="hint" id="empty-hint" data-i18n-html="empty.noPhotosHint">상단 <b>폴더 가져오기</b> 또는 <b>업로드</b>로 시작하세요.</div>
+        <div id="empty-action" style="margin-top:16px;display:none;">
+          <button class="btn primary" id="btn-run-doc-ocr" type="button" data-i18n="btn.runDocOcr">기존 사진 일괄 분석</button>
+        </div>
+      </div>
+      <div id="timeline" style="display:none;"></div>
+      <div id="map-container" style="display:none;"></div>
+      <div id="albums-container" style="display:none;"></div>
+      <div id="album-detail-container" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-main">
+      <button class="close" id="lightbox-close" data-i18n="btn.lightboxClose">닫기 (ESC)</button>
+      <img id="lightbox-img" alt="" style="display:none;">
+      <video id="lightbox-video" controls style="display:none;"></video>
+    </div>
+    <div class="lightbox-sidebar" id="lightbox-sidebar">
+      <div class="exif-section">
+        <h4 data-i18n="section.shootingInfo">촬영 정보</h4>
+        <div id="exif-basic"></div>
+      </div>
+      <div class="exif-section">
+        <h4 data-i18n="section.cameraSettings">카메라 설정</h4>
+        <div id="exif-camera"></div>
+      </div>
+      <div class="exif-section" id="exif-gps-section" style="display:none;">
+        <h4 data-i18n="section.location">위치</h4>
+        <div id="exif-gps"></div>
+      </div>
+      <div class="exif-section" id="ocr-section">
+        <h4 data-i18n="section.ocrTitle">텍스트 인식 (OCR)</h4>
+        <div id="ocr-result">
+          <button class="btn" id="btn-run-ocr" data-i18n="btn.runReceiptOcr" style="width:100%;margin-bottom:8px;">📝 영수증 OCR 실행</button>
+          <button class="btn" id="btn-run-plate" data-i18n="btn.runPlateOcr" style="width:100%;">🚗 번호판 OCR 실행</button>
+          <div id="ocr-text" style="margin-top:8px;font-size:var(--font-s);color:var(--text-muted);"></div>
+        </div>
+      </div>
+      <!-- BUSINESSCARD:START -->
+      <div class="exif-section" id="businesscard-section" style="display:none;">
+        <h4 data-i18n="section.businesscard">💼 명함 정보</h4>
+        <div id="businesscard-data"></div>
+        <button class="btn primary" id="btn-bc-sync-to-host" data-i18n="btn.bcSyncToHost" style="width:100%;margin-top:8px;">📇 연락처로 보내기</button>
+        <button class="btn" id="btn-bc-rescan" data-i18n="btn.bcRescan" style="width:100%;margin-top:4px;">🔄 재스캔</button>
+      </div>
+      <!-- BUSINESSCARD:END -->
+      <!-- PHASE6:RATING:START -->
+      <div class="exif-section" id="rating-section">
+        <h4 data-i18n="section.rating">⭐ 별점</h4>
+        <div id="rating-stars" style="font-size:24px;cursor:pointer;">
+          <span data-rating="1">☆</span>
+          <span data-rating="2">☆</span>
+          <span data-rating="3">☆</span>
+          <span data-rating="4">☆</span>
+          <span data-rating="5">☆</span>
+        </div>
+      </div>
+      <!-- PHASE6:RATING:END -->
+      <!-- PHASE6:TAGS:START -->
+      <div class="exif-section" id="tags-section">
+        <h4 data-i18n="section.tags">🏷️ 태그</h4>
+        <div id="photo-tags" style="margin-bottom:8px;font-size:12px;"></div>
+        <input type="text" id="tag-input" data-i18n-placeholder="search.tagInputPlaceholder" placeholder="태그 입력 후 Enter" class="input-field" style="font-size:var(--font-s);">
+      </div>
+      <!-- PHASE6:TAGS:END -->
+      <!-- PHASE6:SHARE:START -->
+      <div class="exif-section" id="share-section">
+        <h4 data-i18n="section.sharePublicLink">🔗 공개 링크</h4>
+        <input type="password" id="share-password" data-i18n-placeholder="share.passwordPlaceholder" placeholder="비밀번호 (선택)" class="input-field" style="margin-bottom:8px;font-size:var(--font-s);">
+        <button class="btn" id="btn-create-share" data-i18n="btn.shareCreate" style="width:100%;margin-bottom:8px;">공개 링크 생성</button>
+        <div id="share-link-result" style="font-size:var(--font-s);color:var(--text-muted);"></div>
+      </div>
+      <!-- PHASE6:SHARE:END -->
+    </div>
+  </div>
+
+  <div class="bus-status" id="bus-status" data-i18n="bus.connecting">bus 연결 중...</div>
+
+<!-- PHASE6:WATCH:START -->
+<div id="settings-modal" class="modal-overlay">
+  <div class="modal-card">
+    <button type="button" class="modal-close-x" id="btn-close-settings" data-i18n-title="common.close" title="닫기" aria-label="닫기">✕</button>
+    <h3 data-i18n="section.settingsTitle">⚙️ 설정</h3>
+    <div style="margin-bottom:16px;">
+      <h4 data-i18n="section.theme">🎨 테마</h4>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn toggle-opt" data-theme-set="light" data-i18n="settings.themeLight" style="flex:1;">☀️ 라이트</button>
+        <button class="btn toggle-opt" data-theme-set="dark" data-i18n="settings.themeDark" style="flex:1;">🌙 다크</button>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <h4 data-i18n="section.language">🌐 언어</h4>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn toggle-opt" data-lang="ko" data-i18n="settings.langKo" style="flex:1;min-width:80px;">한국어</button>
+        <button class="btn toggle-opt" data-lang="en" data-i18n="settings.langEn" style="flex:1;min-width:80px;">English</button>
+        <button class="btn toggle-opt" data-lang="ja" data-i18n="settings.langJa" style="flex:1;min-width:80px;">日本語</button>
+      </div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <h4 data-i18n="section.watchedFolders">📁 외부 폴더 자동 감시</h4>
+      <div id="watch-folders-list" style="margin-bottom:8px;font-size:var(--font-s);color:var(--text-muted);"></div>
+      <input type="text" id="watch-folder-input" data-i18n-placeholder="watched.pathPlaceholder" placeholder="폴더 경로 (예: ~/Photos)" class="input-field" style="margin-bottom:8px;font-size:var(--font-s);">
+      <button class="btn primary" id="btn-add-watch-folder" data-i18n="common.add" style="width:100%;">+ 추가</button>
+    </div>
+    <div class="modal-version" id="settings-version">v0.4.0</div>
+  </div>
+</div>
+<!-- PHASE6:WATCH:END -->
+
+<!-- iframe-safe prompt modal (replaces window.prompt) -->
+<div id="ui-prompt-modal" class="ui-modal-overlay" role="dialog" aria-modal="true">
+  <div class="ui-modal-card">
+    <h4 id="ui-prompt-title">입력</h4>
+    <input type="text" id="ui-prompt-input" autocomplete="off">
+    <div class="ui-modal-actions">
+      <button class="btn" id="ui-prompt-cancel" data-i18n="common.cancel">취소</button>
+      <button class="btn primary" id="ui-prompt-ok" data-i18n="common.confirm">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- iframe-safe confirm modal (replaces window.confirm — some iframe sandboxes block it) -->
+<div id="ui-confirm-modal" class="ui-modal-overlay" role="alertdialog" aria-modal="true">
+  <div class="ui-modal-card">
+    <h4 id="ui-confirm-title">확인</h4>
+    <p id="ui-confirm-message" style="margin:8px 0 16px;color:var(--text-muted);font-size:14px;line-height:1.5;"></p>
+    <div class="ui-modal-actions">
+      <button class="btn" id="ui-confirm-cancel" data-i18n="common.cancel">취소</button>
+      <button class="btn primary" id="ui-confirm-ok" data-i18n="common.confirm">확인</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+<script>
+(function() {
+  // Host origin: dynamic resolution so postMessage targetOrigin tracks the actual parent
+  // (mycrew-system PORT=3457 in .env diverges from the legacy 3456 default).
+  var HOST_ORIGIN = (function() {
+    try {
+      var ao = (window.location && window.location.ancestorOrigins) || null;
+      if (ao && ao.length > 0) return ao[0];
+    } catch (_) {}
+    try { if (document.referrer) return new URL(document.referrer).origin; } catch (_) {}
+    return 'http://127.0.0.1:3457';
+  })();
+  var currentFilter = 'library';
+  var searchDebounce = null;
+  var map = null;
+  var mapMarkers = [];
+  var selectionMode = false;
+  var selectedPhotos = new Set();
+  var lastSelectedSha = null;
+  var currentAlbumId = null;
+
+  // Cross-origin drag-and-drop bridge: postMessage single channel.
+  // 과거 dataTransfer setData (uri-list / plain / html / x-mycrew-photo-url) 와 postMessage 를
+  // 동시에 발신 → 호스트 dedup 부작용으로 0 건 첨부 회귀 발생. 단일 경로(postMessage drag.start)로
+  // 통합하여 호스트 ChatPanel.handleDrop 의 window.__mycrewDropUrl 폴백만 활성화한다.
+  // 명함 모드는 별도 채널(application/x-mycrew-contact-ref + contact.dragstart) 만 사용.
+  window.__photoDragStart = function(e, sha, mediaType) {
+    if (mediaType === 'video' || !sha) return;
+    try {
+      var url = location.origin + window.appUrl('/api/library/asset/' + sha + '/original');
+      // cursor visualization only — no dataTransfer URL payload.
+      try { e.dataTransfer.effectAllowed = 'copy'; } catch (_) {}
+      // 명함 모드: contact-ref 전용 경로 (사진 URL bridge 생략 → 호스트 합산 중복 방지)
+      if (currentFilter === 'businesscards') {
+        var contactRef = { type: 'businesscard-ref', sha256: sha };
+        try { e.dataTransfer.setData('application/x-mycrew-contact-ref', JSON.stringify(contactRef)); } catch (_) {}
+        try { window.parent.postMessage({ source: 'mycrew-photos', type: 'contact.dragstart', payload: contactRef }, HOST_ORIGIN); } catch (_) {}
+        return;
+      }
+      // 일반 사진: postMessage 단일 경로 — 호스트가 window.__mycrewDropUrl 에 스테이징
+      try { window.parent.postMessage({ source: 'mycrew-photos', type: 'drag.start', payload: { url: url } }, HOST_ORIGIN); } catch (_) {}
+    } catch (err) { /* noop */ }
+  };
+
+  // Notify host on drag end so the host bridge can clear the staged URL.
+  document.addEventListener('dragend', function() {
+    try { window.parent.postMessage({ source: 'mycrew-photos', type: 'drag.end' }, HOST_ORIGIN); } catch (_) {}
+  }, true);
+  
+  var busStatus = document.getElementById('bus-status');
+  var toast = document.getElementById('toast');
+  var emptyState = document.getElementById('empty-state');
+  var timeline = document.getElementById('timeline');
+  var memoriesSection = document.getElementById('memories-section');
+  var mapContainer = document.getElementById('map-container');
+  var albumsContainer = document.getElementById('albums-container');
+  var albumDetailContainer = document.getElementById('album-detail-container');
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightbox-img');
+  var lightboxSidebar = document.getElementById('lightbox-sidebar');
+  var pageTitle = document.getElementById('page-title');
+  var searchBox = document.getElementById('search-box');
+  var selectionBar = document.getElementById('selection-bar');
+  var selectionCount = document.getElementById('selection-count');
+  var chatOpen = false;
+
+  // ----- postMessage <-> host -----
+  function postHost(type, payload) {
+    if (!window.parent || window.parent === window) return;
+    window.parent.postMessage({ source: 'mycrew-photos', type: type, payload: payload || {} }, HOST_ORIGIN);
+  }
+
+  // FAB 제거됨 — 호스트가 chat.open/close를 자체 FAB로 트리거.
+  // postHost('chat.open', { context })는 사진앱 뷰 컨텍스트가 필요할 때 다른 경로로 호출 가능.
+
+  window.addEventListener('message', function(e) {
+    if (e.origin !== HOST_ORIGIN) return;
+    var d = e.data;
+    if (!d || d.source !== 'mycrew-host') return;
+    if (d.type === 'chat.state' && d.payload && typeof d.payload.open === 'boolean') {
+      chatOpen = d.payload.open;
+      // FAB 제거됨 — 시각 토글 대상 없음. chatOpen state만 유지.
+    }
+  });
+
+  // ----- Toast -----
+  var toastTimer = null;
+  function showToast(text, ms) {
+    toast.textContent = text;
+    toast.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function() { toast.classList.remove('show'); }, ms || 3000);
+  }
+
+  // ----- Business Card Scan (host POST /api/contacts/scan) -----
+  /* photos 단독 모드(3201)에는 라우트가 없고, 마이크루 호스트 iframe 임베드 시
+     same-origin proxy 루트("/api/contacts/scan") 호출이 호스트 라우터에 직접
+     도달한다. body.embedded 클래스로만 버튼이 노출되며, 안전망으로 비임베드
+     상태에서는 안내 토스트만 띄운다. */
+  (function() {
+    var scanBtn = document.getElementById('btn-bc-scan');
+    var scanInput = document.getElementById('bc-scan-input');
+    if (!scanBtn || !scanInput) return;
+    var scanning = false;
+    scanBtn.addEventListener('click', function(ev) {
+      ev.stopPropagation();
+      ev.preventDefault();
+      if (!document.body.classList.contains('embedded')) {
+        showToast('호스트 앱(마이크루)에서 실행해 주세요');
+        return;
+      }
+      if (scanning) { showToast('명함 스캔 진행 중입니다'); return; }
+      scanInput.value = '';
+      scanInput.click();
+    });
+    scanInput.addEventListener('change', function(ev) {
+      var file = (ev.target.files && ev.target.files[0]) || null;
+      if (!file) return;
+      scanning = true;
+      var fd = new FormData();
+      fd.append('image', file);
+      showToast('명함 스캔 중...', 30000);
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = setTimeout(function() { if (ctrl) ctrl.abort(); }, 30000);
+      var opts = { method: 'POST', body: fd };
+      if (ctrl) opts.signal = ctrl.signal;
+      fetch('/api/contacts/scan', opts).then(function(r) {
+        return r.text().then(function(t) {
+          var body = null;
+          try { body = t ? JSON.parse(t) : null; } catch (e) { body = null; }
+          return { ok: r.ok, status: r.status, body: body, raw: t };
+        });
+      }).then(function(res) {
+        clearTimeout(timer);
+        scanning = false;
+        if (res.ok && res.body && res.body.ok) {
+          var c = res.body.contact || {};
+          var name = c.name || c.fullName || '(이름 없음)';
+          var method = res.body.method || 'unknown';
+          showToast('연락처 추가됨: ' + name + ' (' + method + ')', 4000);
+          var cEl = document.getElementById('count-businesscards');
+          if (cEl) {
+            api('/api/library/counts').then(function(cnt) {
+              cEl.textContent = cnt.businesscards || 0;
+            }).catch(function() {});
+          }
+          if (typeof currentFilter !== 'undefined' && currentFilter === 'businesscards'
+              && typeof refreshView === 'function') {
+            try { refreshView(); } catch (e) {}
+          }
+        } else {
+          var msg = (res.body && res.body.error)
+            || (res.status ? ('HTTP ' + res.status) : '응답 오류');
+          showToast('명함 스캔 실패: ' + msg, 5000);
+        }
+      }).catch(function(err) {
+        clearTimeout(timer);
+        scanning = false;
+        if (err && err.name === 'AbortError') {
+          showToast('명함 스캔 시간 초과 (30초)', 5000);
+        } else {
+          var m = (err && err.message) ? err.message : '네트워크 오류';
+          showToast('명함 스캔 실패: ' + m, 5000);
+        }
+      });
+    });
+  })();
+
+  // ----- Selection mode -----
+  function toggleSelectionMode() {
+    selectionMode = !selectionMode;
+    selectedPhotos.clear();
+    lastSelectedSha = null;
+    selectionBar.classList.toggle('show', selectionMode);
+    updateSelectionCount();
+    
+    var bSel = document.getElementById('btn-select-mode');
+    if (selectionMode) {
+      bSel.setAttribute('data-i18n', 'common.selectModeOn');
+      bSel.textContent = window.t ? window.t('common.selectModeOn') : '✓ 선택 모드 (켜짐)';
+      bSel.setAttribute('aria-pressed', 'true');
+      timeline.querySelectorAll('.tile').forEach(function(tile) {
+        tile.classList.add('selectable');
+      });
+    } else {
+      bSel.setAttribute('data-i18n', 'common.selectMode');
+      bSel.textContent = window.t ? window.t('common.selectMode') : '✓ 선택 모드';
+      bSel.setAttribute('aria-pressed', 'false');
+      timeline.querySelectorAll('.tile').forEach(function(tile) {
+        tile.classList.remove('selectable', 'selected');
+      });
+    }
+    // 월별 헤더 체크박스는 selectionMode 의존이므로 timeline 재렌더링이 가장 안전.
+    if (typeof refreshView === 'function') refreshView();
+  }
+
+  // 지도 화면에서는 선택 모드 토글 + 선택 바를 숨긴다. (currentFilter는 클로저 변수)
+  function updateSelectionToggleVisibility() {
+    var bSel = document.getElementById('btn-select-mode');
+    var isMap = (typeof currentFilter !== 'undefined' && currentFilter === 'map');
+    if (bSel) bSel.style.display = isMap ? 'none' : '';
+    if (isMap && selectionMode) {
+      // 선택 모드 강제 해제 (refreshView 재호출 회피)
+      selectionMode = false;
+      selectedPhotos.clear();
+      lastSelectedSha = null;
+      selectionBar.classList.toggle('show', false);
+      updateSelectionCount();
+      bSel.setAttribute('data-i18n', 'common.selectMode');
+      bSel.textContent = window.t ? window.t('common.selectMode') : '✓ 선택 모드';
+      bSel.setAttribute('aria-pressed', 'false');
+    }
+  }
+
+  function updateSelectionCount() {
+    selectionCount.textContent = window.t ? window.t('common.selectedCount', { count: selectedPhotos.size }) : (selectedPhotos.size + '개 선택됨');
+  }
+
+  function updateMonthCheckboxStates() {
+    if (!selectionMode) return;
+    timeline.querySelectorAll('.month-checkbox').forEach(function(checkbox) {
+      var monthKey = checkbox.getAttribute('data-month-key');
+      var monthTiles = Array.from(timeline.querySelectorAll('.tile[data-month-key="' + monthKey + '"]'));
+      if (monthTiles.length === 0) return;
+      
+      // Use selectedPhotos Set as source of truth — DOM .selected class may lag by a frame
+      var selectedCount = monthTiles.filter(function(tile) {
+        return selectedPhotos.has(tile.getAttribute('data-sha'));
+      }).length;
+      
+      var allSelected = selectedCount === monthTiles.length;
+      var someSelected = selectedCount > 0 && selectedCount < monthTiles.length;
+      
+      checkbox.checked = allSelected;
+      checkbox.indeterminate = someSelected;
+    });
+  }
+
+  function togglePhotoSelection(sha) {
+    if (selectedPhotos.has(sha)) {
+      selectedPhotos.delete(sha);
+    } else {
+      selectedPhotos.add(sha);
+    }
+    updateSelectionCount();
+    updateMonthCheckboxStates();
+  }
+
+  // ----- People -----
+  function loadPeople() {
+    pageTitle.setAttribute('data-i18n', 'pageTitle.people');
+    pageTitle.textContent = window.t ? window.t('pageTitle.people') : '👤 인물';
+    api('/api/people').then(function(data) {
+      renderPeople(data.people || []);
+    }).catch(function(e) {
+      console.warn('[photos] people load failed, showing empty state:', e && e.message);
+      renderPeople([]);
+    });
+  }
+  
+  function renderPeople(people) {
+    var peopleContainer = document.getElementById('people-container');
+    peopleContainer.style.display = '';
+    timeline.style.display = 'none';
+    memoriesSection.style.display = 'none';
+    albumsContainer.style.display = 'none';
+    albumDetailContainer.style.display = 'none';
+    mapContainer.style.display = 'none';
+    
+    var html = '<div class="people-grid">';
+    people.forEach(function(person) {
+      var coverUrl = person.cover_photo_id 
+        ? window.appUrl('/api/library/asset/' + person.cover_photo_id + '/thumbnail')
+        : '';
+      html += '<div class="person-card" onclick="viewPerson(' + person.id + ')">';
+      if (coverUrl) {
+        html += '<img class="person-cover" src="' + coverUrl + '" loading="lazy">';
+      } else {
+        html += '<div class="person-cover" style="display:flex;align-items:center;justify-content:center;font-size:48px;">👤</div>';
+      }
+      html += '<div class="person-info">';
+      html += '<div class="person-name">' + (person.name || (window.t ? window.t('common.unspecified') : '미지정')) + '</div>';
+      html += '<div class="person-count">' + (window.t ? window.t('count.photos', { count: person.photo_count }) : (person.photo_count + '장')) + '</div>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+    
+    if (people.length === 0) {
+      var emptyT = window.t || function(k){return k;};
+      html = '<div class="empty"><div class="big">👤</div><div>' + emptyT('empty.noPeople') + '</div><div class="hint">' + emptyT('empty.peopleHint') + '</div></div>';
+    }
+    
+    peopleContainer.innerHTML = html;
+  }
+  
+  window.viewPerson = function(personId) {
+    api('/api/people/' + personId).then(function(data) {
+      var person = data.person;
+      var photos = data.photos || [];
+      
+      var personT = window.t || function(k,v){return k;};
+      var personName = person.name || personT('common.unspecified');
+      pageTitle.removeAttribute('data-i18n');
+      pageTitle.textContent = personT('pageTitle.personDetail', { name: personName });
+      
+      var peopleContainer = document.getElementById('people-container');
+      var html = '<div class="person-detail-header">';
+      html += '<h2>' + personName + '</h2>';
+      html += '<button class="btn" onclick="renamePerson(' + personId + ')">' + personT('btn.renamePerson') + '</button>';
+      html += '<button class="btn" onclick="backToPeople()">' + personT('btn.backToPeople') + '</button>';
+      html += '</div>';
+      html += '<div class="grid" id="photos-grid"></div>';
+      
+      peopleContainer.innerHTML = html;
+      
+      // Render photos
+      var grid = peopleContainer.querySelector('#photos-grid');
+      photos.forEach(function(photo) {
+        var tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.setAttribute('data-sha', photo.sha256);
+        var img = document.createElement('img');
+        img.src = window.appUrl('/api/library/asset/' + photo.sha256 + '/thumbnail');
+        img.loading = 'lazy';
+        tile.appendChild(img);
+        tile.addEventListener('click', function() {
+          openLightbox({ sha256: photo.sha256, thumbnailUrl: img.src, originalUrl: window.appUrl('/api/library/asset/' + photo.sha256 + '/original') });
+        });
+        grid.appendChild(tile);
+      });
+    }).catch(function(e) {
+      showToast(window.t ? window.t('error.personLoad', { error: e.message }) : ('인물 정보 로드 실패: ' + e.message));
+    });
+  };
+  
+  window.backToPeople = function() {
+    currentFilter = 'people';
+    loadPeople();
+  };
+  
+  window.renamePerson = function(personId) {
+    var rpT = window.t || function(k,v){return k;};
+    var newName = prompt(rpT('prompt.newPersonName'));
+    if (!newName || !newName.trim()) return;
+    
+    api('/api/people/' + personId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName.trim() }),
+    }).then(function() {
+      showToast(rpT('toast.renamed', { name: newName }));
+      viewPerson(personId);
+    }).catch(function(e) {
+      showToast(rpT('error.renameFailed', { error: e.message }));
+    });
+  };
+  
+  // ----- Albums -----
+  function loadAlbums() {
+    var laT = window.t || function(k,v){return k;};
+    api('/api/library/albums').then(function(data) {
+      var albums = data.albums || [];
+      if (albums.length === 0) {
+        albumsContainer.innerHTML = '<div class="empty"><div class="big">📂</div><div style="margin-bottom:28px;">' + laT('empty.noAlbums') + '</div><button class="btn primary create-album-btn" id="btn-create-album" type="button" style="padding:0 24px;height:42px;">＋ ' + laT('btn.createNewAlbum') + '</button></div>';
+      } else {
+        var html = '<div style="margin-bottom:16px;"><button class="btn create-album-btn" id="btn-create-album">' + laT('btn.newAlbum') + '</button></div>';
+        html += '<div class="albums-grid">';
+        albums.forEach(function(album) {
+          var cover = album.coverThumbUrl || '';
+          html += '<div class="album-card" data-album-id="' + album.id + '">';
+          if (cover) {
+            html += '<img src="' + cover + '" class="album-cover">';
+          } else {
+            html += '<div class="album-cover" style="background:var(--bg-muted);"></div>';
+          }
+          html += '<div class="album-info">';
+          html += '<div class="album-name">' + (album.name || laT('album.untitled')) + '</div>';
+          html += '<div class="album-count">' + laT('count.photos', { count: (album.photoCount || 0) }) + '</div>';
+          html += '</div></div>';
+        });
+        html += '</div>';
+        albumsContainer.innerHTML = html;
+      }
+      
+      // Attach handlers
+      var createBtn = document.getElementById('btn-create-album');
+      if (createBtn) {
+        createBtn.addEventListener('click', createAlbum);
+      }
+      
+      albumsContainer.querySelectorAll('.album-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          var albumId = Number(card.getAttribute('data-album-id'));
+          loadAlbumDetail(albumId);
+        });
+      });
+    }).catch(function(e) {
+      showToast(laT('error.albumLoad', { error: e.message }));
+    });
+  }
+
+  function loadAlbumDetail(albumId) {
+    var ladT = window.t || function(k,v){return k;};
+    currentAlbumId = albumId;
+    api('/api/library/albums/' + albumId).then(function(data) {
+      var album = data.album;
+      var photos = data.photos || [];
+      
+      var html = '<div class="album-detail-header">';
+      html += '<button class="btn icon" id="btn-back-to-albums" aria-label="' + ladT('btn.backToAlbums') + '">←</button>';
+      html += '<h2>' + (album.name || ladT('album.untitled')) + '</h2>';
+      html += '<button class="btn" id="btn-edit-album">' + ladT('common.edit') + '</button>';
+      html += '<button class="btn" id="btn-delete-album">' + ladT('common.delete') + '</button>';
+      html += '<button class="btn primary" id="btn-add-photos-to-album">' + ladT('btn.addPhotosToAlbum') + '</button>';
+      html += '</div>';
+      
+      if (photos.length === 0) {
+        html += '<div class="empty"><div class="big">🖼️</div><div>' + ladT('empty.albumEmpty') + '</div></div>';
+      } else {
+        html += '<div class="grid">';
+        photos.forEach(function(photo) {
+          var isVideo = photo.mediaType === 'video';
+          var mediaHtml = isVideo
+            ? '<video muted><source src="' + photo.thumbUrl + '" type="image/webp"></video>'
+            : '<img loading="lazy" draggable="true" ondragstart="window.__photoDragStart && window.__photoDragStart(event, \'' + photo.sha256 + '\', \'' + (photo.mediaType || 'image') + '\')" src="' + photo.thumbUrl + '" alt="' + (photo.filename || '') + '">';
+          html += '<div class="tile" data-sha="' + photo.sha256 + '" data-media-type="' + (photo.mediaType || 'image') + '">';
+          html += mediaHtml;
+          html += '<div class="tile-actions">';
+          html += '<button class="tile-action" data-action="remove-from-album" data-sha="' + photo.sha256 + '">✕</button>';
+          html += '</div></div>';
+        });
+        html += '</div>';
+      }
+      
+      albumDetailContainer.innerHTML = html;
+      albumDetailContainer.style.display = '';
+      albumsContainer.style.display = 'none';
+      timeline.style.display = 'none';
+      memoriesSection.style.display = 'none';
+      mapContainer.style.display = 'none';
+      
+      // Attach handlers
+      document.getElementById('btn-back-to-albums').addEventListener('click', function() {
+        albumDetailContainer.style.display = 'none';
+        currentAlbumId = null;
+        currentFilter = 'albums';
+        refreshView();
+      });
+      
+      document.getElementById('btn-edit-album').addEventListener('click', function() {
+        openPromptModal({
+          title: ladT('prompt.albumRename'),
+          label: ladT('album.name'),
+          placeholder: ladT('album.name'),
+          defaultValue: album.name || ''
+        }).then(function(newName) {
+          if (!newName || newName === album.name) return;
+          api('/api/library/albums/' + albumId, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: newName }),
+          }).then(function() {
+            showToast(ladT('toast.albumRenamed'));
+            loadAlbumDetail(albumId);
+          }).catch(function(e) {
+            showToast(ladT('error.genericFailed', { error: e.message }));
+          });
+        });
+      });
+      
+      document.getElementById('btn-delete-album').addEventListener('click', function() {
+        uiConfirm(ladT('confirm.deleteAlbum'), { danger: true }).then(function(ok) {
+          if (!ok) return;
+          api('/api/library/albums/' + albumId, { method: 'DELETE' })
+            .then(function() {
+              showToast(ladT('toast.albumDeleted'));
+              albumDetailContainer.style.display = 'none';
+              currentAlbumId = null;
+              currentFilter = 'albums';
+              refreshView();
+            }).catch(function(e) {
+              showToast(ladT('error.genericFailed', { error: e.message }));
+            });
+        });
+      });
+      
+      document.getElementById('btn-add-photos-to-album').addEventListener('click', function() {
+        showToast(ladT('toast.selectModeHint'));
+        albumDetailContainer.style.display = 'none';
+        currentFilter = 'library';
+        refreshView();
+        if (!selectionMode) toggleSelectionMode();
+      });
+      
+      albumDetailContainer.querySelectorAll('[data-action="remove-from-album"]').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var sha = btn.getAttribute('data-sha');
+          api('/api/library/albums/' + albumId + '/photos', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoIds: [sha] }),
+          }).then(function() {
+            showToast(ladT('toast.photoRemoved'));
+            loadAlbumDetail(albumId);
+          }).catch(function(e) {
+            showToast(ladT('error.genericFailed', { error: e.message }));
+          });
+        });
+      });
+      
+      albumDetailContainer.querySelectorAll('.tile img, .tile video').forEach(function(media) {
+        media.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var tile = media.closest('.tile');
+          var sha = tile.getAttribute('data-sha');
+          var photo = photos.find(function(p) { return p.sha256 === sha; });
+          if (photo) openLightbox(photo);
+        });
+      });
+    }).catch(function(e) {
+      showToast(ladT('error.albumLoad', { error: e.message }));
+    });
+  }
+
+  // iframe-safe replacement for window.prompt — Promise<string|null>
+  function uiPrompt(title, defaultValue) {
+    return new Promise(function(resolve) {
+      var modal = document.getElementById('ui-prompt-modal');
+      var titleEl = document.getElementById('ui-prompt-title');
+      var inputEl = document.getElementById('ui-prompt-input');
+      var okBtn = document.getElementById('ui-prompt-ok');
+      var cancelBtn = document.getElementById('ui-prompt-cancel');
+      if (!modal) { resolve(null); return; }
+      titleEl.textContent = title || '';
+      inputEl.value = defaultValue || '';
+      modal.classList.add('show');
+      setTimeout(function() { inputEl.focus(); inputEl.select(); }, 30);
+
+      function cleanup() {
+        modal.classList.remove('show');
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        inputEl.removeEventListener('keydown', onKey);
+        modal.removeEventListener('click', onOverlay);
+      }
+      function onOk() { var v = inputEl.value; cleanup(); resolve(v && v.trim() ? v.trim() : null); }
+      function onCancel() { cleanup(); resolve(null); }
+      function onKey(e) { if (e.key === 'Enter') onOk(); else if (e.key === 'Escape') onCancel(); }
+      function onOverlay(e) { if (e.target === modal) onCancel(); }
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+      inputEl.addEventListener('keydown', onKey);
+      modal.addEventListener('click', onOverlay);
+    });
+  }
+
+  // iframe-safe confirm — Promise<boolean>. some iframe sandboxes block window.confirm
+  function uiConfirm(message, opts) {
+    var danger = !!(opts && opts.danger);
+    return new Promise(function (resolve) {
+      var modal = document.getElementById('ui-confirm-modal');
+      var msgEl = document.getElementById('ui-confirm-message');
+      var okBtn = document.getElementById('ui-confirm-ok');
+      var cancelBtn = document.getElementById('ui-confirm-cancel');
+      if (!modal || !msgEl || !okBtn || !cancelBtn) { resolve(window.confirm ? window.confirm(message) : false); return; }
+      msgEl.textContent = message || '';
+      okBtn.classList.toggle('danger', danger);
+      modal.classList.add('show');
+      okBtn.focus();
+      function cleanup() {
+        modal.classList.remove('show');
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        document.removeEventListener('keydown', onKey);
+        modal.removeEventListener('click', onOverlay);
+      }
+      function onOk() { cleanup(); resolve(true); }
+      function onCancel() { cleanup(); resolve(false); }
+      function onKey(e) { if (e.key === 'Enter') onOk(); else if (e.key === 'Escape') onCancel(); }
+      function onOverlay(e) { if (e.target === modal) onCancel(); }
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+      document.addEventListener('keydown', onKey);
+      modal.addEventListener('click', onOverlay);
+    });
+  }
+
+  function createAlbum() {
+    var caT = window.t || function(k,v){return k;};
+    uiPrompt(caT('prompt.newAlbumName')).then(function(name) {
+      if (!name) return;
+      api('/api/library/albums', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name }),
+      }).then(function() {
+        showToast(caT('toast.albumCreated'));
+        refreshView();
+      }).catch(function(e) {
+        showToast(caT('error.genericFailed', { error: e.message }));
+      });
+    });
+  }
+
+  // ----- API -----
+  function api(path, opts) {
+    return fetch(path, opts).then(function(r) {
+      if (!r.ok) return r.text().then(function(t) { throw new Error(r.status + ' ' + t); });
+      return r.json();
+    }).then(function(data) {
+      if (window.rewriteAssetUrlsDeep) window.rewriteAssetUrlsDeep(data);
+      return data;
+    });
+  }
+
+  function fmtMonth(ts) {
+    var fmT = window.t || function(k,v){return k;};
+    if (!ts) return fmT('empty.dateUnknown');
+    var d = new Date(ts);
+    return fmT('count.yearMonth', { year: d.getFullYear(), month: (d.getMonth() + 1) });
+  }
+
+  // ----- Memories -----
+  function loadMemories() {
+    api('/api/library/memories/today').then(function(data) {
+      if (!data.memories || data.memories.length === 0) {
+        memoriesSection.style.display = 'none';
+        return;
+      }
+      
+      var lmT = window.t || function(k,v){return k;};
+      var html = '<div class="memories"><h3>' + lmT('section.memories', { count: data.memories.length }) + '</h3><div class="memories-grid">';
+      data.memories.forEach(function(m) {
+        html += '<div class="memory-card" data-sha="' + m.sha256 + '">';
+        html += '<img src="' + m.thumbUrl + '">';
+        html += '<div class="memory-label">' + lmT('count.yearsAgo', { years: m.yearsAgo }) + '</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+      
+      memoriesSection.innerHTML = html;
+      memoriesSection.style.display = '';
+      
+      // Attach click handlers
+      memoriesSection.querySelectorAll('.memory-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          var sha = card.getAttribute('data-sha');
+          openLightbox({ sha256: sha, thumbnailUrl: '', originalUrl: window.appUrl('/api/library/asset/' + sha + '/original') });
+        });
+      });
+    }).catch(function(e) {
+      console.error('Memories load failed:', e);
+    });
+  }
+
+  // ----- Map -----
+  function loadMap() {
+    var lmpT = window.t || function(k,v){return k;};
+    if (map) return;
+    
+    mapContainer.innerHTML = '<div id="map"></div>';
+    
+    api('/api/library/photos/geo').then(function(data) {
+      if (!data.photos || data.photos.length === 0) {
+        mapContainer.innerHTML = '<div class="empty"><div class="big">🗺️</div><div>' + lmpT('empty.noGps') + '</div></div>';
+        return;
+      }
+      
+      map = new maplibregl.Map({
+        container: 'map',
+        style: {
+          version: 8,
+          sources: {
+            'osm': {
+              type: 'raster',
+              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+              tileSize: 256,
+              attribution: '&copy; OpenStreetMap contributors'
+            }
+          },
+          layers: [{
+            id: 'osm',
+            type: 'raster',
+            source: 'osm'
+          }]
+        },
+        center: [data.photos[0].lng, data.photos[0].lat],
+        zoom: 10
+      });
+      
+      // Cluster photos sharing the same approximate location (~11m grid)
+      var groups = {};
+      data.photos.forEach(function(photo) {
+        var key = (Math.round(photo.lat * 10000) / 10000) + ',' + (Math.round(photo.lng * 10000) / 10000);
+        if (!groups[key]) groups[key] = { lat: photo.lat, lng: photo.lng, photos: [] };
+        groups[key].photos.push(photo);
+      });
+
+      Object.keys(groups).forEach(function(key) {
+        var g = groups[key];
+        var rep = g.photos[0];
+        var count = g.photos.length;
+
+        // Custom marker element: thumbnail + count badge
+        var el = document.createElement('div');
+        el.className = 'map-thumb-marker';
+        var img = document.createElement('img');
+        img.src = rep.thumbUrl;
+        img.alt = '';
+        el.appendChild(img);
+        var badge = document.createElement('div');
+        badge.className = 'map-thumb-badge';
+        badge.textContent = String(count);
+        el.appendChild(badge);
+
+        // Popup: show up to 4 thumbnails when clustered
+        var dvT = window.t || function(k){return k;};
+        var popupHtml = '';
+        if (count === 1) {
+          popupHtml = '<img src="' + rep.thumbUrl + '"><br><a href="#" onclick="event.preventDefault(); openLightboxFromMap(\'' + rep.sha256 + '\')">' + dvT('btn.detailView') + '</a>';
+        } else {
+          popupHtml = '<div style="display:grid;grid-template-columns:repeat(2,60px);gap:4px;">';
+          g.photos.slice(0, 4).forEach(function(p) {
+            popupHtml += '<a href="#" onclick="event.preventDefault(); openLightboxFromMap(\'' + p.sha256 + '\')"><img src="' + p.thumbUrl + '" style="width:60px;height:60px;object-fit:cover;border-radius:4px;"></a>';
+          });
+          popupHtml += '</div><div style="margin-top:6px;font-size:12px;color:var(--text-muted);">' + count + (window.i18n && window.i18n.getLang && window.i18n.getLang() === 'en' ? ' photos' : (window.i18n && window.i18n.getLang && window.i18n.getLang() === 'ja' ? '枚' : '장')) + '</div>';
+        }
+        var popup = new maplibregl.Popup({ offset: 32 }).setHTML(popupHtml);
+
+        var marker = new maplibregl.Marker({ element: el })
+          .setLngLat([g.lng, g.lat])
+          .setPopup(popup)
+          .addTo(map);
+
+        mapMarkers.push(marker);
+      });
+    }).catch(function(e) {
+      showToast(lmpT('error.mapLoad', { error: e.message }));
+    });
+  }
+
+  window.openLightboxFromMap = function(sha) {
+    openLightbox({ sha256: sha, thumbnailUrl: '', originalUrl: window.appUrl('/api/library/asset/' + sha + '/original') });
+  };
+
+  // ----- Render timeline -----
+  function renderTimeline(items) {
+    var rtT = window.t || function(k,v){return k;};
+    if (!items.length) {
+      // Customize empty state per filter — documents gets a "scan existing" CTA.
+      var emptyIcon = document.getElementById('empty-icon');
+      var emptyTitle = document.getElementById('empty-title');
+      var emptyHint = document.getElementById('empty-hint');
+      var emptyAction = document.getElementById('empty-action');
+      if (currentFilter === 'documents') {
+        if (emptyIcon) emptyIcon.textContent = '📄';
+        if (emptyTitle) { emptyTitle.setAttribute('data-i18n', 'empty.noDocumentsTitle'); emptyTitle.textContent = rtT('empty.noDocumentsTitle'); }
+        if (emptyHint) { emptyHint.setAttribute('data-i18n', 'empty.noDocumentsHint'); emptyHint.removeAttribute('data-i18n-html'); emptyHint.textContent = rtT('empty.noDocumentsHint'); }
+        if (emptyAction) emptyAction.style.display = '';
+      } else {
+        if (emptyIcon) emptyIcon.textContent = '📷';
+        if (emptyTitle) { emptyTitle.setAttribute('data-i18n', 'empty.noPhotosTitle'); emptyTitle.textContent = rtT('empty.noPhotosTitle'); }
+        if (emptyHint) { emptyHint.setAttribute('data-i18n-html', 'empty.noPhotosHint'); emptyHint.removeAttribute('data-i18n'); emptyHint.innerHTML = rtT('empty.noPhotosHint'); }
+        if (emptyAction) emptyAction.style.display = 'none';
+      }
+      emptyState.style.display = '';
+      timeline.style.display = 'none';
+      return;
+    }
+    emptyState.style.display = 'none';
+    timeline.style.display = '';
+    
+    var groups = {};
+    var groupOrder = [];
+    items.forEach(function(it) {
+      var key = fmtMonth(it.takenAt);
+      if (!(key in groups)) { groups[key] = []; groupOrder.push(key); }
+      groups[key].push(it);
+    });
+    
+    var html = '';
+    groupOrder.forEach(function(k) {
+      // 월별 헤더 체크박스 (선택 모드일 때만 표시)
+      var monthPhotos = groups[k].map(function(it) { return it.sha256; });
+      var selectedInMonth = monthPhotos.filter(function(sha) { return selectedPhotos.has(sha); }).length;
+      var allSelected = selectedInMonth === monthPhotos.length && monthPhotos.length > 0;
+      var someSelected = selectedInMonth > 0 && selectedInMonth < monthPhotos.length;
+      var checkboxHtml = selectionMode 
+        ? '<input type="checkbox" class="month-checkbox" data-month-key="' + k + '"' + (allSelected ? ' checked' : '') + (someSelected ? ' data-indeterminate="true"' : '') + '>'
+        : '';
+      
+      html += '<div class="month">' + checkboxHtml + k + '<span class="count">' + rtT('count.photos', { count: groups[k].length }) + '</span></div>';
+      html += '<div class="grid">';
+      groups[k].forEach(function(it) {
+        var isTrashed = currentFilter === 'trash';
+        var tileClass = isTrashed ? 'tile trashed' : 'tile';
+        if (selectionMode) tileClass += ' selectable';
+        if (selectedPhotos.has(it.sha256)) tileClass += ' selected';
+        var isVideo = it.mediaType === 'video';
+        var mediaHtml = isVideo
+          ? '<video muted><source src="' + it.thumbnailUrl + '" type="image/webp"></video>'
+          : '<img loading="lazy" draggable="true" ondragstart="window.__photoDragStart && window.__photoDragStart(event, \'' + it.sha256 + '\', \'' + (it.mediaType || 'image') + '\')" src="' + it.thumbnailUrl + '" alt="' + (it.filename || '') + '">';
+        var actions = '';
+        
+        if (!isTrashed && !selectionMode) {
+          // Categorizable views allow "remove from folder" in the kebab menu.
+          var canRemoveFromCat = (currentFilter === 'documents' || currentFilter === 'screenshots' || currentFilter === 'businesscards');
+          var moreLabel = rtT('menu.more');
+          actions += '<div class="tile-actions">';
+          actions += '<button class="tile-action' + (it.isFavorite ? ' active' : '') + '" data-action="favorite" data-sha="' + it.sha256 + '">⭐</button>';
+          actions += '<button class="tile-action' + (it.isArchived ? ' active' : '') + '" data-action="archive" data-sha="' + it.sha256 + '">📦</button>';
+          actions += '<button class="tile-action kebab" data-action="more" data-sha="' + it.sha256 + '" data-can-remove-cat="' + (canRemoveFromCat ? '1' : '0') + '" data-filename="' + (it.filename ? it.filename.replace(/"/g, '&quot;') : '') + '" title="' + moreLabel + '" aria-label="' + moreLabel + '">⋯</button>';
+          actions += '</div>';
+        } else if (isTrashed && !selectionMode) {
+          actions += '<div class="tile-trash-actions">';
+          actions += '<button class="tile-trash-btn" data-action="restore" data-sha="' + it.sha256 + '">' + rtT('common.restore') + '</button>';
+          actions += '<button class="tile-trash-btn danger" data-action="delete" data-sha="' + it.sha256 + '">' + rtT('common.permanentDelete') + '</button>';
+          actions += '</div>';
+        }
+        
+        html += '<div class="' + tileClass + '" data-sha="' + it.sha256 + '" data-media-type="' + (it.mediaType || 'image') + '" data-month-key="' + k + '">' + mediaHtml + actions + '</div>';
+      });
+      html += '</div>';
+    });
+    timeline.innerHTML = html;
+
+    // Attach handlers
+    var assetMap = {};
+    items.forEach(function(it) { assetMap[it.sha256] = it; });
+    
+    // 월별 헤더 체크박스 핸들러
+    timeline.querySelectorAll('.month-checkbox').forEach(function(checkbox) {
+      var monthKey = checkbox.getAttribute('data-month-key');
+      
+      // indeterminate 상태 설정
+      if (checkbox.hasAttribute('data-indeterminate')) {
+        checkbox.indeterminate = true;
+      }
+      
+      checkbox.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var monthPhotos = groups[monthKey].map(function(it) { return it.sha256; });
+        var selectedInMonth = monthPhotos.filter(function(sha) { return selectedPhotos.has(sha); }).length;
+        var shouldSelect = selectedInMonth < monthPhotos.length; // 전체 선택되지 않았으면 선택, 전체 선택되었으면 해제
+        
+        monthPhotos.forEach(function(sha) {
+          if (shouldSelect) {
+            selectedPhotos.add(sha);
+          } else {
+            selectedPhotos.delete(sha);
+          }
+          // UI 업데이트
+          var tile = timeline.querySelector('.tile[data-sha="' + sha + '"]');
+          if (tile) {
+            if (shouldSelect) {
+              tile.classList.add('selected');
+            } else {
+              tile.classList.remove('selected');
+            }
+          }
+        });
+        
+        updateSelectionCount();
+        // 체크박스 상태 즉시 업데이트
+        checkbox.checked = shouldSelect;
+        checkbox.indeterminate = false;
+      });
+    });
+    
+    timeline.querySelectorAll('.tile').forEach(function(tile) {
+      // Shift+click 시 브라우저 텍스트 선택 방지 (mousedown 단계에서 차단해야 효과 있음)
+      tile.addEventListener('mousedown', function(e) {
+        if (selectionMode && e.shiftKey) e.preventDefault();
+      });
+      tile.addEventListener('click', function(e) {
+        if (selectionMode) {
+          e.preventDefault();
+          e.stopPropagation();
+          var sha = tile.getAttribute('data-sha');
+          // Shift+click: 마지막 anchor부터 현재 타일까지 렌더 순서 기준 범위 강제 추가
+          if (e.shiftKey && lastSelectedSha && lastSelectedSha !== sha) {
+            var allTiles = Array.from(timeline.querySelectorAll('.tile'));
+            var idxA = -1, idxB = -1;
+            for (var i = 0; i < allTiles.length; i++) {
+              var s = allTiles[i].getAttribute('data-sha');
+              if (s === lastSelectedSha) idxA = i;
+              if (s === sha) idxB = i;
+            }
+            if (idxA >= 0 && idxB >= 0) {
+              var start = Math.min(idxA, idxB);
+              var end = Math.max(idxA, idxB);
+              for (var j = start; j <= end; j++) {
+                var t = allTiles[j];
+                var ts = t.getAttribute('data-sha');
+                if (!selectedPhotos.has(ts)) {
+                  selectedPhotos.add(ts);
+                  t.classList.add('selected');
+                }
+              }
+              updateSelectionCount();
+              updateMonthCheckboxStates();
+              lastSelectedSha = sha;
+              if (window.getSelection) {
+                try { window.getSelection().removeAllRanges(); } catch (_) {}
+              }
+              return;
+            }
+          }
+          togglePhotoSelection(sha);
+          tile.classList.toggle('selected');
+          lastSelectedSha = sha;
+        }
+      });
+    });
+    
+    timeline.querySelectorAll('.tile img, .tile video').forEach(function(media) {
+      media.addEventListener('click', function(e) {
+        if (selectionMode) {
+          // Selection handled by parent tile click
+          return;
+        }
+        e.stopPropagation();
+        var tile = media.closest('.tile');
+        var sha = tile.getAttribute('data-sha');
+        openLightbox(assetMap[sha]);
+      });
+    });
+    
+    timeline.querySelectorAll('[data-action]').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var action = btn.getAttribute('data-action');
+        var sha = btn.getAttribute('data-sha');
+        if (action === 'more') {
+          if (typeof window.__openTileMenu === 'function') window.__openTileMenu(btn);
+          return;
+        }
+        if (typeof window.__closeTileMenu === 'function') window.__closeTileMenu();
+        handleAction(action, sha);
+      });
+    });
+  }
+
+  // ----- Actions -----
+  function handleAction(action, sha) {
+    var haT = window.t || function(k,v){return k;};
+    if (action === 'favorite') {
+      api('/api/library/' + sha + '/favorite', { method: 'POST' })
+        .then(function(r) { showToast(r.isFavorite ? haT('toast.favoriteAdded') : haT('toast.favoriteRemoved')); refreshView(); })
+        .catch(function(e) { showToast(haT('error.toastWrap', { error: e.message })); });
+    } else if (action === 'archive') {
+      api('/api/library/' + sha + '/archive', { method: 'POST' })
+        .then(function(r) { showToast(r.isArchived ? haT('toast.archived') : haT('toast.archiveUndone')); refreshView(); })
+        .catch(function(e) { showToast(haT('error.toastWrap', { error: e.message })); });
+    } else if (action === 'trash') {
+      api('/api/library/' + sha + '/trash', { method: 'POST' })
+        .then(function() { showToast(haT('toast.trashed')); refreshView(); })
+        .catch(function(e) { showToast(haT('error.toastWrap', { error: e.message })); });
+    } else if (action === 'restore') {
+      api('/api/library/' + sha + '/restore', { method: 'POST' })
+        .then(function() { showToast(haT('toast.restored')); refreshView(); })
+        .catch(function(e) { showToast(haT('error.toastWrap', { error: e.message })); });
+    } else if (action === 'delete') {
+      uiConfirm(haT('confirm.permanentDelete'), { danger: true }).then(function(ok) {
+        if (!ok) return;
+        api('/api/library/' + sha, { method: 'DELETE' })
+          .then(function() { showToast(haT('toast.permanentDeleted')); refreshView(); })
+          .catch(function(e) { showToast(haT('error.toastWrap', { error: e.message })); });
+      });
+    } else if (action === 'remove-from-category') {
+      // Reset asset category back to 'photo' (removes it from documents/screenshots/businesscards view).
+      api('/api/library/' + sha + '/category', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: 'photo' })
+      })
+        .then(function() {
+          showToast(haT('toast.removedFromCategory'));
+          refreshView();
+          if (typeof refreshCounts === 'function') refreshCounts();
+        })
+        .catch(function(e) { showToast(haT('error.toastWrap', { error: e.message })); });
+    }
+  }
+
+  // ----- Tile kebab dropdown (singleton, appended to body) -----
+  var __tileMenuEl = null;
+  var __tileMenuOpenSha = null;
+  function __tT(k){ return (window.t ? window.t(k) : k); }
+  function __getTileMenu() {
+    if (__tileMenuEl) return __tileMenuEl;
+    var el = document.createElement('div');
+    el.className = 'tile-menu';
+    el.id = '__tile-menu';
+    document.body.appendChild(el);
+    __tileMenuEl = el;
+    return el;
+  }
+  function __closeTileMenu() {
+    if (__tileMenuEl) {
+      __tileMenuEl.classList.remove('open');
+      __tileMenuEl.innerHTML = '';
+    }
+    __tileMenuOpenSha = null;
+  }
+  function __openTileMenu(btn) {
+    var sha = btn.getAttribute('data-sha');
+    var canRm = btn.getAttribute('data-can-remove-cat') === '1';
+    var filename = btn.getAttribute('data-filename') || (sha + '.jpg');
+    if (__tileMenuOpenSha === sha) { __closeTileMenu(); return; }
+    var menu = __getTileMenu();
+    var html = '';
+    if (canRm) {
+      html += '<button type="button" data-tm-action="remove-from-category">' + __tT('menu.removeFromFolder') + '</button>';
+    }
+    html += '<button type="button" data-tm-action="send-to-mail" data-filename="' + filename.replace(/"/g, '&quot;') + '">' + __tT('menu.sendToMail') + '</button>';
+    html += '<button type="button" class="danger" data-tm-action="trash">' + __tT('menu.delete') + '</button>';
+    menu.innerHTML = html;
+    menu.classList.add('open');
+    var rect = btn.getBoundingClientRect();
+    // Position below-right of the kebab, clamp to viewport right edge.
+    var top = rect.bottom + 4;
+    var right = Math.max(8, window.innerWidth - rect.right);
+    menu.style.top = top + 'px';
+    menu.style.right = right + 'px';
+    menu.style.left = 'auto';
+    __tileMenuOpenSha = sha;
+    // Bind item handlers.
+    menu.querySelectorAll('button[data-tm-action]').forEach(function(b) {
+      b.addEventListener('click', function(ev) {
+        ev.stopPropagation();
+        var act = b.getAttribute('data-tm-action');
+        var fname = b.getAttribute('data-filename') || filename;
+        __closeTileMenu();
+        if (act === 'send-to-mail') {
+          var imgUrl = window.appUrl('/api/library/asset/' + sha + '/original');
+          window.parent.postMessage({
+            type: 'asset.handoff',
+            source: 'mycrew-photos',
+            payload: { targetAppId: 'mail', kind: 'image', dataUrl: imgUrl, name: fname }
+          }, location.origin);
+        } else if (typeof handleAction === 'function') handleAction(act, sha);
+      });
+    });
+  }
+  // Global outside-click + Esc + scroll/resize close.
+  document.addEventListener('click', function(ev) {
+    if (!__tileMenuOpenSha) return;
+    var t = ev.target;
+    // Clicks inside the menu are handled by item listeners (which stopPropagation).
+    if (__tileMenuEl && __tileMenuEl.contains(t)) return;
+    // Clicks on a kebab button are handled by tile delegate (toggle).
+    if (t && t.closest && t.closest('[data-action="more"]')) return;
+    __closeTileMenu();
+  });
+  document.addEventListener('keydown', function(ev) {
+    if (ev.key === 'Escape') __closeTileMenu();
+  });
+  window.addEventListener('scroll', __closeTileMenu, true);
+  window.addEventListener('resize', __closeTileMenu);
+  // Expose for the tile click delegate.
+  window.__openTileMenu = __openTileMenu;
+  window.__closeTileMenu = __closeTileMenu;
+
+  // ----- Counts & refresh -----
+  function refreshCounts() {
+    api('/api/library/counts').then(function(c) {
+      document.getElementById('count-library').textContent = c.library || 0;
+      document.getElementById('count-favorites').textContent = c.favorites || 0;
+      document.getElementById('count-archive').textContent = c.archive || 0;
+      document.getElementById('count-trash').textContent = c.trash || 0;
+      var docEl = document.getElementById('count-documents');
+      if (docEl) docEl.textContent = c.documents || 0;
+      var ssEl = document.getElementById('count-screenshots');
+      if (ssEl) ssEl.textContent = c.screenshots || 0;
+      var bcEl = document.getElementById('count-businesscards');
+      if (bcEl) bcEl.textContent = c.businesscards || 0;
+    }).catch(function() {});
+  }
+
+  function refreshView() {
+    memoriesSection.style.display = 'none';
+    emptyState.style.display = 'none';
+    timeline.style.display = 'none';
+    mapContainer.style.display = 'none';
+    albumsContainer.style.display = 'none';
+    albumDetailContainer.style.display = 'none';
+    updateSelectionToggleVisibility();
+    
+    if (currentFilter === 'map') {
+      mapContainer.style.display = '';
+      loadMap();
+      return;
+    }
+    
+    if (currentFilter === 'people') {
+      loadPeople();
+      return;
+    }
+    if (currentFilter === 'albums') {
+      albumsContainer.style.display = '';
+      loadAlbums();
+      return;
+    }
+    
+    if (currentFilter === 'library') {
+      loadMemories();
+    }
+    
+    if (searchBox.value.trim()) {
+      performSearch(searchBox.value.trim());
+    } else {
+      var rvT = window.t || function(k,v){return k;};
+      api('/api/library/photos?filter=' + currentFilter + '&limit=200' + dateRangeQS()).then(function(data) {
+        renderTimeline(data.items || []);
+        refreshCounts();
+      }).catch(function(e) {
+        showToast(rvT('error.loadFailed', { error: e.message }), 5000);
+      });
+    }
+  }
+
+  function dateRangeQS() {
+    var s = document.getElementById('search-date-start');
+    var e = document.getElementById('search-date-end');
+    var qs = '';
+    if (s && s.value) qs += '&dateStart=' + encodeURIComponent(s.value);
+    if (e && e.value) qs += '&dateEnd=' + encodeURIComponent(e.value);
+    return qs;
+  }
+
+  function performSearch(q) {
+    var psT = window.t || function(k,v){return k;};
+    api('/api/library/search?q=' + encodeURIComponent(q) + dateRangeQS()).then(function(data) {
+      renderTimeline(data.items || []);
+    }).catch(function(e) {
+      showToast(psT('error.searchFailed', { error: e.message }));
+    });
+  }
+
+  // ----- Sidebar -----
+  document.querySelectorAll('.sidebar-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.sidebar-item').forEach(function(i) { i.classList.remove('active'); });
+      item.classList.add('active');
+      currentFilter = item.getAttribute('data-filter');
+      searchBox.value = '';
+      
+      var sbT = window.t || function(k,v){return k;};
+      var titleKeys = { library: 'pageTitle.library', favorites: 'pageTitle.favorites', archive: 'pageTitle.archive', trash: 'pageTitle.trash', map: 'pageTitle.map', albums: 'pageTitle.albums', people: 'pageTitle.people', documents: 'pageTitle.documents', screenshots: 'pageTitle.screenshots', businesscards: 'pageTitle.businesscards' };
+      pageTitle.textContent = sbT(titleKeys[currentFilter] || 'pageTitle.library');
+      pageTitle.setAttribute('data-i18n', titleKeys[currentFilter] || 'pageTitle.library');
+      
+      refreshView();
+    });
+  });
+
+  // ----- Thumbnail zoom (buttons + pinch) -----
+  (function() {
+    var STEPS = [120, 160, 240];
+    var STORAGE_KEY = 'jarvis:photo-thumb-size';
+    function clampIdx(i) { return Math.max(0, Math.min(STEPS.length - 1, i)); }
+    function readIdx() {
+      var v = parseInt(localStorage.getItem(STORAGE_KEY) || '', 10);
+      if (isNaN(v)) return 0; // 120px default — 80px 단계 제거 (오버레이 아이콘 깨짐 방지)
+      var i = STEPS.indexOf(v);
+      return i >= 0 ? i : 0;
+    }
+    var idx = readIdx();
+    function apply() {
+      idx = clampIdx(idx);
+      var size = STEPS[idx];
+      document.documentElement.style.setProperty('--thumb-size', size + 'px');
+      try { localStorage.setItem(STORAGE_KEY, String(size)); } catch (_) {}
+      var btnIn = document.getElementById('btn-thumb-zoom-in');
+      var btnOut = document.getElementById('btn-thumb-zoom-out');
+      if (btnIn) btnIn.disabled = (idx >= STEPS.length - 1);
+      if (btnOut) btnOut.disabled = (idx <= 0);
+    }
+    apply();
+    var inBtn = document.getElementById('btn-thumb-zoom-in');
+    var outBtn = document.getElementById('btn-thumb-zoom-out');
+    if (inBtn) inBtn.addEventListener('click', function() { idx++; apply(); });
+    if (outBtn) outBtn.addEventListener('click', function() { idx--; apply(); });
+
+    // 핀치 줌 (Chrome/Android: touchmove 2-finger, Safari: gesturechange)
+    var pinchBase = null; // {dist, idx}
+    function distance(t1, t2) {
+      var dx = t1.clientX - t2.clientX;
+      var dy = t1.clientY - t2.clientY;
+      return Math.hypot(dx, dy);
+    }
+    timeline.addEventListener('touchstart', function(ev) {
+      if (ev.touches && ev.touches.length === 2) {
+        pinchBase = { dist: distance(ev.touches[0], ev.touches[1]), idx: idx };
+      }
+    }, { passive: true });
+    timeline.addEventListener('touchmove', function(ev) {
+      if (pinchBase && ev.touches && ev.touches.length === 2) {
+        var d = distance(ev.touches[0], ev.touches[1]);
+        var ratio = d / pinchBase.dist;
+        var next = pinchBase.idx;
+        if (ratio > 1.25) next = pinchBase.idx + 1;
+        else if (ratio < 0.8) next = pinchBase.idx - 1;
+        if (next !== idx) { idx = clampIdx(next); apply(); }
+      }
+    }, { passive: true });
+    timeline.addEventListener('touchend', function(ev) {
+      if (!ev.touches || ev.touches.length < 2) pinchBase = null;
+    }, { passive: true });
+    // Safari gesture events
+    timeline.addEventListener('gesturestart', function(ev) {
+      ev.preventDefault();
+      pinchBase = { dist: 1, idx: idx };
+    });
+    timeline.addEventListener('gesturechange', function(ev) {
+      ev.preventDefault();
+      if (!pinchBase) return;
+      var ratio = ev.scale;
+      var next = pinchBase.idx;
+      if (ratio > 1.25) next = pinchBase.idx + 1;
+      else if (ratio < 0.8) next = pinchBase.idx - 1;
+      if (next !== idx) { idx = clampIdx(next); apply(); }
+    });
+    timeline.addEventListener('gestureend', function() { pinchBase = null; });
+  })();
+
+  // ----- Search -----
+  searchBox.addEventListener('input', function() {
+    var q = searchBox.value.trim();
+    if (searchDebounce) clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(function() {
+      if (q) performSearch(q);
+      else refreshView();
+    }, 300);
+  });
+
+  // ----- Date range filter -----
+  var dateRangeDebounce = null;
+  function onDateRangeChange() {
+    if (dateRangeDebounce) clearTimeout(dateRangeDebounce);
+    dateRangeDebounce = setTimeout(function() {
+      var s = document.getElementById('search-date-start');
+      var e = document.getElementById('search-date-end');
+      if (s && e && s.value && e.value && s.value > e.value) {
+        var tmp = s.value; s.value = e.value; e.value = tmp;
+      }
+      refreshView();
+    }, 200);
+  }
+  ['search-date-start', 'search-date-end'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', onDateRangeChange);
+      el.addEventListener('input', onDateRangeChange);
+    }
+  });
+  var clearBtn = document.getElementById('btn-date-range-clear');
+  if (clearBtn) clearBtn.addEventListener('click', function() {
+    var s = document.getElementById('search-date-start');
+    var e = document.getElementById('search-date-end');
+    if (s) s.value = '';
+    if (e) e.value = '';
+    refreshView();
+  });
+
+  // ----- Selection mode handlers -----
+  document.getElementById('btn-select-mode').addEventListener('click', toggleSelectionMode);
+  
+  document.getElementById('btn-cancel-select').addEventListener('click', function() {
+    toggleSelectionMode();
+  });
+  
+  // Generic prompt modal — single text input. Replaces window.prompt which iframes block.
+  function openPromptModal(opts) {
+    opts = opts || {};
+    var pmT = window.t || function(k,v){return k;};
+    var sTitle = opts.title || pmT('common.input');
+    var sLabel = opts.label || '';
+    var sPlaceholder = opts.placeholder || '';
+    var sDefault = opts.defaultValue || '';
+    var sCancel = pmT('btn.cancel');
+    var sOk = pmT('btn.ok');
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = ''
+      + '<div style="background:var(--bg-card, var(--bg-surface, #fff));color:var(--text-primary, #000);padding:24px;border-radius:12px;min-width:320px;max-width:480px;box-shadow:var(--shadow-lg, 0 8px 32px rgba(0,0,0,0.3));border:1px solid var(--border-default, transparent);font-family:inherit;">'
+      + '<h3 style="margin:0 0 12px 0;font-size:18px;font-weight:600;color:var(--text-primary);">' + sTitle + '</h3>'
+      + (sLabel ? '<div class="mc-modal-label" style="margin-bottom:6px;">' + sLabel + '</div>' : '')
+      + '<input id="__pm-input" type="text" class="mc-modal-input" placeholder="' + sPlaceholder.replace(/"/g, '&quot;') + '" value="' + sDefault.replace(/"/g, '&quot;') + '" style="margin-bottom:18px;">'
+      + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+      + '<button id="__pm-cancel" class="btn" type="button">' + sCancel + '</button>'
+      + '<button id="__pm-ok" class="btn" type="button" style="background:var(--ring, #6366f1);color:#fff;border:none;">' + sOk + '</button>'
+      + '</div></div>';
+    document.body.appendChild(overlay);
+    var input = overlay.querySelector('#__pm-input');
+    setTimeout(function() { input.focus(); input.select(); }, 0);
+    return new Promise(function(resolve) {
+      function close(val) {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(val);
+      }
+      overlay.querySelector('#__pm-cancel').onclick = function() { close(null); };
+      overlay.querySelector('#__pm-ok').onclick = function() {
+        var val = input.value.trim();
+        close(val || null);
+      };
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); overlay.querySelector('#__pm-ok').click(); }
+        else if (e.key === 'Escape') { e.preventDefault(); close(null); }
+      });
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) close(null); });
+    });
+  }
+
+  // Album picker modal — radio list + "+ 새 앨범" 옵션. iframe에서 차단되는 window.prompt를 대체.
+  function openAlbumPicker(albums) {
+    var apT = window.t || function(k,v){return k;};
+    var sTitle = apT('albumPicker.title');
+    var sNewLabel = apT('albumPicker.newLabel');
+    var sNewPlaceholder = apT('albumPicker.newPlaceholder');
+    var sCancel = apT('btn.cancel');
+    var sOk = apT('btn.ok');
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    var html = ''
+      + '<div style="background:var(--bg-card, var(--bg-surface, #fff));color:var(--text-primary, #000);padding:24px;border-radius:12px;min-width:320px;max-width:480px;max-height:80vh;overflow:auto;box-shadow:var(--shadow-lg, 0 8px 32px rgba(0,0,0,0.3));border:1px solid var(--border-default, transparent);font-family:inherit;">'
+      + '<h3 style="margin:0 0 12px 0;font-size:18px;font-weight:600;">' + sTitle + '</h3>'
+      + '<div id="__ap-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">';
+    albums.forEach(function(a, i) {
+      html += '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;background:var(--bg-elevated);">'
+        + '<input type="radio" name="__ap-radio" value="' + a.id + '"' + (i === 0 ? ' checked' : '') + '>'
+        + '<span style="flex:1;">' + (a.name || ('Album ' + a.id)).replace(/[<>&]/g, '') + '</span>'
+        + '</label>';
+    });
+    html += '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;background:var(--bg-elevated);">'
+      + '<input type="radio" name="__ap-radio" value="__new__"' + (albums.length === 0 ? ' checked' : '') + '>'
+      + '<span style="flex:1;">' + sNewLabel + '</span>'
+      + '</label>';
+    html += '</div>'
+      + '<input id="__ap-newname" type="text" placeholder="' + sNewPlaceholder + '" style="width:100%;padding:8px 10px;border:1px solid var(--border-default, #ccc);border-radius:6px;background:var(--bg-elevated, #fff);color:var(--text-primary, inherit);font:inherit;box-sizing:border-box;margin-bottom:14px;">'
+      + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+      + '<button id="__ap-cancel" class="btn" type="button">' + sCancel + '</button>'
+      + '<button id="__ap-ok" class="btn" type="button" style="background:var(--ring, #6366f1);color:#fff;border:none;">' + sOk + '</button>'
+      + '</div></div>';
+    overlay.innerHTML = html;
+    document.body.appendChild(overlay);
+    return new Promise(function(resolve) {
+      function close(val) {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(val);
+      }
+      overlay.querySelector('#__ap-cancel').onclick = function() { close(null); };
+      overlay.querySelector('#__ap-ok').onclick = function() {
+        var sel = overlay.querySelector('input[name="__ap-radio"]:checked');
+        if (!sel) return close(null);
+        if (sel.value === '__new__') {
+          var name = overlay.querySelector('#__ap-newname').value.trim();
+          if (!name) return; // no-op until name provided
+          close({ mode: 'new', name: name });
+        } else {
+          close({ mode: 'existing', albumId: sel.value });
+        }
+      };
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) close(null); });
+    });
+  }
+
+  document.getElementById('btn-add-to-album').addEventListener('click', function() {
+    var ataT = window.t || function(k,v){return k;};
+    if (selectedPhotos.size === 0) {
+      showToast(ataT('toast.selectPhotos'));
+      return;
+    }
+    api('/api/library/albums').then(function(data) {
+      var albums = data.albums || [];
+      return openAlbumPicker(albums).then(function(choice) {
+        if (!choice) return;
+        var photoIds = Array.from(selectedPhotos);
+        if (choice.mode === 'new') {
+          return api('/api/library/albums', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: choice.name }),
+          }).then(function(album) {
+            return api('/api/library/albums/' + album.id + '/photos', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ photoIds: photoIds }),
+            });
+          }).then(function(result) {
+            showToast(ataT('toast.addedToNewAlbum', { count: result.added }));
+            toggleSelectionMode();
+            refreshView();
+          });
+        } else {
+          var target = albums.find(function(a) { return String(a.id) === String(choice.albumId); });
+          return api('/api/library/albums/' + choice.albumId + '/photos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ photoIds: photoIds }),
+          }).then(function(result) {
+            showToast(ataT('toast.addedToAlbum', { count: result.added, name: (target && target.name) || '' }));
+            toggleSelectionMode();
+            refreshView();
+          });
+        }
+      });
+    }).catch(function(e) {
+      showToast(ataT('error.albumListLoad', { error: e.message }));
+    });
+  });
+  
+  document.getElementById('btn-toggle-favorite').addEventListener('click', function() {
+    var tfT = window.t || function(k,v){return k;};
+    if (selectedPhotos.size === 0) {
+      showToast(tfT('toast.selectPhotos'));
+      return;
+    }
+    
+    var promises = Array.from(selectedPhotos).map(function(sha) {
+      return api('/api/library/' + sha + '/favorite', { method: 'POST' });
+    });
+    
+    Promise.all(promises).then(function() {
+      showToast(tfT('toast.favoriteBatchDone', { count: selectedPhotos.size }));
+      toggleSelectionMode();
+      refreshView();
+    }).catch(function(e) {
+      showToast(tfT('error.partialFailed', { error: e.message }));
+    });
+  });
+  
+  document.getElementById('btn-toggle-archive').addEventListener('click', function() {
+    var taT = window.t || function(k,v){return k;};
+    if (selectedPhotos.size === 0) {
+      showToast(taT('toast.selectPhotos'));
+      return;
+    }
+    
+    var promises = Array.from(selectedPhotos).map(function(sha) {
+      return api('/api/library/' + sha + '/archive', { method: 'POST' });
+    });
+    
+    Promise.all(promises).then(function() {
+      showToast(taT('toast.archiveBatchDone', { count: selectedPhotos.size }));
+      toggleSelectionMode();
+      refreshView();
+    }).catch(function(e) {
+      showToast(taT('error.partialFailed', { error: e.message }));
+    });
+  });
+  
+  document.getElementById('btn-batch-trash').addEventListener('click', function() {
+    var btT = window.t || function(k,v){return k;};
+    if (selectedPhotos.size === 0) {
+      showToast(btT('toast.selectPhotos'));
+      return;
+    }
+    
+    uiConfirm(btT('confirm.trashMove', { count: selectedPhotos.size }), { danger: true }).then(function(ok) {
+      if (!ok) return;
+      var promises = Array.from(selectedPhotos).map(function(sha) {
+        return api('/api/library/' + sha + '/trash', { method: 'POST' });
+      });
+      Promise.all(promises).then(function() {
+        showToast(btT('toast.trashBatchDone', { count: selectedPhotos.size }));
+        toggleSelectionMode();
+        refreshView();
+      }).catch(function(e) {
+        showToast(btT('error.partialFailed', { error: e.message }));
+      });
+    });
+  });
+
+  document.getElementById('btn-batch-mail').addEventListener('click', function() {
+    if (selectedPhotos.size === 0) {
+      showToast(window.t ? window.t('toast.selectPhotos') : '선택된 사진이 없습니다.');
+      return;
+    }
+    var assets = Array.from(selectedPhotos).map(function(sha) {
+      return { kind: 'image', url: window.appUrl('/api/library/asset/' + sha + '/original'), name: sha + '.jpg' };
+    });
+    window.parent.postMessage({
+      type: 'asset.handoff',
+      source: 'mycrew-photos',
+      payload: { targetAppId: 'mail', assets: assets }
+    }, location.origin);
+  });
+
+  // ----- Batch OCR → document (PDF/MD/TXT) + external library -----
+  function openOcrDocModal(count) {
+    var omT = window.t || function(k,v){return k;};
+    var sTitle = omT('ocrDoc.title');
+    var sDesc = omT('ocrDoc.desc').replace('{count}', count);
+    var sLabelTitle = omT('ocrDoc.labelTitle');
+    var sPlaceholder = omT('ocrDoc.placeholderTitle');
+    var sLabelFormat = omT('ocrDoc.labelFormat');
+    var sOptPdf = omT('ocrDoc.optPdf');
+    var sOptMd = omT('ocrDoc.optMd');
+    var sOptTxt = omT('ocrDoc.optTxt');
+    var sOptXlsx = omT('ocrDoc.optXlsx');
+    var sCancel = omT('btn.cancel');
+    var sStart = omT('btn.start');
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = ''
+      + '<div style="background:var(--bg-card, var(--bg-surface, #fff));color:var(--text-primary, #000);padding:24px;border-radius:12px;min-width:320px;max-width:480px;box-shadow:var(--shadow-lg, 0 8px 32px rgba(0,0,0,0.3));border:1px solid var(--border-default, transparent);font-family:inherit;">'
+      + '<h3 style="margin:0 0 12px 0;font-size:18px;font-weight:600;color:var(--text-primary);">' + sTitle + '</h3>'
+      + '<p style="margin:0 0 16px 0;font-size:13px;color:var(--text-secondary, #666);">' + sDesc + '</p>'
+      + '<label style="display:block;margin-bottom:12px;">'
+      + '<span class="mc-modal-label">' + sLabelTitle + '</span>'
+      + '<input id="__ocr-title" type="text" class="mc-modal-input" placeholder="' + sPlaceholder + '">'
+      + '</label>'
+      + '<label style="display:block;margin-bottom:18px;">'
+      + '<span class="mc-modal-label">' + sLabelFormat + '</span>'
+      + '<select id="__ocr-format" class="mc-modal-select">'
+      + '<option value="pdf">' + sOptPdf + '</option>'
+      + '<option value="md">' + sOptMd + '</option>'
+      + '<option value="txt">' + sOptTxt + '</option>'
+      + '<option value="xlsx">' + sOptXlsx + '</option>'
+      + '</select>'
+      + '</label>'
+      + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+      + '<button id="__ocr-cancel" class="btn" type="button">' + sCancel + '</button>'
+      + '<button id="__ocr-confirm" class="btn" type="button" style="background:var(--ring, #6366f1);color:#fff;border:none;">' + sStart + '</button>'
+      + '</div></div>';
+    document.body.appendChild(overlay);
+    return new Promise(function(resolve) {
+      function close(val) {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(val);
+      }
+      overlay.querySelector('#__ocr-cancel').onclick = function() { close(null); };
+      overlay.querySelector('#__ocr-confirm').onclick = function() {
+        var title = overlay.querySelector('#__ocr-title').value.trim();
+        var fmt = overlay.querySelector('#__ocr-format').value || 'pdf';
+        close({ title: title, format: fmt });
+      };
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) close(null); });
+    });
+  }
+
+  document.getElementById('btn-batch-ocr-doc').addEventListener('click', function() {
+    var boT = window.t || function(k,v){return k;};
+    if (selectedPhotos.size === 0) { showToast(boT('toast.selectPhotos')); return; }
+    var photoIds = Array.from(selectedPhotos);
+    if (photoIds.length > 100) {
+      showToast('한 번에 최대 100장까지 가능합니다 (현재 ' + photoIds.length + '장)', 5000);
+      return;
+    }
+    openOcrDocModal(photoIds.length).then(function(opts) {
+      if (!opts) return;
+      showToast('🔄 OCR 처리 중… (' + photoIds.length + '장, 캐시 미사용분은 수십 초 소요)', 600000);
+      fetch('/api/ocr/batch-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoIds: photoIds, format: opts.format, title: opts.title || undefined }),
+      }).then(function(r) {
+        return r.json().then(function(j) { return { ok: r.ok, data: j }; });
+      }).then(function(res) {
+        if (!res.ok || !res.data.ok) throw new Error(res.data.error || ('HTTP ' + (res.data.status || '?')));
+        var data = res.data;
+        // 다운로드 자동 트리거
+        var a = document.createElement('a');
+        a.href = data.downloadUrl;
+        a.download = data.downloadFileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        var msg = '✅ OCR 문서 생성 완료 — ' + data.itemsCount + '장';
+        if (data.failedCount > 0) msg += ' (인식 실패 ' + data.failedCount + ')';
+        if (data.library && data.library.libraryFileName) {
+          msg += ' · 자료실 추가됨';
+        } else if (data.library && data.library.error) {
+          msg += ' · 자료실 추가 실패(' + data.library.error + ')';
+        }
+        showToast(msg, 7000);
+        toggleSelectionMode();
+      }).catch(function(e) {
+        showToast('❌ OCR 문서화 실패: ' + (e && e.message ? e.message : e), 6000);
+      });
+    });
+  });
+
+  // Bulk OCR reclassify — scan existing 'photo' assets without OCR.
+  (function() {
+    var btn = document.getElementById('btn-run-doc-ocr');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      var rT = window.t || function(k,v){return k;};
+      if (btn.disabled) return;
+      var origLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = rT('msg.docOcrRunning');
+      api('/api/library/reclassify/run-ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: 50 })
+      }).then(function(data) {
+        if (!data || data.scanned === 0) {
+          showToast(rT('msg.docOcrNoCandidate'), 4000);
+        } else {
+          var msg = rT('msg.docOcrDone', { scanned: data.scanned, classified: data.classifiedAsDocument });
+          // Fallback for runtimes that don't interpolate.
+          msg = msg.replace('{scanned}', data.scanned).replace('{classified}', data.classifiedAsDocument);
+          showToast('✅ ' + msg, 5000);
+          if (typeof refreshCounts === 'function') refreshCounts();
+          if (currentFilter === 'documents' && typeof refreshView === 'function') refreshView();
+        }
+      }).catch(function(e) {
+        showToast('❌ ' + (e && e.message ? e.message : e), 6000);
+      }).finally(function() {
+        btn.disabled = false;
+        btn.textContent = origLabel;
+      });
+    });
+  })();
+
+  // ----- Folder import -----
+  var importBtn = document.getElementById('btn-import-folder');
+  if (importBtn) {
+    importBtn.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      var fiT = window.t || function(k,v){return k;};
+      var promptText = fiT('prompt.importFolderPath');
+      if (!promptText || promptText === 'prompt.importFolderPath') promptText = '가져올 폴더 경로 (예: ~/Pictures)';
+      function runImport(path) {
+        if (!path) return;
+        showToast(fiT('toast.folderScanning'), 60000);
+        api('/api/library/import/folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: path, recursive: true }),
+        }).then(function(r) {
+          showToast(fiT('toast.folderImportDone', { imported: r.imported, skipped: r.skipped }), 5000);
+          refreshView();
+        }).catch(function(e) {
+          showToast(fiT('error.genericFailed', { error: e.message }), 8000);
+        });
+      }
+      try {
+        if (typeof uiPrompt === 'function' && document.getElementById('ui-prompt-modal')) {
+          uiPrompt(promptText, '~/Pictures').then(runImport).catch(function(err) {
+            showToast('폴더 선택 실패: ' + (err && err.message ? err.message : err), 6000);
+          });
+        } else {
+          // Last-resort fallback if the iframe sandbox blocks our modal
+          var path = (typeof window.prompt === 'function') ? window.prompt(promptText, '~/Pictures') : null;
+          runImport(path && path.trim() ? path.trim() : null);
+        }
+      } catch (err) {
+        showToast('폴더 가져오기 오류: ' + (err && err.message ? err.message : err), 6000);
+      }
+    });
+  }
+
+  // ----- Upload -----
+  document.getElementById('upload-input').addEventListener('change', function(ev) {
+    var upT = window.t || function(k,v){return k;};
+    var files = ev.target.files;
+    if (!files || !files.length) return;
+    var fd = new FormData();
+    for (var i = 0; i < files.length; i++) fd.append('files', files[i]);
+    showToast(upT('toast.uploading', { count: files.length }), 60000);
+    fetch('/api/library/upload', { method: 'POST', body: fd })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var ok = (data.imported || []).filter(function(x) { return x.status === 'imported'; }).length;
+        showToast(upT('toast.uploadDone', { count: ok }), 5000);
+        refreshView();
+        ev.target.value = '';
+      })
+      .catch(function(e) {
+        showToast(upT('error.uploadFailed', { error: e.message }), 8000);
+      });
+  });
+
+  // ----- Lightbox -----
+  var lightboxVideo = document.getElementById('lightbox-video');
+  
+  function openLightbox(it) {
+    var isVideo = it.mediaType === 'video';
+    currentPhotoSha = it.sha256;
+    
+    if (isVideo) {
+      lightboxImg.style.display = 'none';
+      lightboxVideo.style.display = '';
+      lightboxVideo.src = '/api/library/photos/' + it.sha256 + '/stream';
+      lightboxVideo.load();
+    } else {
+      lightboxVideo.style.display = 'none';
+      lightboxImg.style.display = '';
+      lightboxImg.src = it.originalUrl;
+    }
+    
+    
+    // Step 3-4: Check proxy for videos
+    if (it.mediaType === 'video') {
+      api('/api/library/photos/' + it.sha256 + '/proxy').then(function(proxyData) {
+        if (proxyData.status === 'done' && proxyData.proxyUrl) {
+          lightboxVideo.src = proxyData.proxyUrl;
+        }
+      }).catch(function() {
+        // Keep original if proxy check fails
+      });
+    }
+    
+    lightbox.classList.add('show');
+    
+    // LivePhoto hover playback (Step 3-3)
+    api('/api/library/photos/' + it.sha256 + '/livephoto').then(function(data) {
+      if (data.pair && data.pair.video_sha) {
+        var videoUrl = window.appUrl('/api/library/asset/' + data.pair.video_sha + '/original');
+        
+        // Create hover video element
+        var hoverDiv = document.createElement('div');
+        hoverDiv.className = 'livephoto-hover';
+        var hoverVideo = document.createElement('video');
+        hoverVideo.src = videoUrl;
+        hoverVideo.loop = false;
+        hoverVideo.muted = true;
+        hoverDiv.appendChild(hoverVideo);
+        
+        var lightboxMain = document.querySelector('.lightbox-main');
+        lightboxMain.appendChild(hoverDiv);
+        
+        // Hover event
+        lightboxMain.addEventListener('mouseenter', function() {
+          hoverDiv.style.display = 'block';
+          hoverVideo.currentTime = 0;
+          hoverVideo.play();
+        });
+        
+        lightboxMain.addEventListener('mouseleave', function() {
+          hoverVideo.pause();
+          hoverDiv.style.display = 'none';
+        });
+      }
+    }).catch(function() {
+      // Not a LivePhoto, skip
+    });
+    
+    // Load EXIF
+    var exT = window.t || function(k,v){return k;};
+    var exLocale = (window.i18n && window.i18n.getLocale ? window.i18n.getLocale() : 'ko');
+    var exLocaleMap = { ko: 'ko-KR', en: 'en-US', ja: 'ja-JP' };
+    api('/api/library/photos/' + it.sha256 + '/exif').then(function(data) {
+      var exif = data.exif || {};
+      
+      // Basic info
+      var basicHtml = '';
+      if (exif.dateTimeOriginal) basicHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.date') + '</span><span class="exif-value">' + new Date(exif.dateTimeOriginal).toLocaleString(exLocaleMap[exLocale] || 'ko-KR') + '</span></div>';
+      if (it.filename) basicHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.filename') + '</span><span class="exif-value">' + it.filename + '</span></div>';
+      if (it.width && it.height) basicHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.size') + '</span><span class="exif-value">' + it.width + ' × ' + it.height + '</span></div>';
+      document.getElementById('exif-basic').innerHTML = basicHtml || '<div class="exif-row"><span class="exif-label">' + exT('empty.noInfo') + '</span></div>';
+      
+      // Camera settings
+      var cameraHtml = '';
+      if (exif.make || exif.model) cameraHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.camera') + '</span><span class="exif-value">' + [exif.make, exif.model].filter(Boolean).join(' ') + '</span></div>';
+      if (exif.lensModel) cameraHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.lens') + '</span><span class="exif-value">' + exif.lensModel + '</span></div>';
+      if (exif.fNumber) cameraHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.aperture') + '</span><span class="exif-value">f/' + exif.fNumber + '</span></div>';
+      if (exif.exposureTime) cameraHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.shutter') + '</span><span class="exif-value">' + (exif.exposureTime < 1 ? '1/' + Math.round(1/exif.exposureTime) + 's' : exif.exposureTime + 's') + '</span></div>';
+      if (exif.iso) cameraHtml += '<div class="exif-row"><span class="exif-label">ISO</span><span class="exif-value">' + exif.iso + '</span></div>';
+      if (exif.focalLength) cameraHtml += '<div class="exif-row"><span class="exif-label">' + exT('exif.focalLength') + '</span><span class="exif-value">' + exif.focalLength + 'mm</span></div>';
+      document.getElementById('exif-camera').innerHTML = cameraHtml || '<div class="exif-row"><span class="exif-label">' + exT('empty.noInfo') + '</span></div>';
+      
+      // GPS
+      if (exif.latitude && exif.longitude) {
+        document.getElementById('exif-gps-section').style.display = '';
+        var gpsHtml = '<div class="exif-row"><span class="exif-label">' + exT('exif.coordinates') + '</span><span class="exif-value">' + exif.latitude.toFixed(6) + ', ' + exif.longitude.toFixed(6) + '</span></div>';
+        document.getElementById('exif-gps').innerHTML = gpsHtml;
+      } else {
+        document.getElementById('exif-gps-section').style.display = 'none';
+      }
+    }).catch(function(e) {
+      document.getElementById('exif-basic').innerHTML = '<div class="exif-row"><span class="exif-label">' + exT('exif.loadFailed') + '</span></div>';
+    });
+    
+    // Business card data
+    var bcT = window.t || function(k,v){return k;};
+    api('/api/photos/' + it.sha256 + '/businesscard').then(function(data) {
+      if (data.businesscard) {
+        var bc = data.businesscard;
+        var bcHtml = '';
+        if (bc.name) bcHtml += '<div class="exif-row"><span class="exif-label">' + bcT('bc.name') + '</span><span class="exif-value">' + bc.name + '</span></div>';
+        if (bc.phones && bc.phones.length > 0) bcHtml += '<div class="exif-row"><span class="exif-label">' + bcT('bc.phone') + '</span><span class="exif-value">' + bc.phones.join(', ') + '</span></div>';
+        if (bc.emails && bc.emails.length > 0) bcHtml += '<div class="exif-row"><span class="exif-label">' + bcT('bc.email') + '</span><span class="exif-value">' + bc.emails.join(', ') + '</span></div>';
+        if (bc.company) bcHtml += '<div class="exif-row"><span class="exif-label">' + bcT('bc.company') + '</span><span class="exif-value">' + bc.company + '</span></div>';
+        if (bc.department) bcHtml += '<div class="exif-row"><span class="exif-label">' + bcT('bc.department') + '</span><span class="exif-value">' + bc.department + '</span></div>';
+        if (bc.position) bcHtml += '<div class="exif-row"><span class="exif-label">' + bcT('bc.position') + '</span><span class="exif-value">' + bc.position + '</span></div>';
+        if (bc.confidence) bcHtml += '<div class="exif-row"><span class="exif-label">' + bcT('bc.confidence') + '</span><span class="exif-value">' + Math.round(bc.confidence * 100) + '%</span></div>';
+        
+        document.getElementById('businesscard-data').innerHTML = bcHtml;
+        document.getElementById('businesscard-section').style.display = '';
+
+        // D&D — make the contact card draggable so the user can drop it onto the host chat.
+        // The host listens for window 'message' events (source=mycrew-photos, type=contact.*)
+        // and renders a drop overlay on its chat surface. Native dataTransfer is also set so
+        // same-frame drop targets can read it directly.
+        (function wireBcDragAndDrop() {
+          var bcSection = document.getElementById('businesscard-section');
+          if (!bcSection) return;
+          var payload = {
+            type: 'businesscard',
+            sha256: it.sha256,
+            name: bc.name || '',
+            phones: bc.phones || [],
+            emails: bc.emails || [],
+            company: bc.company || '',
+            department: bc.department || '',
+            position: bc.position || '',
+          };
+          // Build a host-chat attachment (note) from the contact fields so the
+          // host composer can render it like a markdown attachment on drop.
+          function buildContactAttachment() {
+            var lines = [];
+            if (payload.name) lines.push(payload.name);
+            var titleParts = [];
+            if (payload.position) titleParts.push(payload.position);
+            if (payload.department) titleParts.push(payload.department);
+            if (payload.company) titleParts.push(payload.company);
+            if (titleParts.length) lines.push(titleParts.join(' · '));
+            if (payload.phones && payload.phones.length) lines.push('전화: ' + payload.phones.join(', '));
+            if (payload.emails && payload.emails.length) lines.push('이메일: ' + payload.emails.join(', '));
+            return {
+              type: 'note',
+              name: '연락처: ' + (payload.name || '이름없음'),
+              content: lines.join('\n'),
+            };
+          }
+          bcSection.setAttribute('draggable', 'true');
+          bcSection.style.cursor = 'grab';
+          bcSection.ondragstart = function(ev) {
+            var attachment = buildContactAttachment();
+            try {
+              if (ev.dataTransfer) {
+                ev.dataTransfer.setData('application/x-mycrew-contact', JSON.stringify(payload));
+                ev.dataTransfer.setData('application/x-mycrew-attachment', JSON.stringify(attachment));
+                ev.dataTransfer.setData('text/plain',
+                  (payload.name || '') +
+                  (payload.phones.length ? ' ' + payload.phones.join(' ') : '') +
+                  (payload.emails.length ? ' ' + payload.emails.join(' ') : ''));
+                ev.dataTransfer.effectAllowed = 'copy';
+              }
+            } catch (_) {}
+            bcSection.classList.add('dragging');
+            postHost('contact.dragstart', payload);
+            try { window.parent.postMessage({ source: 'mycrew-photos', type: 'drag.start', payload: { attachment: attachment } }, HOST_ORIGIN); } catch (_) {}
+          };
+          bcSection.ondragend = function() {
+            bcSection.classList.remove('dragging');
+            postHost('contact.dragend', { sha256: payload.sha256 });
+            try { window.parent.postMessage({ source: 'mycrew-photos', type: 'drag.end' }, HOST_ORIGIN); } catch (_) {}
+          };
+        })();
+
+        // Sync button handler
+        document.getElementById('btn-bc-sync-to-host').onclick = function() {
+          api('/api/photos/' + it.sha256 + '/businesscard-sync', { method: 'POST' }).then(function(r) {
+            if (r.ok) {
+              showToast('✅ ' + bcT('msg.bcSyncSuccess'), 3000);
+            } else {
+              showToast('❌ ' + bcT('msg.bcSyncFailed') + ': ' + (r.reason || 'unknown'), 5000);
+            }
+          }).catch(function(e) {
+            showToast('❌ ' + bcT('msg.bcSyncError') + ': ' + e.message, 5000);
+          });
+        };
+        
+        // Rescan button handler
+        document.getElementById('btn-bc-rescan').onclick = function() {
+          api('/api/photos/' + it.sha256 + '/businesscard-ocr', { method: 'POST' }).then(function(r) {
+            showToast('✅ ' + bcT('msg.bcRescanSuccess'), 3000);
+            // Surface auto-sync outcome so user knows whether the contact
+            // actually reached the host (previously silent on no-token).
+            if (r && r.syncStatus === 'failed') {
+              showToast('❌ ' + bcT('msg.bcSyncFailed') + ': ' + (r.syncReason || 'unknown'), 5000);
+            } else if (r && r.syncStatus === 'skipped' && r.syncReason && r.syncReason !== 'autoAdd-disabled') {
+              showToast('⚠️ ' + bcT('msg.bcSyncFailed') + ': ' + r.syncReason, 5000);
+            }
+            // Reload business card data
+            setTimeout(function() {
+              api('/api/photos/' + it.sha256 + '/businesscard').then(function(data2) {
+                if (data2.businesscard) {
+                  var bc2 = data2.businesscard;
+                  var bcHtml2 = '';
+                  if (bc2.name) bcHtml2 += '<div class="exif-row"><span class="exif-label">' + bcT('bc.name') + '</span><span class="exif-value">' + bc2.name + '</span></div>';
+                  if (bc2.phones && bc2.phones.length > 0) bcHtml2 += '<div class="exif-row"><span class="exif-label">' + bcT('bc.phone') + '</span><span class="exif-value">' + bc2.phones.join(', ') + '</span></div>';
+                  if (bc2.emails && bc2.emails.length > 0) bcHtml2 += '<div class="exif-row"><span class="exif-label">' + bcT('bc.email') + '</span><span class="exif-value">' + bc2.emails.join(', ') + '</span></div>';
+                  if (bc2.company) bcHtml2 += '<div class="exif-row"><span class="exif-label">' + bcT('bc.company') + '</span><span class="exif-value">' + bc2.company + '</span></div>';
+                  if (bc2.department) bcHtml2 += '<div class="exif-row"><span class="exif-label">' + bcT('bc.department') + '</span><span class="exif-value">' + bc2.department + '</span></div>';
+                  if (bc2.position) bcHtml2 += '<div class="exif-row"><span class="exif-label">' + bcT('bc.position') + '</span><span class="exif-value">' + bc2.position + '</span></div>';
+                  if (bc2.confidence) bcHtml2 += '<div class="exif-row"><span class="exif-label">' + bcT('bc.confidence') + '</span><span class="exif-value">' + Math.round(bc2.confidence * 100) + '%</span></div>';
+                  document.getElementById('businesscard-data').innerHTML = bcHtml2;
+                }
+              });
+            }, 1000);
+          }).catch(function(e) {
+            showToast('❌ ' + bcT('msg.bcRescanError') + ': ' + e.message, 5000);
+          });
+        };
+      } else {
+        document.getElementById('businesscard-section').style.display = 'none';
+      }
+    }).catch(function() {
+      document.getElementById('businesscard-section').style.display = 'none';
+    });
+    
+    // OCR buttons
+    var ocrTT = window.t || function(k,v){return k;};
+    var btnRunOcr = document.getElementById('btn-run-ocr');
+    var btnRunPlate = document.getElementById('btn-run-plate');
+    var ocrText = document.getElementById('ocr-text');
+    
+    // Check if OCR already exists
+    api('/api/photos/' + it.sha256 + '/ocr').then(function(data) {
+      ocrText.innerHTML = '<strong>' + ocrTT('ocr.receiptHeader') + '</strong><br>' + (data.text || ocrTT('ocr.empty'));
+      ocrText.style.color = 'var(--text-primary)';
+    }).catch(function() {
+      ocrText.textContent = ocrTT('empty.ocrIdle');
+    });
+    
+    // Check if plate OCR exists
+    api('/api/photos/' + it.sha256 + '/plates').then(function(data) {
+      ocrText.innerHTML += '<br><strong>' + ocrTT('ocr.plateLabel') + '</strong> ' + (data.plateNumber || ocrTT('ocr.empty'));
+    }).catch(function() {});
+    
+    btnRunOcr.onclick = function() {
+      btnRunOcr.disabled = true;
+      btnRunOcr.textContent = ocrTT('btn.processing');
+      api('/api/photos/' + it.sha256 + '/ocr', { method: 'POST' })
+        .then(function(data) {
+          ocrText.innerHTML = '<strong>' + ocrTT('ocr.receiptHeader') + '</strong><br>' + data.text;
+          ocrText.style.color = 'var(--text-primary)';
+          btnRunOcr.textContent = ocrTT('btn.done');
+          setTimeout(function() {
+            btnRunOcr.disabled = false;
+            btnRunOcr.textContent = ocrTT('btn.runReceiptOcrRetry');
+          }, 2000);
+        })
+        .catch(function(e) {
+          ocrText.textContent = ocrTT('error.genericFailed', { error: e.message });
+          ocrText.style.color = 'var(--accent-danger)';
+          btnRunOcr.disabled = false;
+          btnRunOcr.textContent = ocrTT('btn.runReceiptOcr');
+        });
+    };
+    
+    btnRunPlate.onclick = function() {
+      btnRunPlate.disabled = true;
+      btnRunPlate.textContent = ocrTT('btn.processing');
+      api('/api/photos/' + it.sha256 + '/plates', { method: 'POST' })
+        .then(function(data) {
+          ocrText.innerHTML += '<br><strong>' + ocrTT('ocr.plateLabel') + '</strong> ' + data.plateNumber;
+          btnRunPlate.textContent = ocrTT('btn.done');
+          setTimeout(function() {
+            btnRunPlate.disabled = false;
+            btnRunPlate.textContent = ocrTT('btn.runPlateOcrRetry');
+          }, 2000);
+        })
+        .catch(function(e) {
+          ocrText.innerHTML += '<br><strong>' + ocrTT('ocr.plateLabel') + '</strong> ' + ocrTT('ocr.plateFailedPrefix', { error: e.message });
+          ocrText.style.color = 'var(--accent-danger)';
+          btnRunPlate.disabled = false;
+          btnRunPlate.textContent = ocrTT('btn.runPlateOcr');
+        });
+    };
+    
+    // Phase 6: Load rating, tags, share
+    api('/api/library/photos/' + currentPhotoSha).then(function(data) {
+      var rating = data.rating || 0;
+      updateRatingStars(rating);
+    }).catch(function() {});
+    
+    api('/api/photos/' + currentPhotoSha + '/tags').then(function(data) {
+      var tags = data.tags || [];
+      displayTags(tags, currentPhotoSha);
+    }).catch(function() {});
+    
+    var shT = window.t || function(k,v){return k;};
+    api('/api/photos/' + currentPhotoSha + '/share').then(function(data) {
+      if (data.token) {
+        var link = location.origin + data.url;
+        document.getElementById('share-link-result').innerHTML = '<a href="' + link + '" target="_blank" style="color:var(--ring);">' + link + '</a><br><button class="btn" onclick="copyShareLink(\'' + link + '\')" style="margin-top:4px;width:100%;">' + shT('btn.copy') + '</button>';
+      } else {
+        document.getElementById('share-link-result').textContent = shT('empty.noShareLink');
+      }
+    }).catch(function() {
+      document.getElementById('share-link-result').textContent = shT('empty.noShareLink');
+    });
+  }
+  
+  function closeLightbox() {
+    lightbox.classList.remove('show');
+    lightboxImg.src = '';
+    lightboxVideo.pause();
+    lightboxVideo.src = '';
+    
+    // Clean up LivePhoto hover elements
+    var hoverDiv = document.querySelector('.livephoto-hover');
+    if (hoverDiv) hoverDiv.remove();
+  }
+  
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && lightbox.classList.contains('show')) closeLightbox();
+  });
+
+  // ----- Phase 6: Rating, Tags, Share, Watch -----
+  var currentPhotoSha = null;
+  
+  function updateRatingStars(rating) {
+    document.querySelectorAll('#rating-stars span').forEach(function(star, idx) {
+      star.textContent = (idx < rating) ? '★' : '☆';
+    });
+  }
+  
+  function displayTags(tags, sha) {
+    var dtT = window.t || function(k,v){return k;};
+    var html = '';
+    tags.forEach(function(tag) {
+      html += '<span style="display:inline-block;padding:4px 8px;margin:2px;background:var(--bg-elevated);color:var(--text-primary);border-radius:var(--radius-sm);font-size:var(--font-s);">' + tag + ' <button onclick="removeTag(\'' + sha + '\', \'' + tag + '\')" style="background:none;border:none;color:var(--text-primary);cursor:pointer;font-size:var(--font-s);">✕</button></span>';
+    });
+    document.getElementById('photo-tags').innerHTML = html || '<span style="color:var(--text-muted);">' + dtT('empty.noTags') + '</span>';
+  }
+  
+  window.removeTag = function(sha, tag) {
+    var rtgT = window.t || function(k,v){return k;};
+    api('/api/photos/' + sha + '/tags/' + encodeURIComponent(tag), { method: 'DELETE' })
+      .then(function() {
+        api('/api/photos/' + sha + '/tags').then(function(data) {
+          displayTags(data.tags || [], sha);
+        });
+        showToast(rtgT('toast.tagRemoved', { tag: tag }));
+      }).catch(function(e) {
+        showToast(rtgT('error.genericFailed', { error: e.message }));
+      });
+  };
+  
+  window.copyShareLink = function(link) {
+    var cslT = window.t || function(k,v){return k;};
+    navigator.clipboard.writeText(link).then(function() {
+      showToast(cslT('toast.linkCopied'));
+    }).catch(function() {
+      showToast(cslT('toast.copyFailed'));
+    });
+  };
+  
+  function loadWatchFolders() {
+    var lwfT = window.t || function(k,v){return k;};
+    api('/api/watched-folders').then(function(data) {
+      var folders = data.folders || [];
+      if (folders.length === 0) {
+        document.getElementById('watch-folders-list').innerHTML = '<span style="color:var(--text-muted);">' + lwfT('empty.noWatchedFolders') + '</span>';
+      } else {
+        var html = '';
+        folders.forEach(function(f) {
+          html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border-default);"><span style="flex:1;color:var(--text-primary);">' + f.path + '</span><button class="btn" onclick="removeWatchFolder(' + f.id + ')" style="padding:4px 8px;font-size:var(--font-s);">✕</button></div>';
+        });
+        document.getElementById('watch-folders-list').innerHTML = html;
+      }
+    }).catch(function() {
+      document.getElementById('watch-folders-list').innerHTML = '<span style="color:var(--accent-danger);">' + lwfT('error.loadFailed', { error: '' }) + '</span>';
+    });
+  }
+  
+  window.removeWatchFolder = function(id) {
+    var rwfT = window.t || function(k,v){return k;};
+    api('/api/watched-folders/' + id, { method: 'DELETE' })
+      .then(function() {
+        loadWatchFolders();
+        showToast(rwfT('toast.watchStopped'));
+      }).catch(function(e) {
+        showToast(rwfT('error.genericFailed', { error: e.message }));
+      });
+  };
+  
+  document.getElementById('btn-settings').addEventListener('click', function() {
+    document.getElementById('settings-modal').classList.add('show');
+    loadWatchFolders();
+  });
+  
+  document.getElementById('btn-close-settings').addEventListener('click', function() {
+    document.getElementById('settings-modal').classList.remove('show');
+  });
+
+  // ----- Language selector (mycrew-system 'jarvis-lang' sync) -----
+  document.querySelectorAll('[data-lang]').forEach(function (langBtn) {
+    langBtn.addEventListener('click', function () {
+      var lang = langBtn.getAttribute('data-lang');
+      if (window.i18n && window.i18n.setLang) {
+        window.i18n.setLang(lang);
+      }
+      syncLangActive();
+      var lsT = window.t || function(k,v){return k;};
+      showToast(lsT('toast.languageChanged'));
+    });
+  });
+  syncLangActive();
+  window.addEventListener('i18n:changed', syncLangActive);
+
+  // Re-render dynamic content when language changes (cross-tab sync via storage event too)
+  window.addEventListener('i18n:changed', function () {
+    refreshView();
+  });
+  window.addEventListener('storage', function (e) {
+    if (e && e.key === 'jarvis-lang' && window.i18n && window.i18n.applyI18nDOM) {
+      window.i18n.applyI18nDOM(document.body);
+      refreshView();
+    }
+  });
+  
+  document.getElementById('btn-add-watch-folder').addEventListener('click', function() {
+    var path = document.getElementById('watch-folder-input').value.trim();
+    if (!path) return;
+    api('/api/watched-folders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: path }),
+    }).then(function() {
+      document.getElementById('watch-folder-input').value = '';
+      loadWatchFolders();
+      var awfT = window.t || function(k,v){return k;};
+      showToast(awfT('toast.watchStarted', { path: path }));
+    }).catch(function(e) {
+      var awfT2 = window.t || function(k,v){return k;};
+      showToast(awfT2('error.genericFailed', { error: e.message }));
+    });
+  });
+  
+  document.querySelectorAll('#rating-stars span').forEach(function(star) {
+    star.addEventListener('click', function() {
+      var rsT = window.t || function(k,v){return k;};
+      var rating = Number(star.getAttribute('data-rating'));
+      if (!currentPhotoSha) return;
+      api('/api/photos/' + currentPhotoSha, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: rating }),
+      }).then(function() {
+        updateRatingStars(rating);
+        showToast(rsT('toast.ratingSet', { rating: rating }));
+      }).catch(function(e) {
+        showToast(rsT('error.genericFailed', { error: e.message }));
+      });
+    });
+  });
+  
+  document.getElementById('tag-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      var tagT = window.t || function(k,v){return k;};
+      var tag = e.target.value.trim();
+      if (!tag || !currentPhotoSha) return;
+      api('/api/photos/' + currentPhotoSha + '/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tag: tag }),
+      }).then(function() {
+        e.target.value = '';
+        api('/api/photos/' + currentPhotoSha + '/tags').then(function(data) {
+          displayTags(data.tags || [], currentPhotoSha);
+        });
+        showToast(tagT('toast.tagAdded', { tag: tag }));
+      }).catch(function(err) {
+        showToast(tagT('error.genericFailed', { error: err.message }));
+      });
+    }
+  });
+  
+  document.getElementById('btn-create-share').addEventListener('click', function() {
+    if (!currentPhotoSha) return;
+    api('/api/photos/' + currentPhotoSha + '/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: document.getElementById('share-password').value.trim() || undefined
+        })
+      })
+      .then(function(data) {
+        var csT = window.t || function(k,v){return k;};
+        var link = location.origin + data.url;
+        document.getElementById('share-link-result').innerHTML = '<a href="' + link + '" target="_blank" style="color:var(--ring);">' + link + '</a><br><button class="btn" onclick="copyShareLink(\'' + link + '\')" style="margin-top:4px;width:100%;">' + csT('btn.copy') + '</button>';
+        showToast(csT('toast.shareLinkCreated'));
+      }).catch(function(e) {
+        var csT2 = window.t || function(k,v){return k;};
+        showToast(csT2('error.genericFailed', { error: e.message }));
+      });
+  });
+
+  // ----- Theme toggle (mycrew-system 디자인 토큰) -----
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    var btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = theme === 'light' ? '☀️' : '🌙';
+    document.querySelectorAll('[data-theme-set]').forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-theme-set') === theme);
+    });
+  }
+
+  function syncLangActive() {
+    var current = 'ko';
+    try {
+      current = (window.i18n && window.i18n.getLang && window.i18n.getLang())
+                || localStorage.getItem('jarvis-lang') || 'ko';
+    } catch (_) {}
+    document.querySelectorAll('[data-lang]').forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-lang') === current);
+    });
+  }
+  function initTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem('mycrew-photos-theme'); } catch (_) {}
+    var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    applyTheme(saved || (prefersLight ? 'light' : 'dark'));
+  }
+  initTheme();
+  // 설정 모달 안의 테마 선택 버튼 (라이트/다크)
+  document.querySelectorAll('[data-theme-set]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var theme = btn.getAttribute('data-theme-set') || 'dark';
+      applyTheme(theme);
+      try { localStorage.setItem('mycrew-photos-theme', theme); } catch (_) {}
+    });
+  });
+
+  // ----- Sidebar collapse toggle (localStorage 보존) -----
+  (function () {
+    var sidebar = document.getElementById('sidebar');
+    var toggle = document.getElementById('sidebar-toggle');
+    if (!sidebar || !toggle) return;
+    var KEY = 'mycrew-photos-sidebar-collapsed';
+    function isMobile() { return window.matchMedia('(max-width: 720px)').matches; }
+    try {
+      if (localStorage.getItem(KEY) === '1') sidebar.classList.add('collapsed');
+    } catch (_) {}
+    toggle.addEventListener('click', function () {
+      if (isMobile()) return; // 모바일에서는 별도 오버레이 핸들러가 처리
+      sidebar.classList.toggle('collapsed');
+      try { localStorage.setItem(KEY, sidebar.classList.contains('collapsed') ? '1' : '0'); } catch (_) {}
+    });
+  })();
+
+  // ----- Mobile sidebar overlay (햄버거 + 백드롭) -----
+  (function () {
+    var sidebar = document.getElementById('sidebar');
+    var backdrop = document.getElementById('sidebar-backdrop');
+    var menuBtn = document.getElementById('mobile-menu-btn');
+    var toggle = document.getElementById('sidebar-toggle');
+    if (!sidebar) return;
+    function isMobile() { return window.matchMedia('(max-width: 720px)').matches; }
+    function open() {
+      sidebar.classList.add('mobile-open');
+      if (backdrop) backdrop.classList.add('show');
+    }
+    function close() {
+      sidebar.classList.remove('mobile-open');
+      if (backdrop) backdrop.classList.remove('show');
+    }
+    if (menuBtn) menuBtn.addEventListener('click', function () {
+      if (isMobile()) {
+        sidebar.classList.contains('mobile-open') ? close() : open();
+      } else {
+        sidebar.classList.toggle('collapsed');
+      }
+    });
+    if (backdrop) backdrop.addEventListener('click', close);
+    if (toggle) toggle.addEventListener('click', function () {
+      if (isMobile()) close();
+    });
+    document.querySelectorAll('.sidebar-item').forEach(function (item) {
+      item.addEventListener('click', function () { if (isMobile()) close(); });
+    });
+    window.addEventListener('resize', function () { if (!isMobile()) close(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isMobile()) close();
+    });
+  })();
+
+  // ----- WebSocket bus -----
+  function connectBus() {
+    var bsT = window.t || function(k,v){return k;};
+    var token = new URLSearchParams(location.search).get('token') || '';
+    var url = 'ws://' + location.host + '/bus' + (token ? '?token=' + token : '');
+    try {
+      var ws = new WebSocket(url);
+      ws.onopen = function() { busStatus.textContent = bsT('bus.connected'); };
+      ws.onclose = function() { busStatus.textContent = bsT('bus.disconnected'); setTimeout(connectBus, 3000); };
+      ws.onmessage = function(ev) {
+        try {
+          var m = JSON.parse(ev.data);
+          if (m.type === 'library.imported' || m.type === 'library.updated' || m.type === 'library.deleted') {
+            refreshView();
+          }
+        } catch (_) {}
+      };
+    } catch (e) {
+      busStatus.textContent = bsT('bus.failed');
+    }
+  }
+  connectBus();
+
+  postHost('app.ready', { app: 'photos', version: '0.4.0' });
+  refreshView();
+})();
+</script>
+</body>
+</html>

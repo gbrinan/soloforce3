@@ -1,0 +1,7 @@
+verify:ingestiger exit=0
+test:ingestiger-role exit=0
+test:wiki-product exit=0
+test:wiki exit=0
+test:wiki-collaboration exit=0
+build exit=1
+build final exit=0

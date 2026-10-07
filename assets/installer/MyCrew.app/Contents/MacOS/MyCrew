@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# MyCrew.app launcher.
+# Locates the mycrew-system project, starts the Hono server in the
+# background (building first if dist is missing), then opens the browser
+# at the configured PORT (defaults to 3456 if no .env override).
+
+set -e
+
+log() { /usr/bin/logger -t MyCrew.app "$@" 2>/dev/null || true; }
+
+# 1) Resolve project root.
+# Precedence:
+#   1. MYCREW_HOME env (user override)
+#   2. ~/.config/mycrew/project_path  (written by setup script)
+#   3. Common locations: ~/mycrew-system, ~/Documents/mycrew-system, /Applications/../mycrew-system
+candidates=()
+if [ -n "${MYCREW_HOME:-}" ]; then candidates+=("$MYCREW_HOME"); fi
+if [ -f "$HOME/.config/mycrew/project_path" ]; then
+  candidates+=("$(cat "$HOME/.config/mycrew/project_path")")
+fi
+candidates+=(
+  "$HOME/mycrew-system"
+  "$HOME/Documents/mycrew-system"
+  "$HOME/Desktop/mycrew-system"
+)
+
+PROJECT=""
+for c in "${candidates[@]}"; do
+  if [ -n "$c" ] && [ -f "$c/package.json" ] && [ -f "$c/src/index.ts" ]; then
+    PROJECT="$c"
+    break
+  fi
+done
+
+if [ -z "$PROJECT" ]; then
+  /usr/bin/osascript -e 'display alert "MyCrew" message "mycrew-system 폴더를 찾을 수 없습니다.\n\nsetup.command 를 먼저 실행하거나, MYCREW_HOME 환경 변수를 설정해주세요." as critical' 2>/dev/null || true
+  log "project root not found"
+  exit 1
+fi
+
+cd "$PROJECT"
+
+# 2) Load PORT from .env (or default 3456).
+PORT="3456"
+if [ -f "$PROJECT/.env" ]; then
+  envline=$(/usr/bin/grep -E '^PORT=' "$PROJECT/.env" | /usr/bin/head -n1 | /usr/bin/cut -d= -f2- || true)
+  if [ -n "$envline" ]; then PORT="$envline"; fi
+fi
+
+# 3) If health check already responds, skip server start.
+if /usr/bin/curl -sf -o /dev/null --max-time 1 "http://localhost:${PORT}/api/health"; then
+  log "server already running on :$PORT"
+else
+  # 4) Ensure node is on PATH (GUI launch has minimal PATH).
+  export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${HOME}/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node" 2>/dev/null | tail -n1 2>/dev/null)/bin:$PATH"
+
+  # 5) Build if dist missing (one-shot).
+  if [ ! -d "$PROJECT/dist" ] || [ ! -d "$PROJECT/src/client/dist" ]; then
+    /usr/bin/osascript -e 'display notification "초기 빌드 중… 30초~1분 소요" with title "MyCrew"' 2>/dev/null || true
+    (cd "$PROJECT" && npx tsc >/tmp/mycrew-build.log 2>&1 && npx vite build >>/tmp/mycrew-build.log 2>&1) || {
+      /usr/bin/osascript -e 'display alert "MyCrew" message "빌드 실패. /tmp/mycrew-build.log 를 확인해주세요." as critical' 2>/dev/null || true
+      exit 1
+    }
+  fi
+
+  # 6) Start server in background.
+  nohup npx tsx src/index.ts >/tmp/mycrew-server.log 2>&1 &
+  SERVER_PID=$!
+  log "started server pid=$SERVER_PID port=$PORT"
+
+  # 7) Wait until /api/health responds (max ~30s — 최초 기동/의존성 로드 여유).
+  READY=""
+  for i in $(seq 1 60); do
+    if /usr/bin/curl -sf -o /dev/null --max-time 1 "http://localhost:${PORT}/api/health"; then
+      READY="1"
+      break
+    fi
+    /bin/sleep 0.5
+  done
+
+  # 7b) 서버가 끝내 응답하지 않으면 죽은 페이지를 열지 말고 원인을 안내한다.
+  if [ -z "$READY" ]; then
+    log "server did not become healthy on :$PORT"
+    /usr/bin/osascript -e "display alert \"MyCrew 서버를 시작하지 못했습니다\" message \"포트 ${PORT}에서 서버가 응답하지 않습니다. 이미 다른 프로그램이 포트를 쓰고 있거나 초기 설치가 끝나지 않았을 수 있습니다.\n\n· 잠시 후 MyCrew를 다시 실행해 보세요.\n· 계속 안 되면 터미널에서 setup.command 를 다시 실행해주세요.\n\n로그: /tmp/mycrew-server.log\" as critical" 2>/dev/null || true
+    exit 1
+  fi
+fi
+
+# 8) Open browser (서버 응답 확인됨).
+/usr/bin/open "http://localhost:${PORT}"
+exit 0

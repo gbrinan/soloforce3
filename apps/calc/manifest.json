@@ -1,0 +1,27 @@
+{
+  "id": "calc",
+  "name": "계산기",
+  "version": "1.0.1",
+  "icon": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='12' y='6' width='40' height='52' rx='7' fill='%234F46E5'/><rect x='18' y='12' width='28' height='11' rx='2' fill='%23E0E7FF'/><g fill='%23C7D2FE'><circle cx='21' cy='34' r='3'/><circle cx='32' cy='34' r='3'/><circle cx='43' cy='34' r='3'/><circle cx='21' cy='43' r='3'/><circle cx='32' cy='43' r='3'/><circle cx='43' cy='43' r='3'/><circle cx='21' cy='52' r='3'/><circle cx='32' cy='52' r='3'/><circle cx='43' cy='52' r='3'/></g></svg>",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13243"
+  },
+  "ports": {
+    "http": 13243
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "간단 계산기 앱 — 사칙연산 + 최근 5건 계산 기록",
+  "aiCapabilities": [
+    {
+      "id": "nl-calc",
+      "route": "/api/ai/parse",
+      "title": "자연어 계산",
+      "desc": "\"150만원 3개월 할부 월 얼마\"처럼 문장으로 계산합니다."
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "_note": "voice may be a Supertonic preset (M1..F5, excluding M4/F3/F4) or an imported custom style name via POST /v1/styles/import",
+  "voice": "F2",
+  "color": "#e0b64f",
+  "speed": 1,
+  "lang": "ko",
+  "fillers": [
+    "물류 보고—"
+  ]
+}

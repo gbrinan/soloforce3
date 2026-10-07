@@ -1,0 +1,11 @@
+{
+  "id": "image-prompt-compiler",
+  "name": "이미지프롬프트",
+  "jobTitle": "이미지 프롬프트 컴파일러",
+  "team": "기획팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "막연한 요청을 gpt-image-2 완성 한국어 프로덕션 프롬프트로 컴파일 (생성은 안 함, 프롬프트 텍스트만 산출)"
+}

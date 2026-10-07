@@ -1,0 +1,51 @@
+{
+  "id": "ledger",
+  "name": "재무설계",
+  "version": "0.3.3",
+  "icon": "📊",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13245"
+  },
+  "ports": {
+    "http": 13245
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": true,
+  "description": "재무설계 — 가계부(수입·지출·예산·구독)와 자산관리(예금·적금·주식·ETF·코인·외환·금 시세 자동 추적)",
+  "aiCapabilities": [
+    {
+      "id": "ai-parse",
+      "route": "/api/ai-parse",
+      "title": "자연어 거래 입력",
+      "desc": "\"어제 점심 12000원\"처럼 말하면 거래로 기록합니다."
+    },
+    {
+      "id": "categorize",
+      "route": "/api/ai/categorize",
+      "title": "자동 분류",
+      "desc": "거래 내역을 카테고리로 자동 분류합니다."
+    },
+    {
+      "id": "insights",
+      "route": "/api/ai/insights",
+      "title": "월간 인사이트",
+      "desc": "지출 추세와 예산 대비 현황을 분석해 알려줍니다."
+    },
+    {
+      "id": "forecast",
+      "route": "/api/ai/forecast",
+      "title": "현금흐름 예측",
+      "desc": "이번 달 예상 지출과 월말 잔액을 예측하고 예산 초과를 경고합니다."
+    },
+    {
+      "id": "anomalies",
+      "route": "/api/ai/anomalies",
+      "title": "이상거래·중복 탐지",
+      "desc": "비정상 결제·신규 가맹점·중복 구독을 자동으로 찾아냅니다."
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+# SPF 카톡 다이제스트 — 평일 08:30 KST (메일스캔 08:20 / 아침브리핑 08:40 사이 스태거).
+# kakao-inbox의 내보내기 파일을 인제스트 → 미분류 메시지 분류 → 넥스트 액션 추출 →
+# 리드 매칭 건은 Notion "다음 액션"에 기록 → 다이제스트 발송. 신규 없으면 [[QUIET]].
+# 데이터 없으면 [[QUIET]]로 조용히 스킵되므로 상시 활성화 안전.
+loop:
+  id: spf-kakao-brief
+  version: "1"
+  owner: genie
+  description: "SPF 카톡 다이제스트 (내보내기 인제스트 → 분류 → 넥스트 액션 → 리드 갱신)"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "30 8 * * 1-5"
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: kakao-digest
+      agent: spf-comms
+      model_tier: standard
+      prompt: >
+        [SPF 카톡 다이제스트] 롤 디렉티브의 표준 절차를 그대로 수행하라.
+
+        1) history/agents/spf-comms/kakao-inbox/ 에 새 .txt가 있으면
+        tools/kakao_parser.py ingest 실행(PYTHONIOENCODING=utf-8, py 런처),
+        처리 파일은 kakao-inbox/processed/ 로 이동.
+
+        2) pending으로 미분류 메시지를 가져와 Skill("spf-comms-classify")
+        기준으로 분류하고 mark로 기록한다. 마스킹본만 사용.
+
+        3) actionable 건에서 Skill("spf-next-action") 기준으로 넥스트 액션을
+        추출한다. Notion 영업 리드 DB(data_source
+        b3765c80-7cae-46a0-9203-5cc21783fa2f)와 매칭되는 건만
+        "다음 액션"/"다음 액션일"을 갱신한다(리드 신규 생성 금지).
+
+        4) spf-next-action의 다이제스트 템플릿으로 출력한다.
+        신규 처리 건이 0이면 정확히 이 한 줄만 출력: [[QUIET]]
+
+        하드 룰: 어떤 채널로도 발신 금지. 원문 재출력 금지(마스킹본만).
+        근거 없는 분류 금지. 지어내지 않는다.
+
+  budget:
+    max_cost_usd_per_run: 1
+    max_duration_minutes: 15
+    max_runs_per_day: 1
+    monthly_cap_usd: 15
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: full
+    on_failure: full
+
+  expiry:
+    review_after_days: 30

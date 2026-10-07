@@ -1,0 +1,31 @@
+# External vendored source (pinned via COMMIT_PIN.txt)
+vendor/openreel/
+
+# Build artifacts
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Runtime data (renders, uploads, STT, fixtures, project workspaces)
+.data/
+uploads/
+workspaces/
+
+# Dev helper scripts + sample media
+samples/
+
+# Logs
+*.log
+
+# QA scratch artifacts (live e2e/render verification)
+.qa_*
+qa-*.json
+qa-*.sh
+qa-test*.mp4
+public/qa-test*.mp4
+.build-logs/
+.next.prevok.*
+prod-*.pid
+e2e-shots/
+start-prod.sh
+scripts/find3203.cjs

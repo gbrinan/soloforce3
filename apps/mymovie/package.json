@@ -1,0 +1,35 @@
+{
+  "name": "mymovie",
+  "version": "0.1.1",
+  "private": true,
+  "bin": {
+    "mymovie-mcp": "bin/mcp-server.mjs"
+  },
+  "scripts": {
+    "dev": "next dev -p 13203",
+    "build": "next build",
+    "start": "next start -p 13203 -H 127.0.0.1",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "mcp": "node bin/mcp-server.mjs"
+  },
+  "dependencies": {
+    "@mantine/core": "^9.2.1",
+    "@mantine/dropzone": "^9.2.1",
+    "@mantine/hooks": "^9.2.1",
+    "@mantine/notifications": "^9.2.1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@mycrew/ai-client": "file:../../packages/ai-client",
+    "@mycrew/whisper-local": "file:../../packages/whisper-local",
+    "@tabler/icons-react": "^3.44.0",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

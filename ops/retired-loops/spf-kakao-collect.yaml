@@ -1,0 +1,66 @@
+# SPF 카톡 수집 — 평일 08:10 KST (소통의 다이제스트 08:30보다 20분 앞).
+# Mac에서 katok으로 수집해 Google Drive에 올린 .txt를 kakao-inbox로 옮긴다.
+# 분류/넥스트액션은 하지 않는다 — 08:30 spf-kakao-brief가 이어받는다.
+# 신규 파일이 없으면 [[QUIET]]로 조용히 스킵되므로 상시 활성화 안전.
+#
+# 파이프라인: [Mac] katok → [Drive] mycrew/kakao-sync → [Win] kakao-inbox → spf-comms
+# 대화의 정본은 Mac이다. Windows 카카오톡은 수집원이 아니다.
+#
+# 폐기: Windows 작업 스케줄러 "MyCrew SPF Kakao Export"(Ctrl+S 자동화)는
+#       2026-07-29 비활성화. 저장 대화상자 미출현 + Mac 로그인 시 세션 단절로
+#       구조적 유지 불가. 되살리지 말 것.
+loop:
+  id: spf-kakao-collect
+  version: "2"
+  owner: genie
+  description: "SPF 카톡 수집 (Google Drive 동기화 폴더 → kakao-inbox 적재)"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "10 8 * * 1-5"
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: kakao-collect
+      agent: spf-kakao-collect
+      model_tier: standard
+      prompt: >
+        [SPF 카톡 수집] 롤 디렉티브의 표준 절차를 그대로 수행하라.
+
+        1) history/agents/spf-comms/tools/kakao_sync.py 를 --list 로 실행해
+        동기화 폴더의 신규 .txt를 확인한다(PYTHONIOENCODING=utf-8, py 런처).
+        신규가 0건이면 정확히 이 한 줄만 출력하고 끝낸다: [[QUIET]]
+
+        2) 신규가 있으면 인자 없이 실행해 kakao-inbox로 복사한다.
+
+        3) 결과를 파일로 검증한다. 종료코드를 믿지 말고 kakao-inbox/ 에서
+        .txt를 직접 세고 0바이트는 실패로 계산한다.
+
+        4) 1건 이상이면 파일명과 바이트 수를 표로 보고한다.
+        0건이면 실패로 보고하고 sync.log 마지막 줄들을 그대로 인용한다.
+        성공으로 포장하지 않는다.
+
+        하드 룰: .txt 내용을 열어 읽거나 인용하지 않는다(옮기기만 한다).
+        Drive 원본을 지우지 않는다. Drive에 쓰지 않는다.
+        분류·넥스트액션 금지(spf-comms 소관). processed/ 이동 금지.
+        kakao_export.py(폐기된 Ctrl+S 자동화)를 실행하지 않는다.
+        건수는 실제 파일에서 센 값만 보고한다.
+
+  budget:
+    max_cost_usd_per_run: 0.5
+    max_duration_minutes: 10
+    max_runs_per_day: 1
+    monthly_cap_usd: 5
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: full
+    on_failure: full
+
+  expiry:
+    review_after_days: 30
+# [RETIRED 2026-08-31] 사용자 지시로 폐기. 직원 정의(spf-kakao-collect)가 리포에 없는 고아 루프였음.

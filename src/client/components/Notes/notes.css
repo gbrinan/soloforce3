@@ -1,0 +1,184 @@
+/* 노트 Tiptap 에디터 스타일 */
+.note-editor .ProseMirror {
+  outline: none;
+  padding: 12px 14px;
+  min-height: 100%;
+  /* 노트 보기 설정(NotesPanel이 --note-* 변수 주입). 미주입 시 기존값으로 폴백. */
+  font-family: var(--note-body-font, inherit);
+  font-size: var(--note-font-size, var(--font-m, 14px));
+  line-height: var(--note-line-height, 1.6);
+  max-width: var(--note-doc-width, 720px);
+  margin-left: auto;
+  margin-right: auto;
+  caret-color: var(--mantine-color-text);
+}
+.note-editor .ProseMirror:focus {
+  outline: none;
+}
+.note-editor .ProseMirror > * + * {
+  margin-top: 0.5em;
+}
+.note-editor .ProseMirror h1 { font-size: 1.5em; font-weight: 700; margin-top: 0.6em; }
+.note-editor .ProseMirror h2 { font-size: 1.3em; font-weight: 700; margin-top: 0.6em; }
+.note-editor .ProseMirror h3 { font-size: 1.12em; font-weight: 600; margin-top: 0.6em; }
+.note-editor .ProseMirror p { margin: 0; }
+.note-editor .ProseMirror ul,
+.note-editor .ProseMirror ol { padding-left: 1.3em; }
+/* Mantine 코어 리셋이 ul/ol 마커를 제거하므로 에디터 내부에서 명시적으로 복원 +
+   중첩 레벨별 마커 모양 차별화(가독성). taskList(ul[data-type])는 아래 list-style:none 규칙이 더 높은 특이도로 보호됨. */
+.note-editor .ProseMirror ul { list-style-type: disc; }            /* 1단계: ● */
+.note-editor .ProseMirror ul ul { list-style-type: circle; }       /* 2단계: ○ */
+.note-editor .ProseMirror ul ul ul { list-style-type: square; }    /* 3단계: ■ */
+.note-editor .ProseMirror ul ul ul ul { list-style-type: disc; }   /* 4단계+: disc 순환 */
+.note-editor .ProseMirror ol { list-style-type: decimal; }         /* 1단계: 1. 2. 3. */
+.note-editor .ProseMirror ol ol { list-style-type: lower-alpha; }  /* 2단계: a. b. c. */
+.note-editor .ProseMirror ol ol ol { list-style-type: lower-roman; }/* 3단계: i. ii. iii. */
+.note-editor .ProseMirror ol ol ol ol { list-style-type: decimal; }/* 4단계+: decimal 순환 */
+.note-editor .ProseMirror li { display: list-item; }
+.note-editor .ProseMirror li > p { margin: 0; }
+.note-editor .ProseMirror blockquote {
+  border-left: 3px solid var(--mantine-color-default-border);
+  padding-left: 0.8em;
+  color: var(--mantine-color-dimmed);
+}
+.note-editor .ProseMirror pre {
+  background: var(--mantine-color-default-hover);
+  border-radius: 6px;
+  padding: 0.6em 0.8em;
+  font-family: var(--note-code-font, var(--mantine-font-family-monospace, monospace));
+  font-size: 0.9em;
+  overflow-x: auto;
+}
+.note-editor .ProseMirror code {
+  background: var(--mantine-color-default-hover);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+  font-family: var(--note-code-font, var(--mantine-font-family-monospace, monospace));
+  font-size: 0.9em;
+}
+.note-editor .ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+.note-editor .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.4em;
+}
+.note-editor .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4em;
+}
+.note-editor .ProseMirror ul[data-type="taskList"] li > label {
+  margin-top: 0.2em;
+}
+
+/* 위키링크 / 태그 인라인 노드 */
+.note-wikilink {
+  color: var(--mantine-color-blue-5);
+  background: color-mix(in srgb, var(--mantine-color-blue-5) 14%, transparent);
+  border-radius: 3px;
+  padding: 0 3px;
+  cursor: pointer;
+}
+.note-wikilink:hover {
+  text-decoration: underline;
+}
+.note-tag {
+  color: var(--mantine-color-teal-6);
+  font-weight: 500;
+}
+
+/* 빈 에디터 placeholder는 별도 확장을 쓰지 않으므로 생략 */
+
+/* 파일트리 row 더보기(⋯) 버튼 — 기본 숨김, row hover/focus 시에만 노출 (P1 시각 간결화).
+   각 row(.note-tree-row)의 유일한 <button>이 더보기 ActionIcon이므로 button을 타깃. */
+.note-tree-row button { opacity: 0; transition: opacity 0.1s ease; }
+.note-tree-row:hover button,
+.note-tree-row:focus-within button { opacity: 1; }
+
+/* 제안 팝업(위키링크/태그/슬래시) */
+.note-suggestion-popup {
+  position: fixed;
+  z-index: 10000;
+}
+
+/* 구분선 / 표 / 이미지 (툴바 기능) */
+.note-editor .ProseMirror hr { border: none; border-top: 1px solid var(--mantine-color-default-border); margin: 0.9em 0; }
+.note-editor .ProseMirror table { border-collapse: collapse; width: 100%; margin: 0.5em 0; table-layout: fixed; }
+.note-editor .ProseMirror th, .note-editor .ProseMirror td { position: relative; min-width: 3em; border: 1px solid var(--mantine-color-default-border); padding: 0.3em 0.5em; vertical-align: top; }
+.note-editor .ProseMirror th { background: var(--mantine-color-default-hover); font-weight: 600; text-align: left; }
+/* 표 셀 다중 선택(드래그) 시 하이라이트 — 셀 블록 콘텐츠 위에 오버레이로 표시. */
+.note-editor .ProseMirror .selectedCell::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; background: var(--mantine-color-jarvis-light, rgba(80, 100, 230, 0.18)); }
+.note-editor .ProseMirror img { max-width: 100%; height: auto; border-radius: 4px; }
+
+/* Focus Mode — dim non-active blocks */
+.note-editor .ProseMirror .focus-mode-dimmed {
+  opacity: 0.3;
+  transition: opacity 0.15s ease;
+}
+
+/* Word Wrap */
+.note-editor.word-wrap-on .ProseMirror {
+  white-space: normal;
+  word-wrap: break-word;
+}
+.note-editor.word-wrap-off .ProseMirror {
+  white-space: pre-wrap;
+}
+
+/* Find/Replace overlay */
+.note-find-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+  background: var(--mantine-color-body);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 8px;
+  box-shadow: var(--mantine-shadow-md);
+  padding: 12px;
+  min-width: 300px;
+}
+
+/* Find/Replace highlight */
+.note-editor .ProseMirror .search-result {
+  background: rgba(255, 220, 0, 0.3);
+  border-radius: 2px;
+}
+
+.note-editor .ProseMirror .search-result-current {
+  background: rgba(255, 160, 0, 0.5);
+  border-radius: 2px;
+}
+
+/* Source/Split mode container */
+.note-editor-split-container {
+  display: flex;
+  gap: 1px;
+  background: var(--mantine-color-default-border);
+  flex: 1;
+  min-height: 0;
+}
+
+.note-editor-split-pane {
+  flex: 1;
+  min-width: 0;
+  background: var(--mantine-color-body);
+  overflow-y: auto;
+}
+
+/* CodeMirror styles for source mode */
+.note-codemirror {
+  height: 100%;
+}
+
+.note-codemirror .cm-editor {
+  height: 100%;
+}
+
+.note-codemirror .cm-scroller {
+  font-family: var(--note-code-font, var(--mantine-font-family-monospace, monospace));
+  font-size: var(--note-font-size, var(--font-m, 14px));
+  line-height: var(--note-line-height, 1.6);
+}

@@ -1,0 +1,25 @@
+# 주간 재발 레이더 — retrospective 직원이 반복 오류를 감지·제안한다.
+# 입력 4소스: git fix 커밋 / ingestiger quarantine·updates 실패 / qa 반려 / 게이트 스크립트 결과
+# 판정: 같은 anti-pattern 계급 2회 재발 = 게이트 승격 제안 의무, 3회 = 게이트 부재 자체를 결함으로 보고.
+loop:
+  id: weekly-retro-radar
+  version: "1"
+  owner: genie
+  description: "주간 재발 레이더 (anti-patterns 대조·게이트 승격 제안)"
+  enabled: true
+  trigger:
+    type: cron
+    cron: "0 9 * * 1"
+    timezone: Asia/Seoul
+    catch_up: skip
+  steps:
+    - id: radar
+      agent: retrospective
+      model_tier: standard
+      prompt: >
+        [주간 재발 레이더] 롤 디렉티브의 레이더 절차를 수행하라.
+        1) node scripts/check-directive-sync.cjs (씨앗↔런타임 드리프트)
+        2) node scripts/route-golden-test.cjs (마운트 유실)
+        3) 지난 7일 git log의 fix 커밋과 ingestiger 코퍼스 updates.md 실패·격리 신규분을
+           anti-patterns.md 계급과 대조해 재발 카운트를 갱신하라.
+        4) 신규 계급 후보·재발 2회 이상 계급의 게이트 승격 제안을 보고하라. 변경 실행은 하지 않는다.

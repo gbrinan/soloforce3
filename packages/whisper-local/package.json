@@ -1,0 +1,7 @@
+{
+  "name": "@mycrew/whisper-local",
+  "version": "0.0.1-stub",
+  "description": "Stub: zip 배포본에 소스 미포함. Groq Whisper 폴백 경로에서만 호출되며, 호출 시 명확한 안내 에러를 던진다.",
+  "main": "index.js",
+  "types": "index.d.ts"
+}

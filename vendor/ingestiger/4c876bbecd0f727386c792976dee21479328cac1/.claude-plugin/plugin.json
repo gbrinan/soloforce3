@@ -1,0 +1,9 @@
+{
+  "name": "ingestiger",
+  "version": "1.0.0-draft.3",
+  "description": "기업·프로젝트별 LLM Wiki와 근거 기반 문서 라우팅",
+  "repository": "https://github.com/gbrinan/ingestiger",
+  "skills": [
+    "./skills/ingestiger"
+  ]
+}

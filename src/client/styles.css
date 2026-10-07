@@ -1,0 +1,1729 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────
+ * shadcn/ui base-nova(neutral) 토큰 — 헨젤 디자인 시스템 명세 도구용.
+ * 메인 챗 화면(Mantine)과 네임스페이스 별도 (--background vs --bg-canvas).
+ * 데모 페이지(#shadcn-playground)에 한정 사용. shadcn add는 next-app init 결과 복사.
+ * ───────────────────────────────────────────────────────── */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ─────────────────────────────────────────────────────────
+ * 타이포 토큰 4단계 — 강조는 사이즈가 아닌 weight로 처리
+ * S(12px) 메타·캡션 / M(14px) 본문 default / L(16px) 소제목 / XL(20px) 페이지 제목
+ * Weight: 400 본문 / 500 라벨 / 600 강조 / 700 핵심 강조
+ * ───────────────────────────────────────────────────────── */
+:root {
+  --font-s: 12px;
+  --font-m: 14px;
+  --font-l: 16px;
+  --font-xl: 20px;
+
+  /* 영업부 디자인 시스템 호환 토큰 — 2026-05-20 store-redesign 코드 직접 인용 매칭 */
+  --color-primary: #4F46E5;            /* 게이지 인디고 (jarvis.6) */
+  --color-primary-hover: #6366F1;      /* 게이지 인디고 (jarvis.5) */
+  --color-sidebar-bg: #031448;         /* 영업부 --sidebar (light, dormant) */
+  --color-sidebar-fg: #F2F2F2;
+  --color-sidebar-primary: #6366F1;
+  --color-sidebar-accent: #13295F;
+
+  /* 사용자 메시지 박스 배경 보호 토큰 — Phase 2/3에서 jarvis 팔레트 재구성 시에도 색 유지 */
+  --color-user-message-bg: #4F46E5;
+
+  /* 메트릭 강조 토큰 (dormant — Mycrew 메트릭 카드 미도입, 향후 도입 시 활용) */
+  --font-metric: 24px;
+  --font-metric-weight: 700;
+
+  /* 차트 팔레트 — 영업부 정확값 (oklch → sRGB 환산) */
+  --color-chart-1: #6366F1;            /* indigo */
+  --color-chart-2: #34D399;            /* mint (게이지 녹색) */
+  --color-chart-3: #FBBF24;            /* amber */
+  --color-chart-4: #A78BFA;            /* violet */
+  --color-chart-5: #F87171;            /* coral */
+
+  /* box-shadow 토큰 — 2026-05-30 헨젤 디자인 일관성 리포트 (테마 무관) */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.15);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 6px 24px rgba(0,0,0,0.28);
+
+  /* ── 마이크루 브랜드 포인트 컬러 (스킴 독립 · 이미지 추출 원본값) ──────────
+   * 4색 = 다크모드 시맨틱 액센트의 정식 브랜드 레퍼런스값.
+   * 기능 UI는 스킴 대응 --ring/--accent-* 를 계속 사용(라이트모드 대비 자동 보정).
+   * --color-point-* 는 모드 무관 '고정 브랜드 원색'이 필요할 때만 사용. */
+  --color-point-1: #4F47E6;   /* 인디고 — primary/focus 계열(--ring 동족) */
+  --color-point-2: #FBC024;   /* 옐로우 — warning/진행중 계열(--accent-warning 동족) */
+  --color-point-3: #34D399;   /* 민트   — success/온라인 계열(--accent-success 동족) */
+  --color-point-4: #F97171;   /* 레드   — record/위험 계열(--accent-danger 동족) */
+
+  /* 외부 파트너 브랜드색 — MessageTimeline 인/아웃 방향 표시 (테마 무관 브랜드 고정값) */
+  --partner-brand-danger: #EE3533;
+  --partner-brand-success: #40A937;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * 디자인 시스템 컬러 토큰 — 라이트/다크 자동 분기
+ * --bg-canvas: 페이지 전체 배경 (헤더/입력/드로어/모달은 별도 --jarvis-surface-bg)
+ * --bg-surface: 카드/패널 기본 면 배경
+ * --bg-elevated: 강조 패널 배경(셀렉티드 등)
+ * --text-primary/secondary/muted: 텍스트 위계
+ * ───────────────────────────────────────────────────────── */
+[data-mantine-color-scheme="dark"] {
+  --bg-canvas: #0A0F1E;                /* 디자인 시스템 명세 다크 canvas */
+  --bg-card: #0F1726;                  /* 디자인 시스템 명세 다크 card */
+  --bg-muted: #151F32;                 /* 디자인 시스템 명세 다크 muted */
+  --bg-surface: #070D1A;               /* 영업부 다크 --card (legacy, 광범위 사용처 회귀 차단) */
+  --bg-elevated: #151F32;              /* 영업부 다크 --muted (legacy) */
+  --bg-accent: #0E1A32;                /* 영업부 다크 --accent */
+  --text-primary: #F8F8F8;             /* 영업부 다크 --foreground */
+  --text-secondary: #9DB7EB;           /* 영업부 다크 --secondary-foreground */
+  --text-muted: #7D8699;               /* 영업부 다크 --muted-foreground */
+  --border-default: #1F293D;           /* 영업부 다크 --border */
+  --ring: #6366F1;                     /* 게이지 인디고 (jarvis.5) — 다크 강조 */
+  --ring-shadow: rgba(99, 102, 241, 0.5);
+  --card-ring: rgba(248, 248, 248, 0.1); /* 영업부 카드 ring-1 white/10 */
+
+  /* 시맨틱 accent — 다크: 밝은 게이지 톤(soft-vivid) */
+  --accent-success: #34D399;
+  --accent-danger:  #F87171;
+  --accent-warning: #FBBF24;
+  --accent-info:    #818CF8;
+  --accent-on-fill: #0A0F1E;
+
+  /* 영업부 호환 alias (legacy) */
+  --color-bg: #04070F;
+  --color-text: #F8F8F8;
+  --color-border: #1F293D;
+  --color-muted: #151F32;
+}
+[data-mantine-color-scheme="light"] {
+  --bg-canvas: #FAFAFA;                /* 디자인 시스템 명세 라이트 canvas */
+  --bg-card: #FFFFFF;                  /* 디자인 시스템 명세 라이트 card */
+  --bg-muted: #F0F2F5;                 /* 디자인 시스템 명세 라이트 muted */
+  --bg-surface: #FFFFFF;               /* 영업부 라이트 --card (legacy, 광범위 사용처 회귀 차단) */
+  --bg-elevated: #F0F2F5;              /* 영업부 라이트 --muted (legacy) */
+  --bg-accent: #E1ECFF;                /* 영업부 라이트 --accent */
+  --text-primary: #04070F;             /* 영업부 라이트 --foreground */
+  --text-secondary: #13295F;           /* 영업부 라이트 --secondary-foreground */
+  --text-muted: #6E7278;               /* 영업부 라이트 --muted-foreground */
+  --border-default: #DFE1E5;           /* 영업부 라이트 --border */
+  --ring: #4F46E5;                     /* 게이지 인디고 (jarvis.6) — 라이트 강조, 흰 텍스트 AA 6.1:1 */
+  --ring-shadow: rgba(79, 70, 229, 0.5);
+  --card-ring: rgba(4, 7, 15, 0.1);    /* 영업부 카드 ring-1 black/10 */
+
+  /* 시맨틱 accent — 라이트: 흰 배경 AA 위해 딥하게(hue 동일, 톤만 분기) */
+  --accent-success: #047857;
+  --accent-danger:  #DC2626;
+  --accent-warning: #B45309;
+  --accent-info:    #4F46E5;
+  --accent-on-fill: #FFFFFF;
+
+  /* 영업부 호환 alias (legacy) */
+  --color-bg: #FFFFFF;
+  --color-text: #04070F;
+  --color-border: #DFE1E5;
+  --color-muted: #F0F2F5;
+}
+
+/* 인라인 이미지 공통 — 최대 500x500, 클릭 시 줌 */
+.md img,
+.ext-msg-body img,
+.image-zoomable img {
+  max-width: 100%;
+  max-height: 500px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  cursor: zoom-in;
+  border-radius: 6px;
+  display: block;
+  margin: 8px 0;
+}
+
+/* 채팅 미디어 액션 툴바 — 미디어 호버 시 노출 */
+.media-wrap { position: relative; display: inline-block; max-width: 100%; }
+.media-wrap video { max-width: 100%; max-height: 500px; border-radius: 10px; display: block; margin: 8px 0; }
+.image-zoomable:hover .media-actions,
+.media-wrap:hover .media-actions,
+.media-actions:hover { opacity: 1 !important; }
+
+/* 대화 박스 콘텐츠 오버플로 종합 처리 — 긴 텍스트/URL 줄바꿈, 넓은 테이블은 칸 축소 대신 가로 스크롤 */
+/* 본문 텍스트는 앱 토큰(M=14px)에 고정한다. 코드(var(--font-s))·헤딩(var(--font-xl/l/m))은 이미 토큰 고정인데
+   본문(p/li/일반 텍스트)만 Mantine body(상속)에 의존해, 상속 base가 흔들리면 본문만 부풀어 오르는 회귀 벡터였다.
+   ReportViewer는 .md에 인라인 fontSize를 걸어(인라인>클래스) 자체 크기 유지되므로 영향 없음. */
+.md { overflow-wrap: anywhere; font-size: var(--font-m); }
+.md .md-table-wrap { max-width: 100%; overflow-x: auto; }
+.md .md-table-wrap table { width: auto; max-width: none; }
+.md th, .md td { overflow-wrap: normal; }
+
+/* 모달·드로어·사이드 패널 전역 가로 스크롤 차단 (2026-05-29).
+   원인: 데스크탑 Modal body·Mantine Drawer body·사이드 패널(.side-container·.inbox-panel) 내부 ScrollArea가
+   overflow-x 기본값(visible/auto)이라 긴 텍스트/URL/넓은 카드가 가로 스크롤 유발.
+   처리: 컨테이너는 가로 hidden + 텍스트는 anywhere로 줄바꿈 강제. 코드(pre)·테이블(.md-table-wrap)은
+   자체 overflow-x:auto 유지(내부 스크롤). */
+.mantine-Modal-content:not(.zoom-modal-content) .mantine-Modal-body,
+.mantine-Drawer-content .mantine-Drawer-body,
+.side-container .mantine-ScrollArea-viewport,
+.inbox-panel .mantine-ScrollArea-viewport {
+  overflow-x: hidden !important;
+}
+.mantine-Modal-content:not(.zoom-modal-content) .mantine-Modal-body,
+.mantine-Drawer-content .mantine-Drawer-body,
+.side-panel,
+.inbox-panel {
+  overflow-wrap: anywhere;
+}
+
+/* 모바일(<=768px): 모든 Mantine Modal을 풀스크린으로 — 모달이 화면보다 넓어 생기는 좌우 스크롤/오프스크린 X 문제 해소.
+   데스크탑(>768px)은 기존 중앙 모달 유지. Drawer는 대상 아님. 이미지 확대뷰(.zoom-modal-content)는 자체 풀스크린 라이트박스라 제외. */
+@media (max-width: 768px) {
+  .mantine-Modal-inner { padding: 0 !important; }
+  .mantine-Modal-content:not(.zoom-modal-content) {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100vh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .mantine-Modal-content:not(.zoom-modal-content) .mantine-Modal-header { flex-shrink: 0; }
+  .mantine-Modal-content:not(.zoom-modal-content) .mantine-Modal-body { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; }
+}
+
+/* Round13 — 4영역(헤더/입력/드로어/모달) 전용 surface 배경 토큰 — 영업부 --background 매칭 */
+[data-mantine-color-scheme="dark"] {
+  --jarvis-surface-bg: #04070F;
+}
+[data-mantine-color-scheme="light"] {
+  --jarvis-surface-bg: #FFFFFF;
+}
+
+html body { font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-canvas); color: var(--text-primary); height: 100dvh; overflow: hidden; }
+#root { height: 100dvh; display: flex; flex-direction: column; }
+
+/* 헤더 */
+.header { padding: 12px 16px; background: var(--jarvis-surface-bg); border-bottom: 1px solid var(--mantine-color-default-border); display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: space-between; align-items: center; }
+.header h1 { font-size: var(--font-xl); font-weight: 700; color: var(--text-primary); }
+.app-logo-button {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  padding: 2px 6px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+.app-logo-button:hover {
+  background: color-mix(in srgb, var(--ring) 10%, transparent);
+}
+.app-logo-button img {
+  width: auto;
+  height: 38px;
+  object-fit: contain;
+  display: block;
+}
+/* 테마별 로고 전환 — 라이트: 원본, 다크: My 흰색 버전 */
+.app-logo-button .logo-dark { display: none; }
+[data-mantine-color-scheme="dark"] .app-logo-button .logo-light { display: none; }
+[data-mantine-color-scheme="dark"] .app-logo-button .logo-dark { display: block; }
+.header-btns { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+.header-btns-end { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.header-btn { background: none; border: 1px solid var(--mantine-color-default-border); color: var(--text-primary); padding: 0 12px; min-height: 28px; display: inline-flex; align-items: center; border-radius: 6px; font-size: var(--font-s); cursor: pointer; white-space: nowrap; }
+.header-btn:hover { border-color: var(--mantine-primary-color-filled); color: var(--mantine-primary-color-filled); }
+/* 선택된(활성) 메뉴 — 호버와 동일한 보라 보더/텍스트로 현재 선택 상태를 명확히 표시 */
+.header-btn[aria-pressed="true"] { border-color: var(--mantine-primary-color-filled); color: var(--mantine-primary-color-filled); }
+.header-badge { color: #FFFFFF; padding: 1px 6px; border-radius: 6px; font-size: var(--font-s); font-weight: 700; margin-left: 4px; }
+
+/* 모바일 헤더 2행 레이아웃:
+   - Row 1: h1(타이틀+상태버튼) + header-btns-end(앱런처/프로필)
+   - Row 2: header-btns(네비 버튼 가로 스크롤)
+   DOM 순서: h1 → header-btns → header-btns-end. CSS order로 Row 1에 h1/end를 묶고,
+   header-btns는 flex-basis: 100%로 강제 wrap 후 Row 2 전폭 차지. */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .header > h1 { flex: 1 1 auto; min-width: 0; order: 1; }
+  .header > .header-btns-end {
+    order: 2;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .header > .header-btns {
+    order: 3;
+    flex-basis: 100%;
+    width: calc(100% + 32px);
+    margin-inline: -16px;
+    padding-inline: 16px;
+    margin-left: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .header > .header-btns::-webkit-scrollbar { display: none; }
+
+  /* 폴더 가로 스크롤 — 스크롤바 숨김 (FilesPanel, NotesPanel 폴더 행) */
+  .mantine-ScrollArea-viewport[data-orientation="horizontal"] {
+    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;  /* IE/Edge */
+  }
+  .mantine-ScrollArea-viewport[data-orientation="horizontal"]::-webkit-scrollbar {
+    display: none;  /* Chrome/Safari */
+  }
+  .header-btn { flex-shrink: 0; }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Mantine 입력 컴포넌트 focus ring — 글로벌 룰 (영업부 ring-3 매칭)
+ * Mantine 9 styles API의 nested pseudo-selector 비호환 회피.
+ * ───────────────────────────────────────────────────────── */
+.mantine-TextInput-input:focus,
+.mantine-TextInput-input:focus-visible,
+.mantine-Textarea-input:focus,
+.mantine-Textarea-input:focus-visible,
+.mantine-Select-input:focus,
+.mantine-Select-input:focus-visible {
+  box-shadow: 0 0 0 3px var(--ring-shadow);
+  outline: none;
+  border-color: var(--ring);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Mantine Tabs pills variant — 활성 탭 흰색 pill + drop shadow (영업부 매칭)
+ * Mantine 기본 pills variant는 활성 탭에 primary 색을 칠하므로 override.
+ * ───────────────────────────────────────────────────────── */
+.mantine-Tabs-list[data-variant="pills"] {
+  background-color: var(--bg-elevated);
+  padding: 3px;
+  border-radius: 0;
+}
+.mantine-Tabs-tab[data-variant="pills"] {
+  border-radius: 0;
+  padding: 4px 10px;
+  font-size: var(--font-m);
+  font-weight: 500;
+  color: var(--text-primary);
+  opacity: 0.6;
+  background-color: transparent;
+}
+.mantine-Tabs-tab[data-variant="pills"][data-active],
+.mantine-Tabs-tab[data-variant="pills"][data-active="true"] {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  opacity: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Mantine Card — 영업부 ring-1 black/10 (light) / white/10 (dark) 매칭
+ * Mantine 자체 룰(.m_1b7284a3 { box-shadow: var(--paper-shadow) })이 source order로 우리 글로벌 룰을 덮어
+ * --paper-shadow 빈 값으로 shadow 무효 → Mantine 변수에 값 주입하는 방식으로 우회.
+ * :where() specificity 0 → 사용처 명시 radius prop이 항상 우선 (인라인 sm 카드 보존).
+ * ───────────────────────────────────────────────────────── */
+:where(.mantine-Card-root) {
+  border-radius: var(--mantine-radius-lg);
+}
+.mantine-Card-root {
+  --paper-shadow: 0 0 0 1px var(--card-ring), 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * Mantine Button focus-visible ring 3px (영업부 매칭)
+ * ───────────────────────────────────────────────────────── */
+.mantine-Button-root:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring-shadow);
+}
+.mantine-ActionIcon-root:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring-shadow);
+}
+/* size별 radius/font 분기 — 영업부 sm 버튼은 radius 8px / font 12.8px */
+.mantine-Button-root[data-size="xs"],
+.mantine-Button-root[data-size="sm"] {
+  border-radius: 8px;
+}
+.mantine-Button-root[data-size="sm"] {
+  font-size: 12.8px;
+}
+
+/* 메인 레이아웃 */
+.main { flex: 1; display: flex; overflow: hidden; }
+
+/* 채팅 영역 — 본문이 body canvas보다 살짝 밝게 떠보이도록 --bg-card 적용 */
+.chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--bg-card); }
+.msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: var(--font-m); line-height: 1.6; word-break: break-word; }
+/* .msg-user는 dead code (ChatBubble에서 인라인 var(--color-user-message-bg) 사용) — 잔류 호환 위해 보존 */
+.msg-user { white-space: pre-wrap; background: var(--color-user-message-bg); border-bottom-right-radius: 4px; }
+.msg-genie { background: var(--bg-surface); border-bottom-left-radius: 4px; }
+.msg-wrap { display: flex; align-items: flex-end; }
+.msg-wrap-user { justify-content: flex-end; }
+.msg-wrap-genie { justify-content: flex-start; }
+.msg-time { font-size: var(--font-s); color: var(--text-muted); margin-top: 2px; }
+.msg .job-tag { display: inline-block; max-width: 100%; background: var(--bg-elevated); padding: 2px 8px; border-radius: 6px; font-size: var(--font-s); margin-top: 8px; cursor: pointer; white-space: normal; overflow-wrap: anywhere; word-break: break-word; line-height: 1.4; }
+.msg .job-tag:hover { background: var(--border-default); }
+.msg .file-path-link { cursor: pointer; text-decoration: none; }
+.msg .file-path-link code { color: var(--ring); transition: background 0.15s; }
+.msg .file-path-link:hover code { background: var(--ring); color: #fff; }
+.msg.md { line-height: 1.7; overflow-wrap: anywhere; }
+
+/* 연결 중 typing indicator — 점 3개 순차 bounce(디스코드 스타일). 색은 var로 다크/라이트 공용. */
+.typing-indicator { display: inline-flex; align-items: center; gap: 4px; line-height: 0; }
+.typing-indicator .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-muted);
+  animation: typing-bounce 1.2s infinite ease-in-out both;
+}
+.typing-indicator .dot:nth-child(1) { animation-delay: 0s; }
+.typing-indicator .dot:nth-child(2) { animation-delay: 0.3s; }
+.typing-indicator .dot:nth-child(3) { animation-delay: 0.6s; }
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-5px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .typing-indicator .dot { animation-duration: 0.01ms; animation-iteration-count: 1; opacity: 0.7; }
+}
+.msg.md h1, .msg.md h2, .msg.md h3 { margin-top: 12px; margin-bottom: 6px; font-weight: 600; }
+.msg.md p { margin-bottom: 8px; }
+.msg.md p:last-child { margin-bottom: 0; }
+.msg.md ul, .msg.md ol { margin-left: 20px; margin-bottom: 8px; }
+.msg.md code { background: var(--bg-elevated); padding: 1px 4px; border-radius: 3px; font-size: var(--font-s); }
+.msg.md pre { background: var(--bg-canvas); padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.md pre code { background: none; padding: 0; }
+.msg.md table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+.msg.md th, .msg.md td { border: 1px solid var(--border-default); padding: 6px 10px; font-size: var(--font-s); }
+.msg.md th { background: var(--bg-canvas); font-weight: 600; }
+
+/* 날짜 구분선 */
+.date-sep { text-align: center; color: var(--text-muted); font-size: var(--font-s); margin: 20px 0 10px; padding: 4px 0; border-bottom: 1px solid var(--border-default); }
+
+/* 입력 영역 */
+.input-area { padding: 12px 16px; background: var(--jarvis-surface-bg); border-top: 1px solid var(--border-default); display: flex; gap: 8px; align-items: flex-end; }
+.input-area textarea { flex: 1; background: var(--bg-surface); border: 1px solid var(--border-default); color: var(--text-primary); border-radius: 10px; padding: 10px 14px; font-size: var(--font-m); resize: none; max-height: 120px; line-height: 1.5; }
+.input-area textarea:focus { outline: none; box-shadow: 0 0 0 3px var(--ring-shadow); border-color: var(--ring); }
+.btn-send { background: var(--ring); color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: var(--font-l); flex-shrink: 0; }
+.btn-send:disabled { background: var(--border-default); cursor: not-allowed; }
+.btn-attach { background: none; border: none; color: var(--text-muted); font-size: var(--font-xl); cursor: pointer; flex-shrink: 0; align-self: center; }
+
+/* 스트리밍 */
+.stream-bubble { align-self: flex-start; }
+.stream-progress { font-size: var(--font-s); color: var(--text-muted); padding: 2px 0; }
+.stream-timer { font-size: var(--font-s); color: var(--text-muted); }
+.typing-inline { color: var(--text-muted); }
+
+/* 완료 토스트 */
+.complete-toast { align-self: flex-start; max-width: 85%; display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg-surface); border-left: 3px solid var(--accent-success); border-radius: 10px; font-size: var(--font-s); box-shadow: 0 0 0 1px var(--card-ring); }
+.complete-toast.failed { border-left-color: var(--accent-danger); }
+.complete-toast .tc-icon { font-size: var(--font-l); flex-shrink: 0; }
+.complete-toast .tc-body { flex: 1; min-width: 0; }
+.complete-toast .tc-title { color: var(--text-primary); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.complete-toast .tc-preview { color: var(--text-muted); font-size: var(--font-s); margin-top: 2px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.complete-toast .tc-btn { background: var(--ring); border: none; color: white; padding: 4px 12px; min-height: 28px; border-radius: 6px; font-size: var(--font-s); font-weight: 600; cursor: pointer; flex-shrink: 0; }
+
+/* 승인 */
+.approval-btns { display: flex; gap: 8px; margin-top: 8px; }
+.approval-btn { flex: 1; padding: 4px 10px; min-height: 28px; border: none; border-radius: 6px; font-size: var(--font-s); font-weight: 600; cursor: pointer; }
+.approval-btn-allow { background: var(--accent-success); color: var(--accent-on-fill); }
+.approval-btn-allow:hover { filter: brightness(0.92); }
+.approval-btn-deny { background: var(--accent-danger); color: var(--accent-on-fill); }
+.approval-btn-deny:hover { filter: brightness(0.92); }
+.approval-btn:disabled { background: var(--border-default); cursor: not-allowed; }
+.approval-result { margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: var(--font-s); font-weight: 600; }
+.approval-result-allowed { background: rgba(52, 211, 153, 0.12); color: var(--accent-success); }
+.approval-result-denied { background: rgba(248, 113, 113, 0.12); color: var(--accent-danger); }
+.approval-result-timeout { background: var(--bg-elevated); color: var(--text-muted); }
+.genie-opinion { margin-top: 6px; padding: 6px 10px; border-radius: 6px; font-size: var(--font-s); background: var(--bg-surface); border-left: 3px solid var(--ring); color: var(--text-secondary); }
+
+/* 사이드 패널 */
+.side-container { width: 0; overflow: hidden; transition: width 0.2s; border-left: 1px solid color-mix(in srgb, var(--border-default) 35%, transparent); background: var(--jarvis-surface-bg); }
+.side-container.open { width: 480px; }
+.side-panel { display: none; width: 100%; height: 100%; flex-direction: column; }
+.side-panel.open { display: flex; }
+.side-header { padding: 12px 16px; border-bottom: 1px solid var(--border-default); display: flex; justify-content: space-between; align-items: center; }
+.side-header h2 { font-size: var(--font-m); font-weight: 600; }
+/* 동료(친구) 드로어 닫기 — 드로어 X 표준(시각 36px 고정 + ::after 44px 터치)과 동일 */
+.side-close {
+  background: none; border: none; color: var(--text-muted); font-size: var(--font-xl); cursor: pointer;
+  flex: 0 0 auto;
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  position: relative;
+}
+.side-close:hover { background: color-mix(in srgb, var(--ring) 10%, transparent); }
+.side-close::after { content: ''; position: absolute; inset: -4px; }
+
+/* 모바일 터치 타깃 ≥44px: 드로어 헤더 닫기(X) ActionIcon.
+   아이콘·버튼 시각 크기와 헤더 레이아웃은 그대로 두고, 투명 ::after 오버레이로
+   클릭/터치 영역만 44x44로 확장. InboxPanel .side-close는 자체 36px 고정 규칙 적용(위 참조). */
+button[aria-label="닫기"]:not(.side-close) { position: relative; overflow: visible; }
+button[aria-label="닫기"]:not(.side-close)::after {
+  content: ""; position: absolute; top: 50%; left: 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
+}
+
+.side-list { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+/* 직원 카드 */
+.staff-team { margin-bottom: 16px; }
+.staff-lead, .staff-member { padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+.staff-lead { background: var(--bg-surface); border-left: 3px solid var(--ring); box-shadow: 0 0 0 1px var(--card-ring); }
+.staff-member { background: var(--bg-surface); margin-left: 24px; margin-top: 6px; border-left: 3px solid var(--border-default); box-shadow: 0 0 0 1px var(--card-ring); }
+.staff-name { font-weight: 600; font-size: var(--font-s); }
+.staff-role { font-size: var(--font-s); color: var(--text-muted); }
+.staff-status { font-size: var(--font-s); margin-top: 2px; }
+.staff-busy { color: var(--accent-warning); }
+.staff-idle { color: var(--accent-success); }
+
+/* 작업 카드 */
+.job-card { background: var(--bg-surface); padding: 12px; border-radius: 10px; border-left: 3px solid var(--accent-warning); box-shadow: 0 0 0 1px var(--card-ring); }
+.job-card .req { font-size: var(--font-s); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-card .meta { font-size: var(--font-s); color: var(--text-muted); margin-top: 4px; }
+.job-card .logs { font-size: var(--font-s); color: var(--text-muted); margin-top: 6px; max-height: 120px; overflow-y: auto; background: var(--bg-canvas); border-radius: 4px; padding: 6px; }
+.badge { font-size: var(--font-s); padding: 2px 6px; border-radius: 6px; font-weight: 600; }
+.badge-running { background: var(--accent-warning); color: var(--accent-on-fill); }
+.badge-queued { background: var(--bg-elevated); color: var(--text-primary); }
+
+/* TODO */
+
+/* 모달 */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center; }
+.modal-overlay.visible { display: flex; }
+.modal { background: var(--bg-surface); border-radius: 14px; width: 90%; max-width: 700px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 0 0 1px var(--card-ring); }
+.modal-header { padding: 16px; border-bottom: 1px solid var(--border-default); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: var(--font-m); font-weight: 600; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: var(--font-xl); cursor: pointer; }
+.modal-body { padding: 16px; overflow-y: auto; flex: 1; line-height: 1.7; }
+.modal-body.md h1, .modal-body.md h2, .modal-body.md h3 { margin-top: 16px; margin-bottom: 8px; font-weight: 600; }
+.modal-body.md p { margin-bottom: 8px; }
+.modal-body.md p:last-child { margin-bottom: 0; }
+.modal-body.md ul, .modal-body.md ol { margin-left: 20px; margin-bottom: 8px; }
+.modal-body.md code { background: var(--bg-elevated); padding: 1px 4px; border-radius: 3px; font-size: var(--font-s); }
+.modal-body.md pre { background: var(--bg-canvas); padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; }
+.modal-body.md pre code { background: none; padding: 0; }
+.modal-body.md table, .md table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+.modal-body.md th, .modal-body.md td, .md th, .md td { border: 1px solid var(--border-default); padding: 6px 10px; font-size: var(--font-s); }
+.modal-body.md th, .md th { background: var(--bg-canvas); font-weight: 600; }
+
+/* 결과 보기 모달 — 드래그 리사이즈 가능 */
+.modal-resizable {
+  resize: both;
+  overflow: hidden;
+  min-width: 400px;
+  min-height: 300px;
+  max-width: 95vw;
+  max-height: 95vh;
+  width: min(1000px, 90vw);
+  height: min(70vh, 600px);
+  position: relative;
+}
+.modal-resizable::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, transparent 0 60%, var(--text-muted) 60% 70%, transparent 70% 80%, var(--text-muted) 80% 92%, transparent 92%);
+  opacity: 0.6;
+}
+
+/* 온보딩 */
+.onboarding { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px; padding: 20px; }
+.onboarding h2 { font-size: var(--font-xl); font-weight: 600; color: var(--ring); }
+.onboarding input { background: var(--bg-surface); border: 1px solid var(--border-default); color: var(--text-primary); padding: 8px 12px; border-radius: 10px; width: 100%; font-size: var(--font-m); }
+.onboarding input:focus { outline: none; box-shadow: 0 0 0 3px var(--ring-shadow); border-color: var(--ring); }
+.onboarding button { background: var(--ring); color: white; border: none; padding: 8px 24px; min-height: 36px; border-radius: 10px; cursor: pointer; font-size: var(--font-m); font-weight: 600; }
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .side-container.open { width: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 50; }
+}
+
+/* === 외부 인박스 === */
+.side-container.open.wide-inbox { width: 720px; }
+@media (max-width: 768px) {
+  .side-container.open.wide-inbox { width: 100%; }
+}
+
+.inbox-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+.inbox-grid { flex: 1; display: grid; grid-template-columns: 170px 1fr; min-height: 0; border-top: 1px solid var(--mantine-color-default-border); }
+@media (max-width: 768px) {
+  .inbox-grid { grid-template-columns: 1fr; }
+}
+
+.partner-list { background: var(--jarvis-surface-bg); overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+.partner-row { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: var(--font-s); }
+.partner-row:hover { background: var(--bg-elevated); }
+.partner-row.selected { background: var(--ring); color: #fff; }
+.partner-row.inactive { opacity: 0.5; }
+.partner-row .partner-name { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.partner-row .partner-badge { background: var(--accent-warning); color: var(--accent-on-fill); font-size: var(--font-s); font-weight: 700; padding: 1px 6px; border-radius: 6px; }
+.partner-row .partner-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.partner-row .partner-status.active { background: var(--accent-success); }
+.partner-row .partner-status.away { background: var(--accent-danger); }
+.partner-add-btn { margin-top: 8px; background: var(--bg-surface); border: 1px dashed var(--border-default); color: var(--text-muted); padding: 8px; min-height: 28px; border-radius: 6px; font-size: var(--font-s); cursor: pointer; }
+.partner-add-btn:hover { border-color: var(--ring); color: var(--ring); }
+
+.msg-timeline { display: flex; flex-direction: column; min-height: 0; height: 100%; overflow: hidden; }
+.msg-timeline-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.msg-timeline-input { padding: 10px 12px; border-top: 1px solid var(--border-default); background: var(--bg-canvas); }
+
+.ext-msg-card { background: var(--bg-surface); border-radius: 10px; padding: 10px 12px; max-width: 85%; box-shadow: 0 0 0 1px var(--card-ring); }
+.ext-msg-in { align-self: flex-start; background: var(--bg-accent); border-left: 3px solid var(--ring); border-right: none; }
+.ext-msg-out { align-self: flex-end; background: rgba(52, 211, 153, 0.12); border-right: 3px solid var(--accent-success); border-left: none; }
+.ext-msg-highlight { box-shadow: 0 0 0 2px var(--accent-warning); }
+.ext-msg-head { display: flex; align-items: center; gap: 6px; font-size: var(--font-s); color: var(--text-secondary); margin-bottom: 4px; }
+.ext-msg-arrow { font-size: var(--font-m); }
+.ext-msg-sender { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ext-msg-time { color: var(--text-muted); font-size: var(--font-s); }
+.ext-msg-body { font-size: var(--font-s); line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: var(--text-primary); }
+.ext-msg-meta { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.ext-msg-status { font-size: var(--font-s); padding: 2px 6px; border-radius: 6px; background: var(--bg-elevated); color: var(--text-secondary); font-weight: 600; }
+.ext-msg-status-awaiting_approval { background: var(--accent-warning); color: var(--accent-on-fill); }
+.ext-msg-status-error, .ext-msg-status-rejected { background: rgba(248, 113, 113, 0.12); color: var(--accent-danger); }
+.ext-msg-status-sent, .ext-msg-status-auto_handled, .ext-msg-status-approved_handled, .ext-msg-status-delivered { background: rgba(52, 211, 153, 0.12); color: var(--accent-success); }
+.ext-msg-tag { font-size: var(--font-s); padding: 2px 6px; border-radius: 6px; background: var(--bg-elevated); color: var(--text-muted); }
+.ext-msg-warn { margin-top: 6px; padding: 6px 10px; background: rgba(251, 191, 36, 0.12); color: var(--accent-warning); font-size: var(--font-s); border-radius: 6px; border-left: 3px solid var(--accent-warning); }
+
+.ext-ref-btn { display: flex; align-items: center; gap: 6px; margin-top: 8px; background: var(--bg-accent); border: 1px solid var(--ring); color: var(--ring); padding: 4px 10px; min-height: 28px; border-radius: 6px; font-size: var(--font-s); cursor: pointer; }
+.ext-ref-btn:hover { background: var(--ring); color: #fff; }
+.ext-ref-pill { background: var(--bg-elevated); color: var(--text-primary); font-size: var(--font-s); padding: 1px 6px; border-radius: 6px; margin-left: 4px; }
+
+/* 협력사 모달 폼 */
+.partner-modal input { background: var(--bg-surface); border: 1px solid var(--border-default); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-size: var(--font-s); width: 100%; }
+.partner-modal input:focus { outline: none; box-shadow: 0 0 0 3px var(--ring-shadow); border-color: var(--ring); }
+.partner-modal .action-btn { background: var(--bg-elevated); border: none; color: var(--text-primary); padding: 4px 12px; min-height: 28px; border-radius: 6px; font-size: var(--font-s); cursor: pointer; }
+.partner-modal .action-btn:hover { background: var(--border-default); }
+.partner-modal .action-btn:disabled { background: var(--bg-surface); color: var(--text-muted); cursor: not-allowed; }
+.partner-modal .action-btn.primary { background: var(--ring); color: #fff; }
+.partner-modal .action-btn.primary:hover { background: #4338CA; }
+.partner-modal .action-btn.danger { background: rgba(248, 113, 113, 0.12); color: var(--accent-danger); }
+.partner-modal .action-btn.danger:hover { background: rgba(248, 113, 113, 0.22); }
+.partner-modal .token-warn { background: rgba(251, 191, 36, 0.12); border-left: 3px solid var(--accent-warning); padding: 8px 10px; border-radius: 6px; margin-top: 4px; }
+.partner-modal .token-section { background: var(--bg-canvas); padding: 8px 10px; border-radius: 10px; margin-top: 4px; box-shadow: 0 0 0 1px var(--card-ring); }
+
+/* ─────────────────────────────────────────────────────────
+ * 다크 모드 가독성 — 어두운 배경 영역의 텍스트 명시. 라이트 모드는 별도 override 블록에서 정정.
+ * 토큰화 후 var(--text-primary)가 모드별 적정값 반환.
+ * ───────────────────────────────────────────────────────── */
+[data-mantine-color-scheme="dark"] .msg-genie,
+[data-mantine-color-scheme="dark"] .complete-toast,
+[data-mantine-color-scheme="dark"] .staff-lead,
+[data-mantine-color-scheme="dark"] .staff-member,
+[data-mantine-color-scheme="dark"] .job-card,
+[data-mantine-color-scheme="dark"] .partner-list,
+[data-mantine-color-scheme="dark"] .msg-timeline-input,
+[data-mantine-color-scheme="dark"] .ext-msg-card,
+[data-mantine-color-scheme="dark"] .ext-msg-in,
+[data-mantine-color-scheme="dark"] .ext-msg-out,
+[data-mantine-color-scheme="dark"] .partner-modal .token-section,
+[data-mantine-color-scheme="dark"] .msg.md pre,
+[data-mantine-color-scheme="dark"] .msg.md code,
+[data-mantine-color-scheme="dark"] .msg.md th,
+[data-mantine-color-scheme="dark"] .modal-body.md pre,
+[data-mantine-color-scheme="dark"] .modal-body.md code,
+[data-mantine-color-scheme="dark"] .modal-body.md th,
+[data-mantine-color-scheme="dark"] .md th,
+[data-mantine-color-scheme="dark"] .modal {
+  color: var(--text-primary);
+}
+
+/* 파란/녹색 강조 배경 위 흰 텍스트 */
+.msg-user {
+  color: #ffffff;
+}
+
+/* 테이블 헤더 — Mantine 라이트 모드의 글로벌 th 색 override를 차단. */
+[data-mantine-color-scheme="dark"] .md table th,
+[data-mantine-color-scheme="dark"] .msg.md table th,
+[data-mantine-color-scheme="dark"] .modal-body.md table th,
+[data-mantine-color-scheme="dark"] .md th,
+[data-mantine-color-scheme="dark"] .msg.md th,
+[data-mantine-color-scheme="dark"] .modal-body.md th {
+  color: var(--text-primary) !important;
+}
+
+.md table td,
+.md table caption,
+.md table tfoot,
+.msg.md table td,
+.modal-body.md table td {
+  color: inherit;
+}
+
+/* 인라인 code(코드블록 외) — 다크 모드만 강제. 라이트는 별도 override. */
+[data-mantine-color-scheme="dark"] .md code:not(pre code),
+[data-mantine-color-scheme="dark"] .msg.md code:not(pre code),
+[data-mantine-color-scheme="dark"] .modal-body.md code:not(pre code) {
+  color: var(--text-primary) !important;
+}
+
+/* kbd/samp/mark 등 어두운 배경 위 표시되는 추가 인라인 요소 보강 */
+[data-mantine-color-scheme="dark"] .md kbd, [data-mantine-color-scheme="dark"] .md samp,
+[data-mantine-color-scheme="dark"] .msg.md kbd, [data-mantine-color-scheme="dark"] .msg.md samp,
+[data-mantine-color-scheme="dark"] .modal-body.md kbd, [data-mantine-color-scheme="dark"] .modal-body.md samp {
+  color: var(--text-primary) !important;
+}
+.md mark, .msg.md mark, .modal-body.md mark {
+  color: var(--bg-canvas);
+}
+
+/* 어두운 배경 영역 안 시맨틱 강조 요소 — 부모 색 상속 */
+.msg-genie strong, .msg-genie em, .msg-genie a,
+.complete-toast strong, .complete-toast em, .complete-toast a,
+.staff-lead strong, .staff-lead em,
+.job-card strong, .job-card em,
+.ext-msg-card strong, .ext-msg-card em,
+.ext-msg-in strong, .ext-msg-in em,
+.ext-msg-out strong, .ext-msg-out em,
+.md strong, .md em, .md blockquote {
+  color: inherit;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * 라이트 모드 — 배경 명도 반전 (어두운 영역을 라이트 톤으로 override)
+ * ───────────────────────────────────────────────────────── */
+[data-mantine-color-scheme="light"] .msg-genie,
+[data-mantine-color-scheme="light"] .complete-toast,
+[data-mantine-color-scheme="light"] .staff-lead,
+[data-mantine-color-scheme="light"] .staff-member,
+[data-mantine-color-scheme="light"] .job-card,
+[data-mantine-color-scheme="light"] .partner-list,
+[data-mantine-color-scheme="light"] .msg-timeline-input,
+[data-mantine-color-scheme="light"] .ext-msg-card,
+[data-mantine-color-scheme="light"] .partner-modal .token-section,
+[data-mantine-color-scheme="light"] .genie-opinion {
+  background: var(--mantine-color-white) !important;
+  color: var(--mantine-color-text) !important;
+  border-color: var(--mantine-color-default-border) !important;
+}
+
+[data-mantine-color-scheme="light"] .ext-msg-in {
+  background: var(--mantine-color-jarvis-0) !important;
+  color: var(--mantine-color-text) !important;
+}
+[data-mantine-color-scheme="light"] .ext-msg-out {
+  background: var(--mantine-color-jarvis-1) !important;
+  color: var(--mantine-color-text) !important;
+}
+
+/* 라이트 모드 — 외부 메시지 본문(자식 텍스트 노드까지 전부) 검정 강제.
+ * .ext-msg-body 자체에 `color: #e2e8f0`이 박혀 있어 부모 색 상속이 안 됨 → !important로 강제.
+ * 메타(.ext-msg-head, .ext-msg-status, .ext-msg-tag)도 라이트 모드에서 검정 계열로. */
+[data-mantine-color-scheme="light"] .ext-msg-body,
+[data-mantine-color-scheme="light"] .ext-msg-in .ext-msg-body,
+[data-mantine-color-scheme="light"] .ext-msg-out .ext-msg-body,
+[data-mantine-color-scheme="light"] .ext-msg-in .ext-msg-body *,
+[data-mantine-color-scheme="light"] .ext-msg-out .ext-msg-body *,
+[data-mantine-color-scheme="light"] .ext-msg-in p,
+[data-mantine-color-scheme="light"] .ext-msg-out p,
+[data-mantine-color-scheme="light"] .ext-msg-in span:not(.ext-msg-status):not(.ext-msg-tag):not(.ext-msg-arrow),
+[data-mantine-color-scheme="light"] .ext-msg-out span:not(.ext-msg-status):not(.ext-msg-tag):not(.ext-msg-arrow),
+[data-mantine-color-scheme="light"] .ext-msg-head,
+[data-mantine-color-scheme="light"] .ext-msg-head * {
+  color: var(--text-primary) !important;
+}
+
+[data-mantine-color-scheme="light"] .ext-msg-time {
+  color: var(--text-muted) !important;
+}
+
+[data-mantine-color-scheme="light"] .msg-user {
+  color: var(--mantine-color-white) !important;
+}
+
+[data-mantine-color-scheme="light"] .md code:not(pre code),
+[data-mantine-color-scheme="light"] .msg.md code:not(pre code),
+[data-mantine-color-scheme="light"] .modal-body.md code:not(pre code),
+[data-mantine-color-scheme="light"] .md kbd,
+[data-mantine-color-scheme="light"] .md samp,
+[data-mantine-color-scheme="light"] .msg.md kbd,
+[data-mantine-color-scheme="light"] .msg.md samp {
+  background: var(--mantine-color-gray-1) !important;
+  color: var(--mantine-color-text) !important;
+}
+
+[data-mantine-color-scheme="light"] .md pre,
+[data-mantine-color-scheme="light"] .msg.md pre,
+[data-mantine-color-scheme="light"] .modal-body.md pre {
+  background: var(--mantine-color-gray-1) !important;
+  color: var(--mantine-color-text) !important;
+}
+
+[data-mantine-color-scheme="light"] .md table th,
+[data-mantine-color-scheme="light"] .md th,
+[data-mantine-color-scheme="light"] .msg.md table th,
+[data-mantine-color-scheme="light"] .msg.md th,
+[data-mantine-color-scheme="light"] .modal-body.md table th,
+[data-mantine-color-scheme="light"] .modal-body.md th {
+  background: var(--mantine-color-gray-1) !important;
+  color: var(--mantine-color-text) !important;
+}
+
+[data-mantine-color-scheme="light"] .md table th,
+[data-mantine-color-scheme="light"] .md table td,
+[data-mantine-color-scheme="light"] .msg.md table th,
+[data-mantine-color-scheme="light"] .msg.md table td,
+[data-mantine-color-scheme="light"] .modal-body.md table th,
+[data-mantine-color-scheme="light"] .modal-body.md table td {
+  border-color: var(--mantine-color-default-border) !important;
+}
+
+[data-mantine-color-scheme="light"] .input-area textarea,
+[data-mantine-color-scheme="light"] .partner-modal input,
+[data-mantine-color-scheme="light"] .onboarding input {
+  background: var(--mantine-color-white) !important;
+  color: var(--mantine-color-text) !important;
+  border-color: var(--mantine-color-default-border) !important;
+}
+
+/* 라이트 모드 — 취소 버튼 가독성 강화. theme.ts의 Button defaultProps variant='light' + color='jarvis.7' 조합이
+   라이트 모드에서 옅은 인디고 alpha 배경 + 진한 인디고 텍스트로 대비가 낮아 안 보이는 문제 수정.
+   jarvis.6(#4F46E5) 배경 + 흰 텍스트로 강제 → 흰 위 대비 6.1:1(WCAG AA). 다크 모드는 기존 light variant 유지. */
+[data-mantine-color-scheme="light"] .mantine-Button-root.cancel-btn-emphasis {
+  background-color: var(--mantine-color-jarvis-6) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+[data-mantine-color-scheme="light"] .mantine-Button-root.cancel-btn-emphasis:hover {
+  background-color: var(--mantine-color-jarvis-7) !important;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * 작업 카드 — 6단계 게이지(Timeline) / 간트 차트(TaskGantt) 가로 스크롤.
+ * 카드 전체가 아니라 게이지·간트 영역만 좌우 스크롤. 색은 토큰 기반 → 라이트/다크 자동 분기.
+ * ───────────────────────────────────────────────────────── */
+.todo-gauge-scroll,
+.task-gantt-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+.todo-gauge-inner {
+  /* 2단계 게이지(진행중/완료)는 flex:1 셀로 부모 폭에 맞춰 축소 → 좁은 드로어에서 가로 스크롤 불필요.
+     min-width:0으로 부모 폭을 넘지 않게 하여 .todo-gauge-scroll의 overflow-x:auto가 스크롤바를 띄우지 않게 함. */
+  min-width: 0;
+}
+.task-gantt-inner {
+  /* min-width는 .gantt-row-timeline 자체 min-width로 유도 — 좁은 viewport에서 좌측 sticky 컬럼은 항상 보이고
+     게이지 영역만 가로 스크롤. */
+  /* 스크롤 컨테이너 전체 너비 채움 → 행 hover 배경이 우측 끝까지 표시 */
+  min-width: 100%;
+}
+/* 간트 행 — 1줄 구조. [좌측 sticky: 에이전트명 + 상태] | [우측 스크롤: 4px 게이지 바 + 단계 텍스트].
+   좌측 텍스트의 baseline center = 게이지 바 center(2px) 일치를 위해 좌측 컬럼 자체를 4px 라인으로 좁힘.
+   좌측 텍스트(font-s, line-height:1)는 4px 컨테이너보다 크지만 align-items:center로 위아래 균등 넘침 →
+   결과적으로 텍스트 vertical center가 4px 라인 중심(2px) = 게이지 바 center(2px)에 정확히 정렬.
+   단계 텍스트는 timeline 22px 안의 게이지 아래 영역(8~22px)에 자리잡되, 행간 8px margin으로 다음 행 침범 방지.
+   timeline overflow:hidden — 가로 스크롤 시 게이지 바가 sticky 좌측 컬럼 위로 침범하지 않게 차단. */
+.gantt-row {
+  display: flex;
+  align-items: flex-start;
+  margin: 10px 0;
+  padding: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+/* 좌우 분리 레이아웃에서 좌측 패널 각 행. 스크롤 없는 고정 컬럼이라 sticky/z-index 불필요.
+   우측 행(.gantt-row-right)과 동일한 height:40px로 행 정렬을 맞춘다. */
+.gantt-row-left {
+  display: flex;
+  flex-direction: row;       /* 에이전트명·상태값 가로 배치 */
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 8px;         /* 좌측 공통마진 */
+  padding-right: 8px;        /* 우측 공통마진(게이지 영역 시작 전) */
+  height: 40px;              /* gantt-row-right와 동일 — 행 정렬 */
+  cursor: pointer;
+  border-radius: 4px;
+  background: var(--mantine-color-body);
+}
+.gantt-row-name {
+  flex: 0 0 72px;            /* 고정 너비 — 이름 길이 무관하게 상태값 시작 x가 모든 행에서 동일 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--font-s);
+  line-height: 1.2;
+  color: var(--text-muted);
+  margin-right: 8px;         /* 에이전트명-상태값 사이 공통마진 */
+}
+.gantt-row-state {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: var(--font-s);
+  line-height: 1.2;
+  color: var(--text-muted);
+}
+.gantt-row-timeline {
+  flex: 1;
+  min-width: 400px;
+  position: relative;
+  /* 상단 4px = 트랙+게이지 바, 그 아래 약 18px = 단계명 텍스트(line-height 1.2 * 12px + 여유) */
+  height: 22px;
+  /* 가로 스크롤 시 게이지 바가 좌측 sticky 컬럼 위로 침범/삐져나오지 않게 차단 */
+  overflow: hidden;
+  /* clip-path: border-box 내에서 absolute 자손까지 클립 → stacking context 없이도
+     bar 내용이 timeline 밖(좌측 sticky 컬럼 영역)으로 나오지 않게 차단. */
+  clip-path: inset(0);
+}
+/* 빈 트랙 — 가로 전체에 깔리는 4px 회색 바. 게이지 바와 동일하게 컨테이너 상단(top:0)에 배치 → 정확히 겹침. */
+.gantt-row-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+}
+/* 시간축 X% 위치에 absolute 배치되는 게이지 영역. 내부 slim Timeline 첫 4px(게이지 바)이
+   트랙과 정확히 같은 위치에 표시되도록 top:0. 자기 영역(width%)을 단계 텍스트가 넘지 않도록 overflow:hidden. */
+.gantt-row-bar {
+  position: absolute;
+  top: 0;
+  overflow: hidden;
+}
+
+/* 간트 좌우 분리 레이아웃 — 좌측 고정 패널 + 우측 단독 가로 스크롤 패널.
+   우측만 별도 overflow-x 컨테이너라 게이지 bar가 물리적으로 좌측 영역에 나타날 수 없음(겹침 원천 차단). */
+.task-gantt-split {
+  display: flex;
+  align-items: stretch;
+}
+.task-gantt-left-panel {
+  flex-shrink: 0;
+  background: var(--mantine-color-body);
+}
+.task-gantt-scroll {
+  /* split 컨테이너 내 나머지 공간 차지. min-width:0이라야 flex 자식이 콘텐츠보다 좁아져 가로 스크롤 동작. */
+  flex: 1;
+  min-width: 0;
+}
+.gantt-row-right {
+  display: flex;
+  align-items: center;
+  height: 40px;          /* 좌측 .gantt-row-left와 동일 — 행 정렬 일치 */
+  min-width: 100%;       /* inner 전체 너비 채움 → hover 배경이 우측 끝까지 */
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* TodoPanel "진행 및 완료" 탭 하단 — 루틴(반복) 섹션 구분선.
+   완료 카드와 시각적으로 분리해 영구 노출 영역임을 표시. 토큰 사용 → 라이트/다크 자동 분기. */
+.routine-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-default);
+}
+
+/* Mark 앱 차용 — 위키링크 `[[link]]`. 점선 밑줄 + ring 컬러 (라이트/다크 자동 분기). */
+.md .wikilink {
+  color: var(--ring);
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.md .wikilink:hover {
+  text-decoration: underline solid;
+}
+
+/* Mark 앱 차용 — 스포일러 `||content||`. 본문 색으로 가려 클릭/포커스 시 reveal.
+   접근성: tabindex=0 + :focus reveal. 키보드 사용자도 reveal 가능. */
+.md .spoiler {
+  background: var(--text-primary);
+  color: transparent;
+  border-radius: 3px;
+  padding: 0 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+.md .spoiler:hover,
+.md .spoiler:focus,
+.md .spoiler[data-revealed="true"] {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  user-select: text;
+  outline: none;
+}
+
+/* GitHub alerts 콜아웃 (`> [!NOTE]` 등) — 종류별 좌측 컬러 바 + 은은한 틴트.
+   color-mix로 라이트/다크 배경(--bg-surface)에 자동 적응. */
+.md .md-callout {
+  border-left: 3px solid var(--callout-color, var(--border-default));
+  background: color-mix(in srgb, var(--callout-color, transparent) 8%, var(--bg-surface));
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+.md .md-callout > p { margin: 6px 0; }
+.md .md-callout .md-callout-title {
+  font-weight: 700;
+  font-size: var(--font-s);
+  color: var(--callout-color, var(--text-primary));
+  margin: 0 0 4px;
+}
+.md .md-callout-note { --callout-color: #3B82F6; }
+.md .md-callout-tip { --callout-color: #10B981; }
+.md .md-callout-important { --callout-color: #8B5CF6; }
+.md .md-callout-warning { --callout-color: var(--accent-warning); }
+.md .md-callout-caution { --callout-color: #EF4444; }
+
+/* 수식 — KaTeX 마운트 전엔 코드 스팬으로 표시, 마운트가 innerHTML을 수식으로 치환 */
+.md .math-block { margin: 10px 0; text-align: center; overflow-x: auto; }
+
+/* frontmatter 메타 카드 — 문서 선두 `---` 블록을 key/value 표로 */
+.md .md-frontmatter {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 0 0 14px;
+}
+.md .md-frontmatter table { border-collapse: collapse; width: auto; }
+.md .md-frontmatter th {
+  text-align: left;
+  color: var(--text-secondary, var(--text-primary));
+  font-weight: 600;
+  font-size: var(--font-s);
+  padding: 2px 14px 2px 0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.md .md-frontmatter td {
+  font-size: var(--font-s);
+  padding: 2px 0;
+  overflow-wrap: anywhere;
+}
+
+/* 자료실 편집 모달 — split 레이아웃 (좌:CodeMirror, 우:미리보기) */
+.file-editor-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  height: 70vh;
+  min-height: 400px;
+}
+.file-editor-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+.file-editor-pane-title {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  font-size: var(--font-s);
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-canvas);
+}
+.file-editor-codemirror {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--bg-canvas);
+}
+.file-editor-codemirror .cm-editor {
+  height: 100%;
+  font-size: var(--font-s);
+}
+.file-editor-codemirror .cm-scroller {
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  line-height: 1.5;
+}
+.file-editor-preview {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px;
+}
+.file-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-default);
+}
+@media (max-width: 768px) {
+  .file-editor-split {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .file-editor-pane {
+    min-height: 280px;
+  }
+}
+
+/* 인라인 <code>(코드블록 외) — 강제 박스 배경 제거. */
+.md code:not(pre code),
+.msg.md code:not(pre code),
+.modal-body.md code:not(pre code) {
+  background: transparent !important;
+  color: inherit !important;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+[data-mantine-color-scheme="light"] .md code:not(pre code),
+[data-mantine-color-scheme="light"] .msg.md code:not(pre code),
+[data-mantine-color-scheme="light"] .modal-body.md code:not(pre code) {
+  background: transparent !important;
+  color: inherit !important;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * 모달/패널 안 마크다운(.md 단독) — 헤딩·단락·리스트·코드 룰
+ * ───────────────────────────────────────────────────────── */
+.md h1, .md h2, .md h3 { margin-top: 16px; margin-bottom: 8px; font-weight: 600; scroll-margin-top: 8px; }
+.md p { margin-bottom: 8px; }
+.md p:last-child { margin-bottom: 0; }
+.md ul, .md ol {
+  padding-left: 1.5em;
+  padding-inline-start: 1.5em;
+  margin-left: 0;
+  margin-bottom: 8px;
+}
+.md li { margin-bottom: 4px; }
+.md code { background: #1B2740; padding: 1px 4px; border-radius: 3px; font-size: var(--font-s); }
+.md pre { background: #0F1726; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; font-size: var(--font-s); }
+.md pre code { background: none; padding: 0; }
+.md pre.chat-code-block {
+  position: relative;
+  padding-top: 38px;
+}
+.chat-code-copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 78px;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  color: var(--text-secondary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+  font-size: var(--font-s);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.12s ease, transform 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.chat-code-copy-btn:hover {
+  background: var(--ring);
+  border-color: var(--ring);
+  color: #fff;
+}
+.chat-code-copy-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring-shadow);
+}
+.chat-code-block:hover > .chat-code-copy-btn,
+.chat-code-block:focus-within > .chat-code-copy-btn,
+.chat-code-copy-btn.is-copied {
+  opacity: 1;
+  transform: translateY(0);
+}
+.chat-code-copy-btn.is-copied {
+  background: rgba(52, 211, 153, 0.16);
+  border-color: var(--accent-success);
+  color: var(--accent-success);
+}
+[data-mantine-color-scheme="light"] .chat-code-copy-btn {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-secondary);
+}
+[data-mantine-color-scheme="light"] .chat-code-copy-btn:hover {
+  background: var(--ring);
+  border-color: var(--ring);
+  color: #fff;
+}
+[data-mantine-color-scheme="light"] .chat-code-copy-btn.is-copied {
+  background: rgba(52, 211, 153, 0.16);
+  border-color: var(--accent-success);
+  color: var(--accent-success);
+}
+@media (hover: none), (pointer: coarse), (max-width: 768px) {
+  .chat-code-copy-btn {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * 마크다운 헤딩 토큰 매핑 — em 단위 상속 차단, 토큰 강제.
+ * h1=XL/700, h2=L/600, h3=M/600, h4~h6=M/500
+ * 메인(.msg.md), 모달(.modal-body.md), 신규 모달(.md) 통합.
+ * ───────────────────────────────────────────────────────── */
+.md h1, .msg.md h1, .modal-body.md h1 {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  line-height: 1.3;
+}
+.md h2, .msg.md h2, .modal-body.md h2 {
+  font-size: var(--font-l);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.md h3, .msg.md h3, .modal-body.md h3 {
+  font-size: var(--font-m);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.md h4, .md h5, .md h6,
+.msg.md h4, .msg.md h5, .msg.md h6,
+.modal-body.md h4, .modal-body.md h5, .modal-body.md h6 {
+  font-size: var(--font-m);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ─────────────────────────────────────────────────────────
+ * URL 미리보기 카드 (OG 메타) — 라이트/다크 모두 자연스럽게.
+ * ───────────────────────────────────────────────────────── */
+.url-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.url-preview-card {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  text-decoration: none;
+  /* 부모 Paper c="white" cascade 차단 — 라이트 user 메시지 안 카드 title 흰색 회귀 방지. */
+  color: var(--mantine-color-text);
+  border: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+  border-radius: 10px;
+  padding: 8px;
+  max-width: 480px;
+  transition: background 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+.url-preview-card .url-preview-title { color: inherit; }
+.url-preview-card:hover {
+  background: var(--mantine-color-default-hover);
+}
+.url-preview-thumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--mantine-color-default-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.url-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.url-preview-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+.url-preview-site {
+  font-size: var(--font-s);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.url-preview-title {
+  font-size: var(--font-s);
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.url-preview-desc {
+  font-size: var(--font-s);
+  color: var(--text-muted);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.url-preview-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+}
+.url-preview-skeleton-line {
+  height: 10px;
+  background: linear-gradient(90deg, var(--mantine-color-default-hover) 0%, var(--mantine-color-default-border) 50%, var(--mantine-color-default-hover) 100%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: url-preview-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes url-preview-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * YouTube 인라인 플레이어 카드
+ * ───────────────────────────────────────────────────────── */
+.yt-preview-card {
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  border: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+/* 썸네일 버튼 */
+.yt-preview-thumb-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  background: #000;
+  overflow: hidden;
+}
+.yt-preview-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.15s;
+}
+.yt-preview-thumb-btn:hover img {
+  opacity: 0.85;
+}
+
+/* 재생 버튼 오버레이 */
+.yt-preview-play-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.yt-play-bg {
+  transition: fill 0.15s;
+}
+.yt-preview-thumb-btn:hover .yt-play-bg {
+  fill: #ff0000;
+}
+
+/* iframe 플레이어 모드 */
+.yt-preview-player iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+}
+
+/* 카드 하단 링크 */
+.yt-preview-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px 8px;
+  text-decoration: none;
+  color: var(--mantine-color-text);
+  transition: background 0.15s;
+}
+.yt-preview-link:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+/* ─────────────────────────────────────────────────────────
+ * ReportViewer — 산출물 보고서 뷰어 (toolbar + TOC + 본문)
+ * 모달 내부에 배치. 720px 이하에서 TOC sidebar는 숨김.
+ * ───────────────────────────────────────────────────────── */
+.report-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+}
+.report-viewer-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 4px 0;
+}
+.report-viewer-body {
+  display: flex;
+  gap: 16px;
+  min-height: 0;
+  align-items: flex-start;
+  flex: 1;
+}
+.report-viewer-content {
+  flex: 1;
+  min-width: 0;
+}
+.report-toc {
+  flex-shrink: 0;
+  min-width: 160px;
+  max-width: 220px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  padding: 8px 12px 8px 4px;
+  border-right: 1px solid var(--mantine-color-default-border);
+  font-size: var(--font-s);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.report-toc-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--mantine-color-text);
+  font-size: var(--font-s);
+}
+.report-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.report-toc li {
+  margin: 2px 0;
+}
+.report-toc-l3 {
+  padding-left: 12px;
+}
+.report-toc a {
+  color: var(--text-muted, #7D8699);
+  text-decoration: none;
+  display: block;
+  padding: 2px 4px;
+  border-radius: 4px;
+  word-break: break-word;
+  line-height: 1.35;
+}
+.report-toc a:hover {
+  background: var(--mantine-color-default-hover);
+  color: var(--mantine-color-text);
+}
+@media (max-width: 720px) {
+  .report-toc { display: none; }
+}
+
+/* ─────────────────────────────────────────────────────────
+ * highlight.js 토큰 색 — 코드 블록 내부만. dark/light 분기.
+ * 6개 핵심 토큰: keyword, string, number, comment, function/title, built_in.
+ * highlight.js 별도 CSS 파일 import 없이 인라인으로 정의 → 번들 절약.
+ * ───────────────────────────────────────────────────────── */
+.md pre code.hljs { display: block; color: #e2e8f0; }
+.md .hljs-keyword,
+.md .hljs-selector-tag,
+.md .hljs-literal,
+.md .hljs-section { color: #c084fc; }
+.md .hljs-string,
+.md .hljs-attr { color: #86efac; }
+.md .hljs-number,
+.md .hljs-meta { color: #fbbf24; }
+.md .hljs-comment,
+.md .hljs-quote { color: #64748b; font-style: italic; }
+.md .hljs-function .hljs-title,
+.md .hljs-title.function_,
+.md .hljs-title { color: #93c5fd; }
+.md .hljs-built_in,
+.md .hljs-type { color: #5eead4; }
+.md .hljs-variable,
+.md .hljs-name,
+.md .hljs-tag { color: #f0abfc; }
+.md .hljs-attribute,
+.md .hljs-symbol { color: #fbbf24; }
+.md .hljs-params { color: #e2e8f0; }
+
+[data-mantine-color-scheme="light"] .md pre code.hljs { color: #1a1a1a; }
+[data-mantine-color-scheme="light"] .md .hljs-keyword,
+[data-mantine-color-scheme="light"] .md .hljs-selector-tag,
+[data-mantine-color-scheme="light"] .md .hljs-literal,
+[data-mantine-color-scheme="light"] .md .hljs-section { color: #7c3aed; }
+[data-mantine-color-scheme="light"] .md .hljs-string,
+[data-mantine-color-scheme="light"] .md .hljs-attr { color: #15803d; }
+[data-mantine-color-scheme="light"] .md .hljs-number,
+[data-mantine-color-scheme="light"] .md .hljs-meta { color: #b45309; }
+[data-mantine-color-scheme="light"] .md .hljs-comment,
+[data-mantine-color-scheme="light"] .md .hljs-quote { color: #64748b; font-style: italic; }
+[data-mantine-color-scheme="light"] .md .hljs-function .hljs-title,
+[data-mantine-color-scheme="light"] .md .hljs-title.function_,
+[data-mantine-color-scheme="light"] .md .hljs-title { color: #1d4ed8; }
+[data-mantine-color-scheme="light"] .md .hljs-built_in,
+[data-mantine-color-scheme="light"] .md .hljs-type { color: #0d9488; }
+[data-mantine-color-scheme="light"] .md .hljs-variable,
+[data-mantine-color-scheme="light"] .md .hljs-name,
+[data-mantine-color-scheme="light"] .md .hljs-tag { color: #c026d3; }
+[data-mantine-color-scheme="light"] .md .hljs-attribute,
+[data-mantine-color-scheme="light"] .md .hljs-symbol { color: #b45309; }
+[data-mantine-color-scheme="light"] .md .hljs-params { color: #1a1a1a; }
+
+/* 노트 프린트 영역 — 화면에서는 숨기고 인쇄 시에만 .print-area로 노출(NotesPanel triggerPrint). */
+.note-print-area { display: none; }
+
+/* ─────────────────────────────────────────────────────────
+ * 인쇄/PDF 모드 — ReportViewer 본문만 인쇄. 모달/툴바/기타 UI는 숨김.
+ * triggerPrint()가 body.jarvis-print-mode + .report-viewer.print-area 클래스를 주입.
+ * ───────────────────────────────────────────────────────── */
+@media print {
+  body.jarvis-print-mode * { visibility: hidden !important; }
+  /* 노트 프린트 영역은 화면 숨김(.note-print-area display:none)을 인쇄 시 해제. */
+  body.jarvis-print-mode .note-print-area.print-area { display: block !important; }
+  body.jarvis-print-mode .print-area,
+  body.jarvis-print-mode .print-area * { visibility: visible !important; }
+  body.jarvis-print-mode .print-area .report-viewer-toolbar { display: none !important; }
+  body.jarvis-print-mode .print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+    padding: 16px !important;
+  }
+  body.jarvis-print-mode .print-area .report-viewer-body {
+    display: block !important;
+  }
+  body.jarvis-print-mode .print-area .report-toc { display: none !important; }
+  body.jarvis-print-mode .print-area .report-viewer-content {
+    width: 100% !important;
+    color: black !important;
+  }
+  body.jarvis-print-mode .print-area .md pre,
+  body.jarvis-print-mode .print-area .md code {
+    background: #F8F8F8 !important;
+    color: black !important;
+  }
+}
+
+/* 일정 검색 결과 행 hover */
+.schedule-search-row:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+/* === 연락처 (Contacts) === */
+.contact-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.contact-card {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--mantine-color-body);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.contact-card:hover {
+  border-color: var(--mantine-primary-color-filled);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.contact-card__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.contact-card__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-filled);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.contact-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.contact-card__actions {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.contact-card:hover .contact-card__actions,
+.contact-card:focus-within .contact-card__actions {
+  opacity: 1;
+}
+
+/* 연락처 카드 높이 가변화 (2026-06-11 사용자 요청) */
+.contact-card {
+  min-height: unset !important;  /* 고정 높이 제거 */
+  padding: 12px 16px !important;  /* top/bottom 축소 (16px → 12px) */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;  /* row 간격 */
+  align-items: stretch;  /* row가 카드 가로폭 가득 채우도록 — 우측 정렬 보장 */
+}
+
+/* body 내부 Group(이름+별, 전화번호+액션)이 가로폭을 가득 채워 space-between 정상 작동 */
+.contact-card__body > .mantine-Group-root {
+  width: 100%;
+}
+
+.contact-card__row {
+  line-height: 1.4;  /* 자연스러운 높이 */
+  margin: 0;  /* 불필요한 margin 제거 */
+}
+
+/* 빈 row 숨김 */
+.contact-card__row:empty,
+.contact-card__row:has(> :only-child:empty) {
+  display: none;
+}
+
+/* 부모 그리드도 내용 기준 높이로 변경 */
+.contacts-grid {
+  grid-auto-rows: min-content !important;  /* 고정 높이 아닌 내용 기준 */
+}
+
+/* ── 플러그인 드로어 닫기(X) 버튼 — 모바일 터치 영역 확보 ──
+   시각 크기 36px(일반 버튼 동급) + 투명 히트 영역 확장으로 44px 터치 타깃(iOS HIG). */
+.drawer-close {
+  position: relative;
+  /* 좁은 헤더에서 플렉스 압축으로 가로가 눌리지 않게 36px 고정 */
+  flex: 0 0 auto;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+}
+.drawer-close::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}

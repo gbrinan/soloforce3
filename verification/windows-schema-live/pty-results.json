@@ -1,0 +1,13 @@
+[
+  {
+    "round": 1,
+    "taskId": "d242f5bd-15fd-4073-b7f6-5b88eddc5313",
+    "result": {
+      "agentRole": "windows-pty-probe",
+      "taskId": "d242f5bd-15fd-4073-b7f6-5b88eddc5313",
+      "success": false,
+      "output": "",
+      "error": "agent_pty_terminated"
+    }
+  }
+]

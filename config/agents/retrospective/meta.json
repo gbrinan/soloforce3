@@ -1,0 +1,11 @@
+{
+  "id": "retrospective",
+  "name": "회고",
+  "jobTitle": "회고 담당",
+  "team": "개발팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "하루/세션 기록에서 사장 교정·실패 패턴·반복 우회를 추출해 교훈 후보와 위키 반영안 제안 (근거 명시, 위키 직접수정 금지)"
+}

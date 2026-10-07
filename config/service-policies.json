@@ -1,0 +1,158 @@
+{
+  "version": "1",
+  "services": [
+    {
+      "id": "google-drive",
+      "label": "Google Drive",
+      "mcpServerId": "claude.ai Google_Drive",
+      "category": "google",
+      "connected": true,
+      "enabled": true,
+      "readPolicy": "auto",
+      "writePolicy": "approval",
+      "readTools": [
+        "download_file_content",
+        "read_file_content",
+        "get_file_metadata",
+        "search_files",
+        "list_recent_files",
+        "get_file_permissions"
+      ],
+      "writeTools": [
+        "create_file",
+        "copy_file"
+      ]
+    },
+    {
+      "id": "google-calendar",
+      "label": "Google Calendar",
+      "mcpServerId": "claude.ai Google_Calendar",
+      "category": "google",
+      "connected": true,
+      "enabled": true,
+      "readPolicy": "auto",
+      "writePolicy": "approval",
+      "readTools": [
+        "list_calendars",
+        "list_events",
+        "get_event",
+        "suggest_time"
+      ],
+      "writeTools": [
+        "create_event",
+        "update_event",
+        "delete_event",
+        "respond_to_event"
+      ]
+    },
+    {
+      "id": "gmail",
+      "label": "Gmail",
+      "mcpServerId": "claude.ai Gmail",
+      "category": "google",
+      "connected": true,
+      "enabled": true,
+      "readPolicy": "auto",
+      "writePolicy": "approval",
+      "readTools": [
+        "search_threads",
+        "get_thread",
+        "list_drafts",
+        "list_labels",
+        "get_message",
+        "get_draft",
+        "create_draft",
+        "update_draft"
+      ],
+      "writeTools": [
+        "label_message",
+        "label_thread",
+        "unlabel_message",
+        "unlabel_thread",
+        "update_message_labels",
+        "trash_message",
+        "trash_thread",
+        "delete_draft",
+        "create_label",
+        "update_label",
+        "delete_label",
+        "mark_message_spam",
+        "mark_thread_spam"
+      ]
+    },
+    {
+      "id": "gmail-send",
+      "label": "Gmail 발송(보내기·답장·전달)",
+      "mcpServerId": "claude.ai Gmail",
+      "category": "google",
+      "connected": true,
+      "enabled": true,
+      "readPolicy": "auto",
+      "writePolicy": "approval",
+      "readTools": [],
+      "writeTools": [
+        "send_message",
+        "reply",
+        "forward"
+      ]
+    },
+    {
+      "id": "slack",
+      "label": "Slack",
+      "mcpServerId": "claude.ai Slack",
+      "category": "communication",
+      "connected": true,
+      "enabled": true,
+      "readPolicy": "auto",
+      "writePolicy": "approval",
+      "readTools": [
+        "slack_read_channel",
+        "slack_read_thread",
+        "slack_search_channels",
+        "slack_search_public",
+        "slack_read_user_profile"
+      ],
+      "writeTools": [
+        "slack_send_message",
+        "slack_send_message_draft",
+        "slack_schedule_message",
+        "slack_create_canvas"
+      ]
+    },
+    {
+      "id": "notion",
+      "label": "Notion",
+      "mcpServerId": "claude.ai Notion",
+      "category": "productivity",
+      "connected": true,
+      "enabled": true,
+      "readPolicy": "auto",
+      "writePolicy": "auto",
+      "readTools": [
+        "notion-search",
+        "notion-fetch",
+        "notion-get-comments",
+        "notion-get-teams",
+        "notion-get-users"
+      ],
+      "writeTools": [
+        "notion-create-pages",
+        "notion-update-page",
+        "notion-create-comment",
+        "notion-create-database"
+      ]
+    },
+    {
+      "id": "asana",
+      "label": "Asana",
+      "mcpServerId": "",
+      "category": "productivity",
+      "connected": false,
+      "enabled": false,
+      "readPolicy": "approval",
+      "writePolicy": "approval",
+      "readTools": [],
+      "writeTools": []
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+# 두 머신(macOS 맥 · Windows 라이브)이 같은 master에 push한다.
+# 줄바꿈을 여기서 못 박지 않으면, 한쪽이 커밋할 때 파일 전체가 바뀐 것으로 잡혀
+# 진짜 변경이 그 안에 묻힌다. 저장소 안은 항상 LF로 고정한다.
+
+* text=auto eol=lf
+
+# Windows 런처는 CRLF여야 한다. cmd.exe는 LF만 있는 배치 파일에서
+# 마지막 줄이나 라벨 점프를 잘못 읽는 경우가 있다.
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+*.ps1  text eol=crlf
+
+# 실행 스크립트는 반드시 LF. CRLF가 섞이면 셔뱅이 깨져
+# `bad interpreter: /usr/bin/env bash^M` 로 죽는다.
+*.sh   text eol=lf
+*.mjs  text eol=lf
+*.cjs  text eol=lf
+
+# 바이너리 — 줄바꿈 변환이 닿으면 파일이 깨진다.
+*.png  binary
+*.ico  binary
+*.icns binary
+*.mp4  binary
+*.pyc  binary
+*.zip  binary
+*.gz   binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.pdf  binary
+*.xlsx binary
+*.pptx binary
+*.docx binary

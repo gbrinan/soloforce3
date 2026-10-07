@@ -1,0 +1,27 @@
+{
+  "name": "hd-cleaner",
+  "version": "0.1.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 13260",
+    "build": "next build",
+    "start": "next start -p 13260 -H 127.0.0.1",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@mantine/core": "^9.2.1",
+    "@mantine/hooks": "^9.2.1",
+    "@mantine/notifications": "^9.2.1",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "trash": "^9.0.0",
+    "@mycrew/ai-client": "file:../../packages/ai-client"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

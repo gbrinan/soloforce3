@@ -1,0 +1,11 @@
+{
+  "id": "data-collector",
+  "name": "데이터수집",
+  "jobTitle": "데이터 수집 리서처",
+  "team": "리서치팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "웹 검색 기반 정보 수집·출처 정리·핵심 데이터 추출 (WebSearch/WebFetch, 모든 항목 출처 URL 필수)"
+}

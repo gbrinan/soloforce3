@@ -1,0 +1,7 @@
+schema-red=1
+schema-green=1
+schema-green=0
+schema-green=0
+typecheck=2
+product-test=0
+negative=127

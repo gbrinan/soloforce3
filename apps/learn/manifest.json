@@ -1,0 +1,27 @@
+{
+  "id": "learn",
+  "name": "학습",
+  "version": "0.1.0",
+  "icon": "🎓",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13247"
+  },
+  "ports": {
+    "http": 13247
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": true,
+  "description": "학습 — 텍스트·파일(PDF/TXT/MD)·링크·책장·노트로 AI 학습 자료(요약·핵심개념·플래시카드·퀴즈)를 만들고 SM-2 간격반복으로 암기",
+  "aiCapabilities": [
+    {
+      "id": "generate-deck",
+      "route": "/api/ai/generate-deck",
+      "title": "AI 학습 자료 생성",
+      "desc": "텍스트·파일·링크·책·노트로 요약·핵심개념·플래시카드·퀴즈를 자동 생성합니다."
+    }
+  ]
+}

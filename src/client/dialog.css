@@ -1,0 +1,264 @@
+/* =========================================================================
+ * Dialog 시스템 (Confirm / Alert / Prompt) — 헨젤 디자인 명세 2026-05-23
+ * 베이스 토큰 재사용: 메인 앱 토큰(--bg-card 등) + 명세 hex 일부 직접 정의.
+ * variants: default / danger / info
+ * ========================================================================= */
+:root {
+  --dialog-radius: 16px;
+  --dialog-z-overlay: 999;
+  --dialog-z-panel: 1000;
+  --dialog-overlay: rgba(31, 30, 29, 0.45);
+  --dialog-shadow: 0 24px 64px rgba(31, 30, 29, 0.18), 0 8px 16px rgba(31, 30, 29, 0.08);
+  --dialog-stripe-default: #D97757;
+  --dialog-stripe-danger:  #B85544;
+  --dialog-stripe-info:    #4A7BA6;
+  --dialog-primary-bg: #D97757;
+  --dialog-primary-bg-hover: #BD5D3A;
+  --dialog-primary-fg: #FFFFFF;
+  --dialog-destructive-bg: #B85544;
+  --dialog-destructive-bg-hover: #A04535;
+  --dialog-destructive-fg: #FFFFFF;
+  --dialog-focus-ring: rgba(217, 119, 87, 0.18);
+}
+
+[data-mantine-color-scheme="dark"] {
+  --dialog-overlay: rgba(0, 0, 0, 0.65);
+  --dialog-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 8px 16px rgba(0, 0, 0, 0.35);
+  --dialog-stripe-default: #E8866B;
+  --dialog-stripe-danger:  #D17162;
+  --dialog-stripe-info:    #6B9FCC;
+  --dialog-primary-bg: #E8866B;
+  --dialog-primary-bg-hover: #F09F86;
+  --dialog-primary-fg: #1F1E1D;
+  --dialog-destructive-bg: #D17162;
+  --dialog-destructive-bg-hover: #B85544;
+  --dialog-destructive-fg: #1F1E1D;
+  --dialog-focus-ring: rgba(232, 134, 107, 0.28);
+}
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--dialog-overlay);
+  backdrop-filter: blur(2px) saturate(1.05);
+  -webkit-backdrop-filter: blur(2px) saturate(1.05);
+  z-index: var(--dialog-z-overlay);
+  animation: dialog-overlay-in 160ms ease-out;
+}
+.dialog-overlay.closing { animation: dialog-overlay-out 140ms ease-in forwards; }
+
+.dialog-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 440px;
+  max-width: 440px;
+  max-height: calc(100vh - 48px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--dialog-radius);
+  box-shadow: var(--dialog-shadow);
+  padding: 28px 28px 0;
+  z-index: var(--dialog-z-panel);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dialog-panel-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dialog-panel.closing { animation: dialog-panel-out 140ms ease-in forwards; }
+
+.dialog-stripe {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  bottom: 28px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--dialog-stripe-default);
+}
+.dialog-panel.danger .dialog-stripe { background: var(--dialog-stripe-danger); }
+.dialog-panel.info   .dialog-stripe { background: var(--dialog-stripe-info); }
+
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.dialog-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--dialog-stripe-default);
+}
+.dialog-panel.danger .dialog-icon { color: var(--dialog-stripe-danger); }
+.dialog-panel.info   .dialog-icon { color: var(--dialog-stripe-info); }
+
+.dialog-title {
+  font-size: var(--font-m);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0;
+  color: var(--text-primary);
+  word-break: break-word;
+  margin: 0;
+}
+
+.dialog-desc {
+  font-size: var(--font-m);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  white-space: pre-line;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  margin: 10px 0 0;
+}
+
+.dialog-input-label {
+  display: block;
+  font-size: var(--font-s);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin: 16px 0 6px;
+}
+
+.dialog-input {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  font-size: var(--font-m);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-primary);
+  transition: border-color 0.15s, background 0.15s;
+}
+textarea.dialog-input {
+  height: auto;
+  min-height: 80px;
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.dialog-input::placeholder { color: var(--text-muted); opacity: 0.7; }
+.dialog-input:hover { border-color: var(--border-default); }
+.dialog-input:focus {
+  border-color: var(--dialog-primary-bg);
+  outline: 2px solid var(--dialog-focus-ring);
+  outline-offset: 0;
+}
+.dialog-input.has-error { border-color: var(--dialog-destructive-bg); }
+.dialog-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.dialog-helper {
+  margin: 6px 0 0;
+  font-size: var(--font-s);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.dialog-helper.is-error { color: var(--dialog-destructive-bg); }
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 24px 0;
+  margin-top: 4px;
+}
+.dialog-footer.alert { padding-right: 0; }
+
+.dialog-btn {
+  min-height: 36px;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: var(--font-m);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+.dialog-btn:active { transform: scale(0.98); }
+.dialog-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.dialog-btn:focus-visible {
+  outline: 2px solid var(--dialog-primary-bg);
+  outline-offset: 2px;
+}
+.dialog-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+.dialog-btn-ghost:hover { background: var(--bg-elevated); }
+.dialog-btn-primary {
+  background: var(--dialog-primary-bg);
+  color: var(--dialog-primary-fg);
+  border: 1px solid transparent;
+}
+.dialog-btn-primary:hover { background: var(--dialog-primary-bg-hover); }
+.dialog-btn-destructive {
+  background: var(--dialog-destructive-bg);
+  color: var(--dialog-destructive-fg);
+  border: 1px solid transparent;
+}
+.dialog-btn-destructive:hover { background: var(--dialog-destructive-bg-hover); }
+.dialog-btn-destructive:focus-visible { outline-color: var(--dialog-destructive-bg); }
+
+@keyframes dialog-overlay-in  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes dialog-overlay-out { from { opacity: 1 } to { opacity: 0 } }
+@keyframes dialog-panel-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes dialog-panel-out {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  to   { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+}
+
+@media (max-width: 480px) {
+  .dialog-panel {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    border-radius: 14px;
+    padding: 24px 22px 0;
+    animation: dialog-panel-in-mobile 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .dialog-panel.closing { animation: dialog-panel-out-mobile 140ms ease-in forwards; }
+  .dialog-footer {
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding: 20px 0;
+  }
+  .dialog-footer .dialog-btn { width: 100%; }
+  @keyframes dialog-panel-in-mobile {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes dialog-panel-out-mobile {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(16px); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog-overlay, .dialog-overlay.closing,
+  .dialog-panel, .dialog-panel.closing {
+    animation-duration: 50ms;
+    animation-name: dialog-overlay-in;
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "id": "booking",
+  "name": "예약",
+  "version": "0.1.2",
+  "icon": "📅",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13206"
+  },
+  "ports": {
+    "http": 13206
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "호스트 가용시간 설정 + 게스트 예약 (calcom 스타일)",
+  "setupGuide": {
+    "intro": "예약 저장에는 Supabase 프로젝트가 필요합니다. 미설정 시 예약 저장과 확인 메일 발송이 비활성화됩니다.",
+    "steps": [
+      {
+        "title": "Supabase 무료 프로젝트 생성",
+        "detail": "supabase.com에서 무료 프로젝트를 만듭니다."
+      },
+      {
+        "title": "API 정보 복사",
+        "detail": "Dashboard > Settings > API에서 Project URL과 service_role 키를 복사합니다."
+      },
+      {
+        "title": "테이블 스키마 생성",
+        "detail": "apps/booking/.env.example 상단 안내의 SQL로 예약 테이블을 생성합니다."
+      },
+      {
+        "title": "마이크루에 키 저장",
+        "detail": "마이크루 설정 > 키 관리 > 앱 외부 서비스 연동에서 '예약' 항목에 URL과 키를 입력하고 저장합니다."
+      },
+      {
+        "title": "(선택) 확인 메일 발송 설정",
+        "detail": "resend.com API 키와 발신/호스트 이메일을 추가하면 예약 확인 메일이 발송됩니다."
+      }
+    ],
+    "envVars": [
+      {
+        "name": "SUPABASE_URL",
+        "label": "Supabase Project URL",
+        "required": true
+      },
+      {
+        "name": "SUPABASE_SERVICE_ROLE_KEY",
+        "label": "Supabase service_role Key",
+        "required": true
+      },
+      {
+        "name": "RESEND_API_KEY",
+        "label": "Resend API Key"
+      },
+      {
+        "name": "BOOKING_FROM_EMAIL",
+        "label": "발신 이메일"
+      },
+      {
+        "name": "BOOKING_HOST_EMAIL",
+        "label": "호스트 알림 이메일"
+      }
+    ],
+    "services": [
+      {
+        "name": "Supabase",
+        "url": "https://supabase.com",
+        "desc": "예약 데이터 저장용 DB — 무료 플랜으로 충분"
+      },
+      {
+        "name": "Resend",
+        "url": "https://resend.com",
+        "desc": "(선택) 예약 확인 메일 발송"
+      }
+    ],
+    "docsUrl": "https://supabase.com/docs"
+  },
+  "aiCapabilities": [
+    {
+      "id": "parse-booking",
+      "route": "/api/ai/parse-booking",
+      "title": "자연어 예약",
+      "desc": "한 문장으로 예약을 잡습니다 — 날짜·시간·이름 자동 인식."
+    },
+    {
+      "id": "briefing",
+      "route": "/api/ai/briefing",
+      "title": "미팅 브리핑",
+      "desc": "미팅 전 참석자·안건을 정리한 브리핑을 생성합니다."
+    },
+    {
+      "id": "availability-text",
+      "route": "/api/ai/availability-text",
+      "title": "가용시간 문구",
+      "desc": "예약 가능한 시간대를 자연스러운 안내 문구로 만듭니다."
+    },
+    {
+      "id": "classify-note",
+      "route": "/api/ai/classify-note",
+      "title": "예약 메모 자동 분류",
+      "desc": "예약 메모에서 미팅 유형과 준비항목을 자동으로 뽑아냅니다."
+    }
+  ]
+}

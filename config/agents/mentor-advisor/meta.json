@@ -1,0 +1,11 @@
+{
+  "id": "mentor-advisor",
+  "name": "멘토",
+  "jobTitle": "멘토 조언 아카이브",
+  "team": "지식관리팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "상황/고민을 선생님(김성호) 과거 조언 코퍼스에서 검색해 원문+출처로 답하는 근거-구속 아카이브 (지어내기 금지, 근거 없으면 기권)"
+}

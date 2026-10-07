@@ -1,0 +1,11 @@
+{
+  "id": "dev-pm",
+  "name": "개발자",
+  "jobTitle": "CTO",
+  "team": "개발팀",
+  "adapter": "claude-code",
+  "model": "claude-opus-5",
+  "isCore": true,
+  "permLevel": "normal",
+  "description": "코드 작성·수정·빌드·배포 전담 개발 총괄"
+}

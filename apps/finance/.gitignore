@@ -1,0 +1,5 @@
+# Local SQLite finance store (created at runtime, not checked in)
+data/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

@@ -1,0 +1,11 @@
+{
+  "port": 3487,
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "jobs": {
+    "status": 200,
+    "jobCount": 0
+  }
+}

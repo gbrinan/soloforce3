@@ -1,0 +1,79 @@
+{
+  "repository": "https://github.com/gbrinan/ingestiger",
+  "commit": "2c4a74b6c9a40cb747c8e24b2a535b4457cdf3f2",
+  "version": "1.0.0-draft.6",
+  "files": [
+    {
+      "path": ".claude-plugin/plugin.json",
+      "sha256": "7dd8ecaec2112ede4b4fa2574b25a82e126aec1a8bf31dccadb34e57d3641d96"
+    },
+    {
+      "path": "agent/meta.json",
+      "sha256": "03c7e1ea8699ad01ea2578ae7887216b3e97a92c5f2275dd7fe34486ec04dbc3"
+    },
+    {
+      "path": "agent/role-directive.md",
+      "sha256": "303400b6dc3ba06a7b2a30fa422a77c622e149c613b021a3dacd2c14128f8db7"
+    },
+    {
+      "path": "skills/ingestiger/SKILL.md",
+      "sha256": "802c0d2c41d588a103260b116b7cc20c885926cea882c54a16ceb2a795ee2e37"
+    },
+    {
+      "path": "skills/ingestiger/references/adapters.md",
+      "sha256": "d7eef040f8f33c13f9ee98c188ff0292451ca6f3b54cc0ab55c68b4abf43891f"
+    },
+    {
+      "path": "skills/ingestiger/references/contracts.md",
+      "sha256": "8f6a2eadd692519adfa6702e625e1a8c7b09dac94ec60f74e7e0c217fc32abd0"
+    },
+    {
+      "path": "skills/ingestiger/references/golden-samples.md",
+      "sha256": "7ad0e3b05adae2a66857c1a98e0c5b4d949636805a8b2e14a0ab19c90f8a7027"
+    },
+    {
+      "path": "skills/ingestiger/references/large-decks.md",
+      "sha256": "fdcef05f2573732f63d8726e8a13a9ede8d162fc159f98eb65e1470dec9e43f5"
+    },
+    {
+      "path": "skills/ingestiger/references/modes.md",
+      "sha256": "280aeedb22c1b4208586ed6f295e3ebcc7cecfdde37a50b9fdf09728878d7e07"
+    },
+    {
+      "path": "skills/ingestiger/references/runbook.md",
+      "sha256": "709b486ffcd64fd07654c2d82c7730f43611153b71afc758edbec62000f81bb1"
+    },
+    {
+      "path": "skills/ingestiger/references/source-quality.md",
+      "sha256": "a5e3d853058113776084e2083550b55f239e20ed34e3f478fa8e4248f34e0a59"
+    },
+    {
+      "path": "skills/ingestiger/references/storage.md",
+      "sha256": "c23e446307087d21fecd4cb7c746fbb03eb26f517376085708c4858a4169cbd4"
+    },
+    {
+      "path": "skills/ingestiger/references/structure.md",
+      "sha256": "f85249d85071cd1fa57451d1ff0ae152d7d38370922f38aaf79d7463f5f1a1b7"
+    },
+    {
+      "path": "skills/ingestiger/scripts/deck_inventory.py",
+      "sha256": "03bed687e5c6e7b5f171653405b051ca45d04ffdfd8a70ff8ca26838a708b1cd"
+    },
+    {
+      "path": "skills/ingestiger/scripts/golden.py",
+      "sha256": "5dbb7cee4d6fe4b74065742b353bd8d49ca4df7e34e98ad9da76d5b375efba3b"
+    },
+    {
+      "path": "skills/ingestiger/scripts/knowledge.py",
+      "sha256": "ee330c373ab83f847ca3bf4861c2d66e8adfdf77623ef4361f9bc3131c1a7d5e"
+    },
+    {
+      "path": "skills/ingestiger/scripts/link_audit.py",
+      "sha256": "0439d472bfd62f693ce644961f25001f1ea9ab73a2a0a8d35ec84dca4b9132b4"
+    },
+    {
+      "path": "skills/ingestiger/scripts/pipeline.py",
+      "sha256": "b6128f3b361cf3175e51187259fdfce52020c9b862904adca6fdfc9d236a6c7f"
+    }
+  ]
+}

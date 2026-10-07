@@ -1,0 +1,9 @@
+{
+  "jobId": "53cd3647-1f99-4604-a909-0923af9dd539",
+  "todoId": "6b3b2c0c-b49d-4488-a6ba-ca12e4789505",
+  "taskId": "f79a757b-7f93-41a0-b00f-0b4a690a55d9",
+  "status": "queued",
+  "acceptedAt": "2026-09-14T01:45:27.686Z",
+  "callbackUrl": "http://127.0.0.1:3488/api/delegate/callback",
+  "request": "scope={\"orgId\":\"synthetic\",\"projectId\":\"windows-collaboration\"}. 먼저 WikiSearch query=\"거래처별 금액 집계\"로 검색하되 items가 비어도 mandatory 목록 전체를 확인하세요. 다음 WikiSearch query=\"\"로 전체 지식을 찾고 관련 정본 4개를 모두 실제 WikiRead(id"
+}

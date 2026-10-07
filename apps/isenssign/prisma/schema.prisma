@@ -1,0 +1,511 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// Auth & Multi-tenant
+// ==========================================
+
+model Account {
+  id        String   @id @default(cuid())
+  name      String?
+  timezone  String   @default("Asia/Seoul")
+  locale    String   @default("ko")
+  logo      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  templates       Template[]
+  templateFolders TemplateFolder[]
+  submissions     Submission[]
+  webhookUrls     WebhookUrl[]
+  accountConfig   AccountConfig?
+  apiTokens       ApiToken[]
+  eventTypes      EventType[]
+  schedules       Schedule[]
+  bookings        Booking[]
+
+  @@map("accounts")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  firstName     String
+  lastName      String?
+  passwordHash  String?
+  role          UserRole  @default(MEMBER)
+  avatarUrl     String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  templates        Template[]
+  templateFolders  TemplateFolder[]
+  submissions      Submission[]
+  templateAccesses TemplateAccess[]
+  sessions         Session[]
+  eventTypes       EventType[]
+  schedules        Schedule[]
+  bookings         Booking[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  expires      DateTime
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model ApiToken {
+  id        String   @id @default(cuid())
+  name      String
+  token     String   @unique
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("api_tokens")
+}
+
+// ==========================================
+// Template System
+// ==========================================
+
+model TemplateFolder {
+  id           String    @id @default(cuid())
+  name         String
+  archivedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  accountId      String
+  account        Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User            @relation(fields: [authorId], references: [id])
+  parentFolderId String?
+  parentFolder   TemplateFolder? @relation("FolderHierarchy", fields: [parentFolderId], references: [id])
+
+  subfolders TemplateFolder[] @relation("FolderHierarchy")
+  templates  Template[]
+
+  @@map("template_folders")
+}
+
+model Template {
+  id          String    @id @default(cuid())
+  name        String
+  schema      Json      @default("[]") // Field definitions
+  documents   Json      @default("[]") // Attached document metadata
+  preferences Json      @default("{}") // Template-level settings
+  source      TemplateSource @default(NATIVE)
+  archivedAt  DateTime?
+  externalId  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User    @relation(fields: [authorId], references: [id])
+  folderId  String?
+  folder    TemplateFolder? @relation(fields: [folderId], references: [id])
+
+  submissions      Submission[]
+  templateAccesses TemplateAccess[]
+  templateSharings TemplateSharing[]
+  attachments      Attachment[]
+
+  @@map("templates")
+}
+
+enum TemplateSource {
+  NATIVE
+  API
+  IMPORT
+}
+
+model TemplateAccess {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, userId])
+  @@map("template_accesses")
+}
+
+model TemplateSharing {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  submitters Json     @default("[]") // Pre-defined submitter roles
+  expiresAt  DateTime?
+  createdAt DateTime @default(now())
+
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("template_sharings")
+}
+
+// ==========================================
+// Submission & Signing
+// ==========================================
+
+model Submission {
+  id              String           @id @default(cuid())
+  slug            String           @unique @default(cuid())
+  source          SubmissionSource @default(WEB)
+  submitterOrder  SubmitterOrder   @default(RANDOM)
+  status          SubmissionStatus @default(PENDING)
+  completedAt     DateTime?
+  archivedAt      DateTime?
+  expiresAt       DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  accountId  String
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id])
+  createdById String
+  createdBy   User    @relation(fields: [createdById], references: [id])
+
+  submitters        Submitter[]
+  submissionEvents  SubmissionEvent[]
+  completedDocuments CompletedDocument[]
+
+  @@map("submissions")
+}
+
+enum SubmissionSource {
+  WEB
+  API
+  SHARE_LINK
+  EMBED
+}
+
+enum SubmitterOrder {
+  RANDOM
+  SEQUENTIAL
+}
+
+enum SubmissionStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  ARCHIVED
+}
+
+model Submitter {
+  id            String          @id @default(cuid())
+  slug          String          @unique @default(cuid())
+  email         String?
+  phone         String?
+  name          String?
+  role          String          @default("Signer")
+  status        SubmitterStatus @default(PENDING)
+  values        Json            @default("{}") // Filled field values
+  metadata      Json            @default("{}")
+  sentAt        DateTime?
+  openedAt      DateTime?
+  completedAt   DateTime?
+  declinedAt    DateTime?
+  externalId    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Verification info
+  verificationMethod VerificationMethod?
+  verificationId     String?   // Barocert receipt ID
+  verifiedAt         DateTime?
+
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  submitterEvents SubmitterEvent[]
+
+  @@map("submitters")
+}
+
+enum SubmitterStatus {
+  PENDING
+  SENT
+  OPENED
+  COMPLETED
+  DECLINED
+}
+
+enum VerificationMethod {
+  NONE
+  EMAIL
+  SMS
+  KAKAO_CERT
+  NAVER_CERT
+  TOSS_CERT
+}
+
+// ==========================================
+// Events & Audit
+// ==========================================
+
+model SubmissionEvent {
+  id        String   @id @default(cuid())
+  eventType String   // created, sent, completed, expired, archived
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@map("submission_events")
+}
+
+model SubmitterEvent {
+  id        String   @id @default(cuid())
+  eventType String   // sent, opened, signed, declined, verified
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  submitterId String
+  submitter   Submitter @relation(fields: [submitterId], references: [id], onDelete: Cascade)
+
+  @@map("submitter_events")
+}
+
+// ==========================================
+// Documents & Files
+// ==========================================
+
+model Attachment {
+  id          String   @id @default(cuid())
+  filename    String
+  contentType String
+  byteSize    Int
+  storageKey  String   // S3 key or local path
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  templateId String?
+  template   Template? @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+model CompletedDocument {
+  id          String   @id @default(cuid())
+  filename    String
+  contentType String   @default("application/pdf")
+  storageKey  String
+  sha256      String?
+  createdAt   DateTime @default(now())
+
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@map("completed_documents")
+}
+
+// ==========================================
+// Webhooks
+// ==========================================
+
+model WebhookUrl {
+  id        String   @id @default(cuid())
+  url       String
+  events    String[] // Array of event types
+  secret    String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_urls")
+}
+
+// ==========================================
+// Booking & Scheduling
+// ==========================================
+
+model EventType {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String
+  description String?
+  duration    Int      @default(30)  // minutes
+  locations   Json     @default("[]") // [{type: "online"|"in_person"|"phone", value: "..."}]
+  color       String?
+  hidden      Boolean  @default(false)
+  requiresConfirmation Boolean @default(false)
+  minimumNotice Int    @default(60) // minutes before booking
+  bufferBefore Int     @default(0)  // minutes
+  bufferAfter  Int     @default(0)  // minutes
+  slotInterval Int?    // custom slot interval in minutes
+  bookingLimits Json?  // {day?: number, week?: number, month?: number}
+  bookingFields Json   @default("[]") // custom fields for booking form
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  accountId  String
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  scheduleId String?
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id])
+
+  bookings   Booking[]
+
+  @@unique([userId, slug])
+  @@map("event_types")
+}
+
+model Schedule {
+  id        String   @id @default(cuid())
+  name      String
+  timeZone  String   @default("Asia/Seoul")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+
+  availabilities Availability[]
+  eventTypes     EventType[]
+
+  @@map("schedules")
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  days      Int[]    // 0=Sun, 1=Mon, ..., 6=Sat
+  startTime String   // "09:00" format
+  endTime   String   // "17:00" format
+  date      DateTime? // specific date override (nullable = recurring by days)
+  createdAt DateTime @default(now())
+
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@map("availabilities")
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  CANCELLED
+  REJECTED
+  RESCHEDULED
+  NO_SHOW
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  uid         String        @unique @default(cuid())
+  title       String
+  startTime   DateTime
+  endTime     DateTime
+  status      BookingStatus @default(ACCEPTED)
+  location    String?
+  description String?
+  responses   Json          @default("{}") // custom field responses
+  cancellationReason String?
+  rescheduledFromId  String?
+  metadata    Json          @default("{}")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  accountId   String
+  account     Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  eventTypeId String
+  eventType   EventType  @relation(fields: [eventTypeId], references: [id])
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+
+  attendees   BookingAttendee[]
+
+  @@map("bookings")
+}
+
+model BookingAttendee {
+  id       String @id @default(cuid())
+  name     String
+  email    String
+  phone    String?
+  timeZone String @default("Asia/Seoul")
+  locale   String @default("ko")
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("booking_attendees")
+}
+
+// ==========================================
+// Account Configuration
+// ==========================================
+
+model AccountConfig {
+  id        String   @id @default(cuid())
+  // SMTP
+  smtpHost     String?
+  smtpPort     Int?
+  smtpUser     String?
+  smtpPassword String?
+  smtpFromEmail String?
+
+  // Kakao Alimtalk
+  kakaoSenderKey    String?
+  kakaoChannelId    String?
+
+  // Barocert
+  barocertClientCode String?
+  barocertSecretKey  String?
+
+  // Storage
+  storageProvider String @default("local") // local, s3
+  s3Bucket        String?
+  s3Region        String?
+  s3AccessKey     String?
+  s3SecretKey     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountId String  @unique
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("account_configs")
+}

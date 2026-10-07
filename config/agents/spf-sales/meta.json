@@ -1,0 +1,11 @@
+{
+  "id": "spf-sales",
+  "name": "영업",
+  "jobTitle": "SPF 영업 앞단 담당",
+  "team": "SPF팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "SPF egg 산업 뉴스 발굴 -> 리드 스코어 -> 콜드메일 -> 일정 관리 (영업 퍼널 앞단)"
+}

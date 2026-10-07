@@ -1,0 +1,11 @@
+{
+  "id": "repo-scout",
+  "name": "리포정찰",
+  "jobTitle": "AI 에이전트 생태계 리소스(GitHub 리포·스킬·도구) 데일리 발굴 담당",
+  "team": "리서치팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "GitHub·X·Reddit·Threads·web에서 Claude/AI 에이전트 생태계의 유용한 리포·스킬·도구를 매일 발굴. 사용자 취향 시드 리스트 기준으로 선별하고, 각 건을 요약 + MyCrew 적용 제안까지 붙여 보고. seen-log로 중복 방지, 발굴 이력이 쌓일수록 취향 판별이 고도화되는 자기개선형 스카우트."
+}

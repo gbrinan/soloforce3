@@ -1,0 +1,13 @@
+# Execution evidence
+- Read root AGENTS.md, existing checkout README/Windows guide/task plan, fresh collaboration/live/wiki contracts and package.json.
+- git clone --branch main completed; target ancestor check exit 0; clean checkout.
+- CIM process/port queries unavailable in sandbox; native netstat works. No existing service stopped.
+- Bundle check passed before suite (vendor LF policy present).
+- Actual probe session 451e6c5d-1338-499e-9284-709da56502bb: authentication failure; terminal_reason=api_error, is_error=true despite subtype=success. Success must not be inferred from subtype or model configuration.
+- npm ci completed exit 0 (npm debug log confirms). Reported 73 vulnerabilities: 2 low/47 moderate/24 high; no automatic dependency rewrites applied.
+- Five requested verification/test scripts passed. First build raced installation and failed missing tsc shim; after npm ci completed, unchanged build passed (build-retry.log).
+- Added Windows surface test: actual TCP HTTP host and two fresh native stdio MCP child processes. All four tools registered/called; Korean/spaced paths, missing citation rejection, recipient denial, stale revision rejection, source/output change and review/commit token denial passed. This does not execute models or delegated workers or PTY.
+- Repeated new surface script passed; strict standalone tsc exit 0. ConPTY version probes: PIDs 45712/42896, both exit 0; these were not model tasks.
+- Normal npm start on 3487 passed health and capabilities. Full browser surface reached terms/Google login gate; no consent performed.
+- Isolated /api/jobs returned 200 and zero jobs. Terminated only own server PID 39784, restarted against final synthetic root; health still ok. Existing port 3456 untouched.
+- New script owns only synthetic Windows boundary verification (122 nonblank/comment lines or fewer); external MCP result shapes parsed with Zod. No new any/ignore escapes. Typecheck and actual repeated TCP/stdio run passed. No production behavior changed.

@@ -1,0 +1,15 @@
+{
+  "id": "projects",
+  "name": "프로젝트",
+  "version": "0.1.0",
+  "icon": "📁",
+  "category": "optional",
+  "entry": { "kind": "iframe", "url": "http://127.0.0.1:13248" },
+  "ports": { "http": 13248 },
+  "proxyMode": "strip",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "프로젝트 — 교육·컨설팅 등 고객사 프로젝트(회차·교안·현장피드백·후속제안·산출물)를 카테고리별로 열람 (읽기 전용 M1)",
+  "aiCapabilities": []
+}

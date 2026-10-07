@@ -1,0 +1,120 @@
+node_modules/
+dist/
+.env
+.mcp.json
+.DS_Store
+.sso-secret
+.cloudflare-token
+
+# 사용자 데이터 (온보딩 시 자동 생성)
+history/
+history-backups/
+
+# 멀티 인스턴스 데이터 (.mycrew-A, -B 등)
+.mycrew-*/
+
+# MCP 임시 로그
+.playwright-mcp/
+
+# 임시 작업 파일 (Step별 조사 로그·smoke 테스트·MCP config 스냅샷)
+tmp/
+
+# 외부 에이전트 화이트리스트 (Bearer 토큰 비밀 — 로컬 dev 전용)
+config/external-agents.json
+
+# 생성 산출물 (대용량 오피스 문서 — 필요 시 history/ 하위는 이미 ignore됨)
+*.docx
+*.xlsx
+*.pptx
+
+# config 자동 생성 베이스라인 (빌드 산출물 — 커밋 불필요)
+config/.baseline/
+
+# HyperFrames workspace (별도 모노레포 + Bun lock — npm workspace 미포함)
+tools/hyperframes-workspace/out/
+tools/hyperframes-workspace/renders/
+tools/hyperframes-workspace/.hyperframes/
+
+# --- hardening for github distribution (2026-06-15) ---
+.archived-sign-*/
+.staging-photos-fix/
+.tmp-isenssign-ref/
+
+# QA scratch artifacts (live e2e screenshots / codegraph cache)
+.codegraph/
+e2e-step*.png
+playwright-verify-*.png
+qa-step*.png
+.uz_probe/
+_diag/
+outputs/
+_probe_sso.cjs
+_smoke_sso.ts
+*.log
+.tmp-*
+.analyze-*
+.audit-*
+apps/isenssign/uploads/
+apps/isenssign/.next/
+apps/hd-cleaner/.data/
+**/.env
+**/.env.local
+**/.sso-secret
+**/.cloudflare-token
+**/.git.disabled/
+
+# QA 임시 작업 파일
+.qa-tmp/
+
+# --- build output / scratch (2026-06-24) ---
+/.next/
+/_v016-extracted/
+scripts/_*
+apps/design/_*
+apps/design/.build-logs/
+qa-booking-*.png
+qa-g2-*.yml
+
+# scratch / build artifacts (2026-06-25)
+.qa/
+**/.qa/
+.verify/
+.pg_out.txt
+.pg_err.txt
+**/.next/
+apps/mail/next-env.d.ts
+
+# TREK 분석/내재화 작업용 외부 소스 (2026-06-30)
+services/trek-source/
+services/_clone-trek.sh
+
+# 빌드 아티팩트·로컬 QA 스크립트 (P2 위생, 2026-07-05)
+*.tsbuildinfo
+scripts/qa-archive/
+.env.production.pulled
+**/.env.production.pulled
+.preview-dooitspace
+
+# @mycrew/ai-client 컴파일 산출물 — ledger/bookshelf(mjs)가 /node 서브패스로 소비하므로 추적
+!packages/ai-client/dist/
+.vercel
+
+# --- hermes 작업 시 추가 하드닝 (2026-07-24) ---
+.anandara-cron-secret
+**/.anandara-cron-secret
+.claude/settings.local.json
+**/*.secret
+**/*-secret
+server-restart*.log
+smoke-test*.log
+out_test.txt
+status_lines.txt
+
+# 편집 세션 백업 — 저장소에 들어갈 것이 아니다. 두 머신이 양방향으로 push하면
+# 서로 덮어쓰는 잡음이 된다. 지운 111개는 git 히스토리(e902e59 이전)에 남아 있다.
+*.bak
+*.bak-*
+
+# 컴파일된 파이썬 바이트코드 — 플랫폼·버전마다 달라 두 머신이 서로 덮어쓴다
+__pycache__/
+*.pyc

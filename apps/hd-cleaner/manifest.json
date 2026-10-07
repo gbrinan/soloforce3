@@ -1,0 +1,42 @@
+{
+  "id": "hd-cleaner",
+  "name": "HD Cleaner",
+  "version": "0.1.1",
+  "icon": "🧹",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13260"
+  },
+  "ports": {
+    "http": 13260
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [
+    "filesystem-scan",
+    "trash-move"
+  ],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "디스크 정리 유틸리티 — 캐시/로그/다운로드/대용량 파일 스캔 및 휴지통 이동",
+  "aiCapabilities": [
+    {
+      "id": "safety-rating",
+      "route": "/api/ai/safety-rating",
+      "title": "삭제 안전도 평가",
+      "desc": "파일 삭제의 안전도를 AI가 평가해 실수를 막습니다."
+    },
+    {
+      "id": "parse-filter",
+      "route": "/api/ai/parse-filter",
+      "title": "자연어 스캔 필터",
+      "desc": "\"6개월 안 쓴 영상\"처럼 자연어로 정리 대상을 찾습니다."
+    },
+    {
+      "id": "cleanup-plan",
+      "route": "/api/ai/cleanup-plan",
+      "title": "정리 플랜 브리핑",
+      "desc": "안전한 것부터 순서대로 공간 회수 플랜을 제안합니다."
+    }
+  ]
+}

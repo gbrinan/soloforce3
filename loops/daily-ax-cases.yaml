@@ -1,0 +1,38 @@
+# 데일리 AX 사례 수집 루프 — 매일 09:30 KST.
+# ax-scout가 Gemini 그라운딩 검색(유튜브 포함)으로 AX 사례를 수집·분석하고
+# 사용자 AX 기록(history/ax/)과 대조한 시사점을 보고한다.
+loop:
+  id: daily-ax-cases
+  version: "1"
+  owner: genie
+  description: "AX정찰(ax-scout) 데일리 AX 사례 수집 + 시사점 분석"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "30 9 * * *" # 매일 09:30
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: collect-ax-cases
+      agent: ax-scout
+      prompt: >
+        [데일리 AX 사례] ax-scout(AX정찰)에게 위임하세요 (반드시 DelegateTask에 timeoutSec: 1800, leaseSec: 2100 지정 — 리서치 작업이라 기본 10분으로는 타임아웃될 수 있음): "오늘의 AX 사례 수집을 실행하라.
+        역할 지시서의 절차(history/ax/ 기준점 로드 → Gemini 그라운딩 검색으로 신규 사례
+        수집(유튜브 포함) → 사례 카드 2~4건 작성 → 다이제스트 저장)를 그대로 따르고,
+        신규 사례 요약 + 오늘의 추천 액션 1건을 보고하라."
+        ax-scout의 보고를 받으면 그 요약을 결과로 정리하세요.
+      model_tier: standard
+
+  budget:
+    max_cost_usd_per_run: 2.5
+    max_duration_minutes: 40
+    max_runs_per_day: 2
+    monthly_cap_usd: 50
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: notify

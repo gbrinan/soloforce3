@@ -1,0 +1,11 @@
+{
+  "root": "C:\\Users\\user\\Documents\\Codex 2\\soloforce2-windows-collaboration\\verification\\windows-schema-live\\runtime 한글 gAnL1j",
+  "scope": {
+    "orgId": "synthetic",
+    "projectId": "windows-collaboration"
+  },
+  "sourceId": "e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+  "jobId": "c303cfa9d4f60db91e37e6dd9c47bd3f01b374daa347a560dd706e2861e33e22",
+  "requestedModel": "claude-sonnet-5",
+  "realModel": true
+}

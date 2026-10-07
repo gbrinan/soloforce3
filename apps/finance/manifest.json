@@ -1,0 +1,19 @@
+{
+  "id": "finance",
+  "name": "정산",
+  "version": "0.1.0",
+  "icon": "💰",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13207"
+  },
+  "ports": {
+    "http": 13207
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": true,
+  "description": "비용·정산 대시보드 — 단식부기 거래 장부 + 구독 트래커 + 현금흐름 전망 (포트 13207, basePath /api/apps/finance/proxy)"
+}

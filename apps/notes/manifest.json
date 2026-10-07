@@ -1,0 +1,27 @@
+{
+  "id": "notes",
+  "name": "Notes",
+  "version": "1.0.1",
+  "icon": "🗒️",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13242"
+  },
+  "ports": {
+    "http": 13242
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "노트/위키 앱 — IndexedDB 오프라인 우선 저장 + Tiptap 리치 에디터",
+  "aiCapabilities": [
+    {
+      "id": "notes-ai",
+      "route": "/api/notes/ai",
+      "title": "AI 요약·태깅",
+      "desc": "노트를 요약하고 제목·태그를 자동으로 제안합니다."
+    }
+  ]
+}

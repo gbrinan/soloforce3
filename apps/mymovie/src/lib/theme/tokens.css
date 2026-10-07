@@ -1,0 +1,79 @@
+/* MyMovie 디자인 토큰 — mycrew-system/photos/isenssign 토큰과 동일 (디자인 명세 2026-06-16) */
+
+:root {
+  --bg-canvas: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-muted: #F0F2F5;
+  --bg-elevated: #F0F2F5;
+  --bg-accent: #E1ECFF;
+  --text-primary: #04070F;
+  --text-secondary: #13295F;
+  --text-muted: #6E7278;
+  --border-default: #DFE1E5;
+  --ring: #4F46E5;
+  --ring-shadow: rgba(79, 70, 229, 0.5);
+  --accent-success: #047857;
+  --accent-danger: #DC2626;
+  --accent-warning: #B45309;
+  --accent-info: #4F46E5;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.12);
+
+  --font-s: 12px;
+  --font-m: 14px;
+  --font-l: 16px;
+  --font-xl: 20px;
+}
+
+[data-mantine-color-scheme="dark"] {
+  /* 마이크루 통합 다크 — 정본(mail/theme.ts) dark 튜플과 동일 네이비 팔레트 + 인디고 액센트 */
+  --bg-canvas: #04070F;
+  --bg-surface: #070D1A;
+  --bg-card: #070D1A;
+  --bg-muted: #151F32;
+  --bg-elevated: #1B2740;
+  --bg-accent: #1E2452;
+  --text-primary: #F8F8F8;
+  --text-secondary: #9DB7EB;
+  --text-muted: #7D8699;
+  --border-default: #1F293D;
+  --ring: #6366F1;
+  --ring-shadow: rgba(99, 102, 241, 0.45);
+  --accent-success: #34D399;
+  --accent-danger: #F87171;
+  --accent-warning: #FBBF24;
+  --accent-info: #6366F1;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.55);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", sans-serif;
+  font-size: var(--font-m);
+}
+
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}

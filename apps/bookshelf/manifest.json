@@ -1,0 +1,81 @@
+{
+  "id": "bookshelf",
+  "name": "내 책장",
+  "version": "0.1.2",
+  "icon": "📚",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13244"
+  },
+  "ports": {
+    "http": 13244
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": true,
+  "description": "내 책장 — 도서 검색(Google Books)·추가·읽기 상태·별점·메모 관리",
+  "setupGuide": {
+    "intro": "키 없이도 무료 공개 검색 폴백으로 동작하지만 한국어 도서 검색 품질이 낮습니다. 네이버 검색 API 키를 등록하면 품질이 올라갑니다.",
+    "steps": [
+      {
+        "title": "네이버 애플리케이션 등록",
+        "detail": "developers.naver.com/apps에서 애플리케이션을 등록합니다 (검색 API 선택)."
+      },
+      {
+        "title": "Client ID / Secret 확인",
+        "detail": "발급된 Client ID와 Client Secret을 복사합니다."
+      },
+      {
+        "title": "마이크루에 키 저장",
+        "detail": "마이크루 설정 > 키 관리 > 앱 외부 서비스 연동에서 '책장' 항목에 키를 입력하고 저장합니다."
+      },
+      {
+        "title": "(선택) 카카오 REST API 키 발급",
+        "detail": "developers.kakao.com에서 REST API 키를 발급하면 네이버 검색 실패 시 폴백으로 사용됩니다."
+      }
+    ],
+    "envVars": [
+      {
+        "name": "NAVER_CLIENT_ID",
+        "label": "Naver Client ID"
+      },
+      {
+        "name": "NAVER_CLIENT_SECRET",
+        "label": "Naver Client Secret"
+      },
+      {
+        "name": "KAKAO_REST_KEY",
+        "label": "Kakao REST API 키"
+      }
+    ],
+    "services": [
+      {
+        "name": "네이버 개발자센터",
+        "url": "https://developers.naver.com/apps",
+        "desc": "도서 검색 API — 무료"
+      },
+      {
+        "name": "카카오 개발자센터",
+        "url": "https://developers.kakao.com",
+        "desc": "(선택) 네이버 실패 시 폴백 검색"
+      }
+    ],
+    "docsUrl": "https://developers.naver.com/docs/serviceapi/search/book/book.md"
+  },
+  "aiCapabilities": [
+    {
+      "id": "cover-scan",
+      "route": "/api/ai/scan-cover",
+      "title": "표지 비전 스캔",
+      "desc": "책 표지 사진으로 제목·저자를 자동 인식합니다."
+    },
+    {
+      "id": "recommend",
+      "route": "/api/ai/recommend",
+      "title": "다음 책 추천",
+      "desc": "독서 이력·별점·메모로 다음에 읽을 책을 추천합니다."
+    }
+  ]
+}

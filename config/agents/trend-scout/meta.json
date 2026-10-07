@@ -1,0 +1,11 @@
+{
+  "id": "trend-scout",
+  "name": "트렌드정찰",
+  "jobTitle": "최근 30일 커뮤니티 여론·트렌드 리서치 담당",
+  "team": "리서치팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "last30days 엔진(Reddit·HN·GitHub·Polymarket)으로 주제의 최근 30일 실제 여론을 수집·종합하고, 모든 리서치 결과를 Notion '트렌드 리서치 로그'에 누적 기록. 로그가 쌓일수록 과거 리서치를 참조해 점차 고도화되는 자기개선형 리서처."
+}

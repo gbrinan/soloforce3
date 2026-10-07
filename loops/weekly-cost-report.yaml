@@ -1,0 +1,36 @@
+# 정기 실행 루프 — 매주 일요일 저녁, 이번 주 모델 비용을 집계해 텔레그램/채팅으로 보고.
+# 2026-07-06 모델 티어 조정(dev-pm/planner-researcher→Sonnet, qa→Haiku) 절감 효과 측정 목적.
+loop:
+  id: weekly-cost-report
+  version: "1"
+  owner: genie
+  description: "주간 비용 리포트 (모델 티어 절감 효과 측정)"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "0 20 * * 0" # 매주 일요일 20:00
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: aggregate-cost-report
+      prompt: >
+        history/cost-log.jsonl을 읽어 최근 7일간의 비용을 에이전트별(genie/dev-pm/
+        planner-researcher/qa)·모델별로 집계하세요. 지난 주 대비 증감을 계산하고,
+        2026-07-06에 dev-pm/planner-researcher를 Sonnet으로, qa를 Haiku로 낮춘
+        절감 효과가 보이는지 짧게 평가한 뒤, 표 형태로 요약해 사용자에게 채팅으로
+        보고하세요 (텔레그램으로도 자동 전달됩니다).
+      model_tier: cheap
+
+  budget:
+    max_cost_usd_per_run: 1
+    max_duration_minutes: 10
+    max_runs_per_day: 1
+    monthly_cap_usd: 5
+
+  approval:
+    mode: draft_only # 집계·보고만 — 외부 발신 없음.
+
+  delivery:
+    on_success: summary

@@ -1,0 +1,29 @@
+{
+  "name": "approval",
+  "version": "0.1.1",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/ensure-next-link.mjs",
+    "dev": "next dev -p 13209",
+    "prebuild": "node scripts/ensure-next-link.mjs",
+    "build": "next build --webpack",
+    "prestart": "node scripts/ensure-next-link.mjs",
+    "start": "next start -p 13209 -H 127.0.0.1"
+  },
+  "dependencies": {
+    "@mantine/core": "^9.2.1",
+    "@mantine/hooks": "^9.2.1",
+    "@mantine/notifications": "^9.2.1",
+    "@tabler/icons-react": "^3.44.0",
+    "next": "16.2.6",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "@mycrew/ai-client": "file:../../packages/ai-client"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

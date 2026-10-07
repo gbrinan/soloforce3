@@ -1,0 +1,19 @@
+{
+  "id": "leads",
+  "name": "리드",
+  "version": "0.1.0",
+  "icon": "📇",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13208"
+  },
+  "ports": {
+    "http": 13208
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": true,
+  "description": "통합 리드 파이프라인 미니 CRM — 제품/서비스별 멀티 파이프라인 칸반 + 인바운드 웹훅 + rotting 감지 (포트 13208, basePath /api/apps/leads/proxy)"
+}
