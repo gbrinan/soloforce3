@@ -69,14 +69,14 @@ export function loadCandidates(historyDir: string): Candidate[] {
 }
 
 /** 시드 셔플 후 에이전트별 상한을 지키며 n건을 고른다. 앞 k건이 파일럿이 되도록 순서를 보존한다. */
-export function pickSample(cands: Candidate[], n: number, seed: number): Candidate[] {
+export function pickSample(cands: Candidate[], n: number, seed: number, capRatio = PER_AGENT_CAP_RATIO): Candidate[] {
   const r = rng(seed);
   const shuffled = [...cands];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(r() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
-  const cap = Math.max(1, Math.floor(n * PER_AGENT_CAP_RATIO));
+  const cap = Math.max(1, Math.floor(n * capRatio));
   const count = new Map<string, number>();
   const picked: Candidate[] = [];
   for (const c of shuffled) {
