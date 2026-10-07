@@ -22,6 +22,20 @@
 - `scripts/genie-notice-test.ts`, `package.json`, `CLAUDE.md`, `templates/tasks.md`·`progress.md`·`findings.md` (수정)
 - `docs/tool-use-redesign/` (새로 생성)
 
+## Session 2026-10-08
+
+### Stage 1: 반증 실험 🔄
+
+**작업 내역**:
+
+1. 잡 단위 파일럿 10건($2.83): 7건이 환경 부재로 멈춤 — 잡 request가 genie 위임 지시문이라 비교 단위가 틀렸음. 카드 미생성(findings).
+2. 채팅 원문 단위로 재설계, 사전 등록 커밋 `6f5416e`(07:49 KST) 후 실행.
+3. 채팅 파일럿 10건($4.13): 전부 정상 응답, 환경 거부 0건. 블라인드 카드 10장 생성(리포 밖 `D:/mycrew-labels/eval/stage1-chat/cards.html`).
+
+**생성/수정 파일**:
+
+- `scripts/stage1/` sample.ts·sample-chat.ts·run.ts·cards.ts·tally.ts·stage1-test.ts (새로 생성)
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -43,6 +57,9 @@
 | G6 | PASS | `tsc --noEmit` 종료 코드 0 | 2026-10-07 |
 | G7 | PASS | 위 Test Results «원장 리포트» 행 | 2026-10-07 |
 | G8 | PASS | plan-check 10규칙 통과 | 2026-10-07 |
+| G9 | PASS | 재설계 사전 등록 커밋 6f5416e(2026-10-08 07:49 KST)가 채팅 재실행 결과보다 먼저 | 2026-10-08 |
+| G10 | PASS | 채팅 표본 sha256 254e3a1d…7576, `sample-chat.ts --verify` 재생성 일치 | 2026-10-08 |
+| G11 | PASS | 허용 도구 Skill·WebSearch·WebFetch·Read·Glob·Grep, 쓰기·셸·하위 에이전트 금지, MCP 0개 — 실제 사용 도구는 Read·Grep·Glob·Skill·ToolSearch·CronList·ListAgents(모두 읽기) | 2026-10-08 |
 
 ## Error Log
 
@@ -59,8 +76,8 @@
 
 | Question | Answer |
 | --- | --- |
-| 1. 현재 어느 단계인가? | Stage 0 완료, Stage 1(반증 실험) 대기 |
-| 2. 다음에 할 일은? | 사람 요청 30건 표본 선정과 단일 에이전트 dry-run 설계 |
+| 1. 현재 어느 단계인가? | Stage 1 — 채팅 파일럿 10건 실행 완료, 아난 라벨 대기 |
+| 2. 다음에 할 일은? | 카드 10장 라벨 → 파이프라인 점검 후 나머지 20건 실행 |
 | 3. 목표는? | 정책을 도구 스키마에 두고, 싱글 기본 + 개발·인제스트·QA 레인 |
 | 4. 지금까지 배운 것? | findings.md — 측정 도구부터 외부 정답과 대조할 것 |
 | 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기 |
