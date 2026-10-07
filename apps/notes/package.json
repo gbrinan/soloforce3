@@ -1,0 +1,36 @@
+{
+  "name": "notes",
+  "version": "1.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 13242",
+    "build": "next build",
+    "start": "next start -p 13242 -H 127.0.0.1",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@mantine/core": "^9.2.1",
+    "@mantine/hooks": "^9.2.1",
+    "@mantine/notifications": "^9.2.1",
+    "@mycrew/ai-client": "file:../../packages/ai-client",
+    "@tabler/icons-react": "^3.44.0",
+    "@tiptap/extension-table": "^2.27.2",
+    "@tiptap/extension-table-cell": "^2.27.2",
+    "@tiptap/extension-table-header": "^2.27.2",
+    "@tiptap/extension-table-row": "^2.27.2",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
+    "marked": "^15.0.12",
+    "mermaid": "^11.16.0",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

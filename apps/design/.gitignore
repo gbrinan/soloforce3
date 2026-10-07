@@ -1,0 +1,15 @@
+# Build artifacts
+.next/
+out/
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Env
+.env
+.env.local

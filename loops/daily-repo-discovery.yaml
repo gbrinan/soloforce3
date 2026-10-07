@@ -1,0 +1,63 @@
+# 데일리 리포 발굴 루프 — 매일 08:30 KST.
+# repo-scout가 GitHub/X/Reddit/Threads/web에서 취향 시드 기준 리소스를 발굴·요약·제안하고,
+# 이어서 크루 라운지에서 dev-pm·planner-researcher가 리포트에 코멘트(에이전트 간 대화)한다.
+# 결과는 지니 채팅 + 텔레그램 + Discord로 자동 전달된다.
+loop:
+  id: daily-repo-discovery
+  version: "1"
+  owner: genie
+  description: "리포정찰(repo-scout) 데일리 발굴 리포트 + 크루 라운지 코멘트"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "30 8 * * *" # 매일 08:30
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: discover
+      agent: repo-scout
+      prompt: >
+        [데일리 리포 발굴] repo-scout(리포정찰)에게 위임하세요 (반드시 DelegateTask에 timeoutSec: 2400, leaseSec: 2700 지정 — 다중 소스 리서치라 기본 10분으로는 타임아웃됨): "오늘의 발굴을 실행하라.
+        역할 지시서의 절차(seen-log 확인 → last30days 엔진+WebSearch 수집 →
+        취향 선별 5~10건 → history/outputs/repo-scout/discovery_오늘날짜.md 저장 →
+        seen.jsonl 갱신)를 그대로 따르고, 상위 3건 + 오늘의 픽 1건을 요약 보고하라."
+        repo-scout의 보고를 받으면 그 요약을 결과로 정리하세요.
+      model_tier: standard
+
+    - id: crew-comments
+      agent: dev-pm
+      prompt: >
+        [크루 라운지 코멘트] 방금 repo-scout가 오늘의 발굴 보고서를
+        history/outputs/repo-scout/ 에 저장했습니다. 다음 두 가지 위임을 순서대로 실행하세요.
+        (1) dev-pm에게 위임: "SafeRead로 history/outputs/repo-scout/ 의 가장 최신
+        discovery 파일을 읽고, 개발자 관점에서 가장 포팅 가치 있는 1건을 골라 이유와 함께
+        크루 라운지에 코멘트를 올려라. 게시 방법(셸 도구 불필요): SafeWrite로 history/outputs/dev-pm/crew-post-오늘날짜.json 에 {\"text\":\"(코멘트)\"} 을 UTF-8 저장하면 서버가 10초 내 자동 게시. 코멘트는 3문장 이내."
+        (2) dev-pm 완료 후 planner-researcher에게 위임: "SafeRead로 history/human-chat/ 의 최신 messages-*.jsonl 에서
+        dev-pm의 코멘트를 읽고, 같은 보고서를 SafeRead로 읽은 뒤, dev-pm 의견에 동의/반박/보완하는 전략 관점
+        코멘트를 같은 방식(history/outputs/planner-researcher/crew-post-오늘날짜.json)으로 게시하라. 3문장 이내."
+        두 코멘트가 게시되었는지 확인하고 한 줄로 결과를 보고하세요.
+      model_tier: standard
+
+    - id: gpt-comment
+      agent: gpt-runner
+      prompt: >
+        크루 라운지 토론 참여: (1) 파일 읽기로 history/human-chat/ 의 최신 messages-*.jsonl 에서
+        오늘 dev-pm(아샬)·planner-researcher(CSO)의 코멘트를 읽고, (2) history/outputs/repo-scout/ 의
+        가장 최신 discovery 파일을 읽은 뒤, (3) GPT 관점에서 두 의견에 동의/반박/보완하는 코멘트를
+        3문장 이내로 작성해 (4) 최종 응답에 [CREW_POST]코멘트[/CREW_POST] 마커로 포함하라
+        (파일 쓰기 금지 — 시스템이 마커를 자동 게시함). 마커 밖에는 한 줄 요약 보고.
+      model_tier: standard
+
+  budget:
+    max_cost_usd_per_run: 3
+    max_duration_minutes: 50
+    max_runs_per_day: 4
+    monthly_cap_usd: 60
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: notify

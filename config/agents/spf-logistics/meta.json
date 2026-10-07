@@ -1,0 +1,11 @@
+{
+  "id": "spf-logistics",
+  "name": "물류추적",
+  "jobTitle": "SPF 물류·콜드체인 추적 담당",
+  "team": "SPF팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "SPF egg 배송을 발주->운송->온도로거->도착까지 추적하고 콜드체인 안전을 판정 (물류 퍼널 뒷단)"
+}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>개인정보처리방침 — SoloForce (MyCrew)</title>
+<style>body{font-family:-apple-system,'Segoe UI','Malgun Gothic',sans-serif;max-width:720px;margin:40px auto;padding:0 20px;line-height:1.7;color:#1a2233}h1{border-bottom:2px solid #6366F1;padding-bottom:8px}h2{margin-top:28px}a{color:#6366F1}footer{margin-top:48px;font-size:13px;color:#64748B;border-top:1px solid #e2e8f0;padding-top:12px}</style></head>
+<body>
+<h1>개인정보처리방침</h1>
+<p>시행일: 2026-08-31 · 적용 대상: SoloForce(MyCrew) 셀프호스팅 소프트웨어</p>
+
+<h2>1. 개요</h2>
+<p>SoloForce는 사용자가 자신의 컴퓨터에 설치·실행하는 셀프호스팅 소프트웨어입니다. 개발자는 별도의 서버를 운영하지 않으며, 사용자의 데이터를 수집·저장·전송받지 않습니다. 모든 데이터는 사용자의 로컬 머신에만 저장됩니다.</p>
+
+<h2>2. Google 사용자 데이터의 이용</h2>
+<p>사용자가 Google Drive 연동을 선택적으로 활성화한 경우:</p>
+<ul>
+<li><strong>요청 범위</strong>: <code>drive.metadata.readonly</code>(파일 메타데이터 읽기 전용), <code>openid</code>, <code>email</code> — 파일 내용 수정·삭제 권한은 요청하지 않습니다.</li>
+<li><strong>이용 목적</strong>: 사용자가 지정한 프로젝트 폴더의 파일 목록·메타데이터를 조회하여, 사용자 본인의 로컬 지식 코퍼스 구축 및 미팅 자료 처리에 사용합니다.</li>
+<li><strong>저장 위치</strong>: OAuth 리프레시 토큰은 사용자 로컬 머신에 암호화(AES, 사용자 보유 키)되어 저장되며, 외부로 전송되지 않습니다.</li>
+<li><strong>제3자 제공</strong>: Google 사용자 데이터를 제3자에게 제공·판매·이전하지 않습니다.</li>
+<li><strong>AI 모델 학습</strong>: Google 사용자 데이터를 일반화된 AI/ML 모델의 개발·개선·학습에 사용하지 않습니다.</li>
+</ul>
+
+<h2>3. 데이터 보관 및 삭제</h2>
+<ul>
+<li>연동 해제 시 저장된 토큰은 삭제되며, <a href="https://myaccount.google.com/permissions">Google 계정 권한 페이지</a>에서 언제든 접근 권한을 철회할 수 있습니다.</li>
+<li>로컬에 저장된 데이터는 사용자가 해당 폴더를 삭제함으로써 완전히 제거할 수 있습니다.</li>
+</ul>
+
+<h2>4. 제한적 사용 요건 준수</h2>
+<p>본 소프트웨어의 Google API로부터 받은 정보의 사용은 <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API 서비스 사용자 데이터 정책</a>(제한적 사용 요건 포함)을 준수합니다.</p>
+
+<h2>5. 문의</h2>
+<p>본 방침에 대한 문의: <a href="https://github.com/gbrinan/soloforce2/issues">GitHub Issues</a></p>
+<footer><a href="./index.html">← 서비스 소개</a></footer>
+</body></html>

@@ -1,0 +1,11 @@
+{
+  "id": "deck-factory",
+  "name": "덱팩토리",
+  "jobTitle": "HTML 덱 디자이너",
+  "team": "기획팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "브리프/원고를 다크 에디토리얼 HTML 슬라이드(1920x1080)로 조립 — 발표급 8규칙·13-슬롯 어휘 준수"
+}

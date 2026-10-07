@@ -1,0 +1,59 @@
+# SPF 아침 브리핑 루프 — 평일(월~금) 08:40 KST.
+# Notion 정본에서 "오늘 챙길 것"만 읽어 짧게 요약한다. 루프 러너가 결과를 텔레그램/디스코드로 자동 발송
+# (delivery.on_success != silent 이면 sendTelegramNoticeThrottled 호출). 별도 알림 배선 불필요.
+# 08:00 주간 뉴스 루프(월)·08:30 daily-repo-discovery와 모두 겹치지 않도록 08:40 배치.
+# 텔레그램 알림이 category="loop-run" 10초 스로틀을 공유해, 동시 완료 시 한쪽이 "외 N건"으로 묻힌다.
+loop:
+  id: spf-daily-brief
+  version: "1"
+  owner: genie
+  description: "SPF 아침 브리핑 (오늘 챙길 리드 + 물류 경고) → 텔레그램"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "40 8 * * 1-5"
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: morning-brief
+      agent: spf-sales
+      model_tier: cheap
+      prompt: >
+        [SPF 아침 브리핑] Notion에서 오늘 챙길 것만 조회해 짧게 요약하라.
+
+        하드 룰: 웹 검색 금지. Notion 쓰기 금지(조회만). 없는 항목은 정확히 "없음"이라고 적는다.
+        지어내지 않는다. 조회에 실패하면 실패했다고 그대로 적는다.
+
+        1) "영업 리드" DB(data_source b3765c80-7cae-46a0-9203-5cc21783fa2f)를 조회해,
+        단계가 Won/Lost가 아니면서 "다음 액션일"이 오늘이거나 이미 지난 리드를 모은다.
+        항목당: 회사 · 다음 액션 · 기한(지났으면 "N일 지남") · 스코어.
+
+        2) "물류 배송" DB(data_source 18c2a1e7-0186-41f0-b1bd-bf021f2c643b)를 조회해,
+        콜드체인 판정이 EXCURSION이거나 단계가 HELD_QA인 건을 모은다. 항목당: PO · 단계 · 판정.
+
+        3) 아래 형식으로만 답한다. 서론·맺음말·도구 사용 설명 금지:
+
+        SPF 아침 브리핑 (YYYY-MM-DD)
+        - 오늘 챙길 리드 N건
+          · 회사 · 액션 · 기한
+        - 물류 경고 N건
+          · PO · 단계 · 판정
+        - 한 줄: (가장 급한 것 1개. 없으면 "긴급 없음")
+
+  budget:
+    max_cost_usd_per_run: 1
+    max_duration_minutes: 10
+    max_runs_per_day: 1
+    monthly_cap_usd: 10
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: full
+    on_failure: full
+
+  expiry:
+    review_after_days: 30

@@ -1,0 +1,11 @@
+{
+  "id": "genie",
+  "name": "마이크루",
+  "jobTitle": "Orchestrator",
+  "team": "운영팀",
+  "adapter": "claude-code",
+  "model": "claude-opus-5",
+  "isCore": true,
+  "permLevel": "admin",
+  "description": "사용자 전담 AI 비서 겸 오케스트레이터"
+}

@@ -1,0 +1,103 @@
+{
+  "id": "mail",
+  "name": "메일",
+  "version": "0.1.5",
+  "icon": "✉️",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:3462"
+  },
+  "ports": {
+    "http": 3462
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": true,
+  "description": "네이티브 MyMail Next.js 앱 (포트 3462, basePath /api/apps/mail/proxy)",
+  "setupGuide": {
+    "intro": "메일 발송에는 Resend API 키가 필요합니다. 키가 없으면 발송이 비활성화되고 로그만 기록됩니다.",
+    "steps": [
+      {
+        "title": "Resend 가입 및 발신 도메인 인증",
+        "detail": "resend.com에 가입한 뒤 Domains 메뉴에서 발신에 사용할 도메인을 인증합니다."
+      },
+      {
+        "title": "API 키 발급",
+        "detail": "API Keys 메뉴에서 키를 발급합니다 (re_로 시작)."
+      },
+      {
+        "title": "마이크루에 키 저장",
+        "detail": "마이크루 설정 > 키 관리 > 앱 외부 서비스 연동에서 '메일' 항목에 키를 입력하고 저장하면 앱이 자동 재시작됩니다."
+      },
+      {
+        "title": "(선택) 수신 웹훅 시크릿 설정",
+        "detail": "수신 기능 사용 시 웹훅 시크릿을 이메일 워커와 동일한 값으로 설정합니다."
+      }
+    ],
+    "envVars": [
+      {
+        "name": "RESEND_API_KEY",
+        "label": "Resend API Key",
+        "required": true
+      },
+      {
+        "name": "INBOUND_WEBHOOK_SECRET",
+        "label": "수신 웹훅 시크릿"
+      }
+    ],
+    "services": [
+      {
+        "name": "Resend",
+        "url": "https://resend.com",
+        "desc": "트랜잭션 메일 발송 서비스 — 무료 플랜으로 시작 가능"
+      }
+    ],
+    "docsUrl": "https://resend.com/docs"
+  },
+  "aiCapabilities": [
+    {
+      "id": "summarize-thread",
+      "route": "/api/mail/summarize-thread",
+      "title": "스레드 요약",
+      "desc": "긴 메일 스레드를 핵심만 요약해 한눈에 파악합니다."
+    },
+    {
+      "id": "suggest-reply",
+      "route": "/api/mail/suggest-reply",
+      "title": "답장 초안",
+      "desc": "맥락에 맞는 답장 초안을 자동으로 작성합니다."
+    },
+    {
+      "id": "classify",
+      "route": "/api/mail/classify",
+      "title": "메일 분류",
+      "desc": "메일을 카테고리로 자동 분류합니다."
+    },
+    {
+      "id": "extract-events",
+      "route": "/api/mail/extract-events",
+      "title": "일정 추출",
+      "desc": "메일에서 일정·미팅을 뽑아 캘린더로 연결합니다."
+    },
+    {
+      "id": "precheck",
+      "route": "/api/mail/precheck",
+      "title": "발송 전 스마트 체크",
+      "desc": "첨부 누락·수신자 오탈자·날짜/금액 모순을 발송 전에 점검합니다."
+    },
+    {
+      "id": "extract-billing",
+      "route": "/api/mail/extract-billing",
+      "title": "청구메일 → 가계부",
+      "desc": "청구·영수증 메일에서 금액을 추출해 가계부 기입까지 연결합니다."
+    },
+    {
+      "id": "triage",
+      "route": "/api/mail/triage",
+      "title": "버그·아이디어 분류",
+      "desc": "수신 메일을 분석해 버그 신고와 기능 제안을 자동 분류하고 제목·요약·심각도를 구조화합니다."
+    }
+  ]
+}

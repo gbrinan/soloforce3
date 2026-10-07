@@ -1,0 +1,14 @@
+{
+  "id": "backend-dev",
+  "name": "백엔드",
+  "jobTitle": "백엔드 개발자",
+  "team": "개발팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "서버 REST API·DB 스키마·마이그레이션·입력검증 구현 (Node.js/TypeScript/Hono/SQLite/Zod)",
+  "postValidation": [
+    "[ -f tsconfig.json ] && npx tsc --noEmit || echo \"skip: no tsconfig\""
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "_comment": "핵심 라우트·정적 자산 골든 목록. 리팩토링으로 마운트가 유실되면 route-golden-test가 잡는다. 새 핵심 표면 추가 시 여기에 등록.",
+  "routes": [
+    "/api/health",
+    "/api/staff",
+    "/api/voice/health",
+    "/api/jobs",
+    "/api/approvals"
+  ],
+  "staticAssets": [
+    "/vad/silero_vad_legacy.onnx"
+  ],
+  "sourceMustMention": {
+    "/api/voice": "src/server",
+    "/vad/": "src/server"
+  },
+  "_probeNote": "라이브 프로브는 실파일·실핸들러 경로로. 디렉토리 루트는 404가 정상."
+}

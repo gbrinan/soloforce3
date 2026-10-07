@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>프로젝트</title>
+<style>
+  * { box-sizing: border-box; }
+  :root { --bg:#f6f7f9; --panel:#fff; --line:#e5e7eb; --muted:#6b7280; --accent:#2563eb; --accent-bg:#eef2ff; }
+  html, body { margin:0; height:100%; }
+  body { font:14px/1.5 -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; color:#111827; background:var(--bg); }
+  #app { display:grid; grid-template-columns:200px 300px 1fr; height:100vh; }
+  .col { overflow:auto; height:100vh; border-right:1px solid var(--line); background:var(--panel); }
+  .col.main { border-right:none; background:var(--bg); }
+  h1 { font-size:15px; margin:0; padding:14px 16px; border-bottom:1px solid var(--line); }
+  .cat { padding:10px 16px; cursor:pointer; border-bottom:1px solid var(--line); }
+  .cat:hover { background:var(--accent-bg); }
+  .cat.active { background:var(--accent-bg); color:var(--accent); font-weight:600; }
+  .cat .count { color:var(--muted); font-weight:400; float:right; }
+  .search { padding:10px 12px; border-bottom:1px solid var(--line); }
+  .search input { width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font:inherit; }
+  .pitem { padding:11px 16px; cursor:pointer; border-bottom:1px solid var(--line); }
+  .pitem:hover { background:var(--accent-bg); }
+  .pitem.active { background:var(--accent-bg); }
+  .pitem .nm { font-weight:600; }
+  .pitem .sub { color:var(--muted); font-size:12px; margin-top:2px; }
+  .empty { padding:24px 16px; color:var(--muted); }
+  .detail { padding:20px 24px; max-width:900px; }
+  .detail h2 { margin:0 0 4px; font-size:20px; }
+  .meta { color:var(--muted); font-size:13px; margin-bottom:14px; }
+  .badge { display:inline-block; padding:1px 8px; border-radius:10px; background:var(--accent-bg); color:var(--accent); font-size:12px; margin-right:6px; }
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:12px; flex-wrap:wrap; }
+  .tab { padding:8px 14px; cursor:pointer; border-radius:6px 6px 0 0; color:var(--muted); }
+  .tab:hover { color:#111827; }
+  .tab.active { color:var(--accent); border-bottom:2px solid var(--accent); font-weight:600; }
+  .tab .c { font-size:11px; opacity:.7; }
+  .files { display:flex; flex-direction:column; gap:2px; margin-bottom:16px; }
+  .file { padding:7px 10px; cursor:pointer; border:1px solid var(--line); border-radius:6px; background:#fff; display:flex; justify-content:space-between; }
+  .file:hover { background:var(--accent-bg); }
+  .file.active { border-color:var(--accent); background:var(--accent-bg); }
+  .file .fsz { color:var(--muted); font-size:12px; }
+  .viewer { background:#fff; border:1px solid var(--line); border-radius:8px; padding:16px 18px; }
+  .viewer pre { white-space:pre-wrap; word-break:break-word; margin:0; font:13px/1.6 "SFMono-Regular", Consolas, monospace; }
+  .ro { font-size:12px; color:var(--muted); margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="col" id="cats"><h1>📁 프로젝트</h1><div id="catList"></div></div>
+  <div class="col" id="list">
+    <div class="search"><input id="q" placeholder="고객사·프로젝트명 검색" /></div>
+    <div id="plist"></div>
+  </div>
+  <div class="col main"><div class="detail" id="detail"><div class="empty">프로젝트를 선택하세요.</div></div></div>
+</div>
+<script>
+const CAT_LABELS = { "": "전체", "education": "교육", "ax-consulting": "컨설팅", "ax-research": "기타(리서치)", "spf": "기타(SPF)" };
+const CATS = ["", "education", "ax-consulting", "ax-research", "spf"];
+const TAB_LABELS = { "00-sessions": "회차", "10-curriculum": "교안", "20-feedback": "피드백", "30-proposals": "제안", "outputs": "발행본" };
+const state = { category: "", search: "", projects: [], selected: null, detail: null, tab: null, file: null };
+
+function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+
+async function api(path) {
+  const endpoint = location.pathname.startsWith('/api/apps/projects/proxy')
+    ? path.replace(/^\/api\/projects(?=[/?]|$)/, '/api/projects-query')
+    : path;
+  const r = await fetch(endpoint);
+  if (!r.ok) return null;
+  return r.json();
+}
+
+function renderCats() {
+  document.getElementById("catList").innerHTML = CATS.map((c) =>
+    `<div class="cat ${c === state.category ? "active" : ""}" data-c="${c}">${esc(CAT_LABELS[c])}</div>`
+  ).join("");
+}
+
+async function loadProjects() {
+  const qs = new URLSearchParams();
+  if (state.category) qs.set("category", state.category);
+  if (state.search) qs.set("search", state.search);
+  const data = await api("/api/projects" + (qs.toString() ? "?" + qs : ""));
+  state.projects = (data && data.projects) || [];
+  renderList();
+}
+
+function renderList() {
+  const el = document.getElementById("plist");
+  if (!state.projects.length) { el.innerHTML = '<div class="empty">프로젝트가 없습니다.</div>'; return; }
+  el.innerHTML = state.projects.map((p) => {
+    const key = p.category + "/" + p.slug;
+    const sub = [p.client, p.status].filter(Boolean).join(" · ");
+    return `<div class="pitem ${state.selected === key ? "active" : ""}" data-cat="${esc(p.category)}" data-slug="${esc(p.slug)}">
+      <div class="nm">${esc(p.name)}</div><div class="sub">${esc(sub || CAT_LABELS[p.category] || p.category)}</div></div>`;
+  }).join("");
+}
+
+async function loadDetail(cat, slug) {
+  state.selected = cat + "/" + slug;
+  renderList();
+  const data = await api("/api/projects/" + encodeURIComponent(cat) + "/" + encodeURIComponent(slug));
+  state.detail = data && data.project;
+  state.file = null;
+  const folders = (state.detail && state.detail.folders) || [];
+  const firstNonEmpty = folders.find((f) => f.files.length);
+  state.tab = firstNonEmpty ? firstNonEmpty.key : (folders[0] && folders[0].key) || null;
+  renderDetail();
+}
+
+function sessionsLine(s) {
+  if (!s) return "";
+  const parts = [];
+  if (typeof s.total === "number") parts.push("총 " + s.total + "회");
+  if (typeof s.live === "number") parts.push("진행 " + s.live);
+  if (typeof s.cancelled === "number" && s.cancelled) parts.push("취소 " + s.cancelled);
+  const range = [s.firstDate, s.lastDate].filter(Boolean).join(" ~ ");
+  return parts.join(" · ") + (range ? "  (" + range + ")" : "");
+}
+
+function renderDetail() {
+  const d = state.detail;
+  const el = document.getElementById("detail");
+  if (!d) { el.innerHTML = '<div class="empty">불러오지 못했습니다.</div>'; return; }
+  const folders = d.folders || [];
+  const tabsHtml = folders.map((f) =>
+    `<div class="tab ${f.key === state.tab ? "active" : ""}" data-tab="${esc(f.key)}">${esc(TAB_LABELS[f.key] || f.key)} <span class="c">${f.files.length}</span></div>`
+  ).join("");
+  const cur = folders.find((f) => f.key === state.tab);
+  const filesHtml = cur && cur.files.length
+    ? cur.files.map((fl) => `<div class="file ${state.file === fl.name ? "active" : ""}" data-file="${esc(fl.name)}">
+        <span>${esc(fl.name)}</span><span class="fsz">${(fl.size/1024).toFixed(1)} KB</span></div>`).join("")
+    : '<div class="empty">파일이 없습니다.</div>';
+  const badges = [
+    d.status ? `<span class="badge">${esc(d.status)}</span>` : "",
+    (d.domain || []).map((x) => `<span class="badge">${esc(x)}</span>`).join(""),
+  ].join("");
+  el.innerHTML = `
+    <h2>${esc(d.name)}</h2>
+    <div class="meta">${esc([d.client, CAT_LABELS[d.category] || d.category].filter(Boolean).join(" · "))}
+      ${d.sessions ? " · " + esc(sessionsLine(d.sessions)) : ""}</div>
+    <div>${badges}</div>
+    <div class="tabs" style="margin-top:12px">${tabsHtml}</div>
+    <div class="files">${filesHtml}</div>
+    <div id="viewerWrap"></div>`;
+}
+
+async function loadFile(name) {
+  state.file = name;
+  renderDetail();
+  const d = state.detail;
+  const cur = (d.folders || []).find((f) => f.key === state.tab);
+  const rel = state.tab + "/" + name;
+  const data = await api("/api/projects/" + encodeURIComponent(d.category) + "/" + encodeURIComponent(d.slug) + "/file?path=" + encodeURIComponent(rel));
+  const wrap = document.getElementById("viewerWrap");
+  if (!wrap) return;
+  if (!data || !data.file) { wrap.innerHTML = '<div class="viewer"><div class="empty">파일을 불러오지 못했습니다.</div></div>'; return; }
+  wrap.innerHTML = `<div class="viewer"><div class="ro">읽기 전용 · ${esc(name)}</div><pre>${esc(data.file.content)}</pre></div>`;
+}
+
+// ── 이벤트 위임 ──
+document.getElementById("catList").addEventListener("click", (e) => {
+  const t = e.target.closest(".cat"); if (!t) return;
+  state.category = t.dataset.c; renderCats(); loadProjects();
+});
+document.getElementById("plist").addEventListener("click", (e) => {
+  const t = e.target.closest(".pitem"); if (!t) return;
+  loadDetail(t.dataset.cat, t.dataset.slug);
+});
+document.getElementById("detail").addEventListener("click", (e) => {
+  const tab = e.target.closest(".tab");
+  if (tab) { state.tab = tab.dataset.tab; state.file = null; renderDetail(); return; }
+  const file = e.target.closest(".file");
+  if (file) { loadFile(file.dataset.file); }
+});
+let qTimer = null;
+document.getElementById("q").addEventListener("input", (e) => {
+  clearTimeout(qTimer);
+  qTimer = setTimeout(() => { state.search = e.target.value.trim(); loadProjects(); }, 250);
+});
+
+renderCats();
+loadProjects();
+</script>
+</body>
+</html>

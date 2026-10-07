@@ -1,0 +1,11 @@
+{
+  "id": "spf-news-scout",
+  "name": "뉴스정찰",
+  "jobTitle": "SPF 산업 뉴스 발굴 담당 (Gemini)",
+  "team": "SPF영업팀",
+  "adapter": "antigravity-cli",
+  "model": "gemini-3.5-flash",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "spf-sales의 발굴 단계 전담. Gemini(agy CLI)로 HPAI/백신/화장품 등 SPF 산업 뉴스를 검색해 구조화된 신호로 반환. 스코어링·메일·일정은 담당하지 않음(spf-sales가 이어받음)."
+}

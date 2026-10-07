@@ -1,0 +1,11 @@
+{
+  "id": "planner-researcher",
+  "name": "기획자",
+  "jobTitle": "CSO",
+  "team": "기획팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": true,
+  "permLevel": "normal",
+  "description": "리서치·기획·분석·벤치마킹 전담"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "approval",
+  "name": "결재",
+  "version": "0.1.1",
+  "icon": "📋",
+  "category": "core",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13209"
+  },
+  "ports": {
+    "http": 13209
+  },
+  "proxyMode": "passthrough",
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "휴가·구매·경비 결재 워크플로우",
+  "aiCapabilities": [
+    {
+      "id": "draft",
+      "route": "/api/ai/draft",
+      "title": "기안 초안 작성",
+      "desc": "간단한 메모만 주면 휴가·경비 등 유형에 맞는 결재 문서 초안(제목·사유)을 AI가 작성합니다."
+    },
+    {
+      "id": "summarize-request",
+      "route": "/api/ai/summarize-request",
+      "title": "요청 요약",
+      "desc": "결재 요청을 승인자용 3줄 브리핑으로 요약하고, 승인 전 주의할 점(리스크)을 짚어줍니다."
+    }
+  ]
+}

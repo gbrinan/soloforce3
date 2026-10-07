@@ -1,0 +1,11 @@
+{
+  "id": "doc-writer",
+  "name": "문서작성",
+  "jobTitle": "문서·기획 작성자",
+  "team": "기획팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "기획서·README·API 문서·사용자 가이드 작성 및 기존 문서 개선 (마크다운, 대상 독자 수준 고려)"
+}

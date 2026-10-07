@@ -1,0 +1,5 @@
+# Local SQLite leads store (created at runtime, not checked in)
+data/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

@@ -1,0 +1,14 @@
+{
+  "id": "ingestiger",
+  "name": "인제스트타이거",
+  "jobTitle": "기업·프로젝트 LLM Wiki 관리자",
+  "team": "지식관리팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "version": "1.0.0-draft.2",
+  "supersedes": "ingest-crab",
+  "source": "https://github.com/gbrinan/ingestiger",
+  "description": "기업·프로젝트별 원본 문서를 근거와 변경 이력이 있는 LLM Wiki로 정리한다. 역할 정본은 agent/role-directive.md, 절차 정본은 skills/ingestiger/SKILL.md."
+}

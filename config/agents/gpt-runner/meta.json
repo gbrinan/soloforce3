@@ -1,0 +1,12 @@
+{
+  "id": "gpt-runner",
+  "name": "지피티",
+  "jobTitle": "ChatGPT(Codex) 실행 보조 — 교차검증·세컨드 오피니언·GPT 특화 작업",
+  "team": "리서치팀",
+  "adapter": "codex-cli",
+  "model": "auto",
+  "isCore": false,
+  "permLevel": "normal",
+  "maxTurns": 50,
+  "description": "OpenAI Codex CLI로 구동되는 GPT 직원. Claude 직원들의 산출물 교차검증(세컨드 오피니언), GPT 특화 작업(gpt-image-2 이미지 생성 포함), 모델 간 비교가 필요한 작업을 담당."
+}

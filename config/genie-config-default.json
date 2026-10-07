@@ -1,0 +1,95 @@
+{
+  "readPaths": [
+    "/**"
+  ],
+  "readSensitivePaths": [
+    "/.env",
+    "/.env.*",
+    "/.ssh/**",
+    "/.aws/**",
+    "/.gnupg/**",
+    "/**/id_rsa*",
+    "/**/id_ed25519*",
+    "/**/id_ecdsa*",
+    "/**/*.pem",
+    "/**/*.key",
+    "/**/*.crt",
+    "/**/*.p12",
+    "/**/*.pfx",
+    "/**/*.jks",
+    "/**/*.keychain-db"
+  ],
+  "writePaths": [
+    "/history/agents.json",
+    "/history/genie-config.json",
+    "/history/agents/*/wiki/role-directive.md",
+    "/history/attachments/**",
+    "/history/external/**",
+    "/.env"
+  ],
+  "writeSensitivePaths": [
+    "/**"
+  ],
+  "bashCommands": [
+    "ls",
+    "cat",
+    "head",
+    "tail",
+    "wc",
+    "find",
+    "pwd",
+    "which",
+    "echo",
+    "mv",
+    "diff",
+    "git",
+    "brew",
+    "ngrok",
+    "ssh"
+  ],
+  "bashPaths": [
+    "/**"
+  ],
+  "bashSensitivePatterns": [
+    "rm\\s+-rf",
+    "rm\\s+-r\\s+/",
+    "\\bsudo\\b",
+    "\\bchmod\\b",
+    "\\bchown\\b",
+    "curl.*\\|.*sh",
+    "wget.*\\|.*sh",
+    "\\bkill\\b",
+    "\\bkillall\\b",
+    "\\bpkill\\b",
+    "\\beval\\b",
+    "\\bexec\\b",
+    "/\\.ssh/",
+    "/\\.aws/",
+    "/\\.gnupg/",
+    "/\\.env\\b",
+    "id_rsa|id_ed25519|id_ecdsa",
+    "\\.pem\\b|\\.key\\b|\\.crt\\b|\\.p12\\b|\\.pfx\\b",
+    "\\bmv\\b",
+    "git\\s+push",
+    "git\\s+reset",
+    "git\\s+checkout",
+    "git\\s+merge",
+    "git\\s+rebase",
+    "git\\s+commit",
+    "git\\s+stash",
+    "git\\s+add"
+  ],
+  "maxCacheTokens": 3000000,
+  "maxTurns": 50,
+  "allowedTools": [
+    "DelegateTask",
+    "Agent",
+    "WebSearch",
+    "WebFetch",
+    "SendToPartner",
+    "RequestPartnership",
+    "RotatePartnerToken"
+  ],
+  "externalDelegateAllowed": false,
+  "model": "claude-opus-4-8"
+}

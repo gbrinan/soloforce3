@@ -1,0 +1,12 @@
+{
+  "id": "qa",
+  "name": "Mr세균",
+  "jobTitle": "CQO",
+  "team": "감사팀",
+  "adapter": "claude-code",
+  "model": "claude-opus-4-8",
+  "isCore": true,
+  "permLevel": "workspace",
+  "description": "테스트·검증·점검·팩트체크 전담 품질 총괄",
+  "maxTurns": 12
+}

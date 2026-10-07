@@ -1,0 +1,43 @@
+{
+  "result": "```json\n{\n  \"request_id\": \"0421d9d3d933412798dd121652fbce9d0a002a890a536daa697b58df083c62c9\",\n  \"results\": [\n    {\n      \"unit_id\": \"u-d1dccd2bef9bd4c4541f393b\",\n      \"status\": \"analyzed\",\n      \"needs\": [\n        {\n          \"kind\": \"constraint\",\n          \"title\": \"자동 주문 금지\",\n          \"statement\": \"2026-10-01부터 자동 주문은 금지된다.\",\n          \"details\": [\n            \"적용 시작일: 2026-10-01\",\n            \"금지 대상: 자동 주문\"\n          ],\n          \"departments\": [],\n          \"patterns\": [],\n          \"evidence\": \"자동 주문은 금지한다.\",\n          \"claim_status\": \"source_reported\"\n        },\n        {\n          \"kind\": \"constraint\",\n          \"title\": \"시스템은 주문 초안만 작성\",\n          \"statement\": \"2026-10-01부터 시스템은 주문 초안만 작성한다.\",\n          \"details\": [\n            \"적용 시작일: 2026-10-01\",\n            \"시스템 역할: 주문 초안 작성 제한\"\n          ],\n          \"departments\": [],\n          \"patterns\": [],\n          \"evidence\": \"시스템은 주문 초안만 작성한다.\",\n          \"claim_status\": \"source_reported\"\n        },\n        {\n          \"kind\": \"constraint\",\n          \"title\": \"최종 주문은 사람이 실행\",\n          \"statement\": \"2026-10-01부터 최종 주문은 사람이 실행한다.\",\n          \"details\": [\n            \"적용 시작일: 2026-10-01\",\n            \"실행 주체: 사람\"\n          ],\n          \"departments\": [],\n          \"patterns\": [],\n          \"evidence\": \"최종 주문은 사람이 실행한다.\",\n          \"claim_status\": \"source_reported\"\n        },\n        {\n          \"kind\": \"unknown\",\n          \"title\": \"최종 주문 실행 담당 부서\",\n          \"statement\": \"최종 주문 실행을 담당할 부서가 정해지지 않았다.\",\n          \"details\": [\n            \"현황: 담당 부서 미정\",\n            \"적용 시작일: 2026-10-01\"\n          ],\n          \"departments\": [],\n          \"patterns\": [],\n          \"evidence\": \"담당 부서는 아직 정하지 않았다.\",\n          \"claim_status\": \"source_reported\"\n        }\n      ]\n    }\n  ]\n}\n```",
+  "is_error": false,
+  "session_id": "9246abd8-d463-4ce8-a545-30d4b26858fb",
+  "total_cost_usd": 0.016819399999999998,
+  "duration_ms": 12463,
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1513,
+      "outputTokens": 21,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001618,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    },
+    "claude-haiku-4-5": {
+      "inputTokens": 10,
+      "outputTokens": 2372,
+      "cacheReadInputTokens": 8334,
+      "cacheCreationInputTokens": 1249,
+      "webSearchRequests": 0,
+      "costUSD": 0.015201399999999999,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 1640,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 2372,
+    "cache_read_input_tokens": 8334,
+    "cache_creation_input_tokens": 1249
+  }
+}

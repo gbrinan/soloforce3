@@ -1,0 +1,27 @@
+{
+  "id": "photos",
+  "name": "사진",
+  "version": "0.2.0",
+  "icon": "📷",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13201"
+  },
+  "ports": {
+    "http": 13201
+  },
+  "ws": "/bus",
+  "capabilities": [
+    "library.import",
+    "library.timeline",
+    "library.upload",
+    "chat-popup",
+    "header-badge",
+    "deep-link"
+  ],
+  "removeScript": "~/mycrew-photos/scripts/uninstall.sh",
+  "healthPath": "/health",
+  "autostart": false,
+  "description": "사진/영수증/차량 — 폴더 import + EXIF + 썸네일 + 타임라인 (월 0원)"
+}

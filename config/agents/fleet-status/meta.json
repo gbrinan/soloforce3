@@ -1,0 +1,11 @@
+{
+  "id": "fleet-status",
+  "name": "함대관제",
+  "jobTitle": "함대 관제 담당",
+  "team": "운영팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "직원·작업·승인·할일·비용을 한 장 대시보드 텍스트로 압축 (history/*.json 직접 집계, 재위임 금지)"
+}

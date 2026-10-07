@@ -1,0 +1,37 @@
+# 아난다라 데일리 알림 루프 — 매일 09:00 KST, 알림 엔드포인트 1회 호출.
+# 엔드포인트(/api/notifications/run)는 멱등이라 중복 실행에도 안전 (M4 dedupe).
+# D-7 교안 준비·정산 예정·미수금(D+N) 알림을 텔레그램으로 발송한다.
+loop:
+  id: anandara-daily-notify
+  version: "1"
+  owner: genie
+  description: "아난다라 알림 실행 (D-7 교안·정산예정·미수금 → 텔레그램)"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "0 9 * * *" # 매일 09:00
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: run-notifications
+      agent: book-keeper
+      prompt: >
+        [아난다라 데일리 알림] 반드시 book-keeper에게 위임하세요: "SafeBash로 정확히 다음 명령 1회만 실행하고 응답 JSON을
+        그대로 보고하세요: SECRET=$(cat C:/mycrew/mycrew-program/.anandara-cron-secret); curl -s -X POST -H "x-anandara-cron: $SECRET" http://127.0.0.1:13210/api/apps/anandara/proxy/api/notifications/run
+        연결 거부(앱 미기동)면 "아난다라 앱 미기동"이라고 보고하고 끝내세요.
+        다른 작업 금지. 결과의 planned/sent/failed 수치만 한 줄로 요약." 그리고 이 메시지 끝의 ROUTINE_INSTANCE_TASK 마커를 위임 request 끝에 그대로 복사하세요.
+      model_tier: cheap
+
+  budget:
+    max_cost_usd_per_run: 1.5
+    max_duration_minutes: 5
+    max_runs_per_day: 5
+    monthly_cap_usd: 3
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: notify

@@ -1,0 +1,65 @@
+{
+  "passed": true,
+  "realModel": false,
+  "realDelegation": false,
+  "ptyTested": false,
+  "platform": "win32",
+  "root": "C:\\Users\\user\\Documents\\Codex 2\\soloforce2-windows-collaboration\\verification\\windows-20260914\\합성 협업 환경 2yGeTG",
+  "sourceId": "e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+  "jobId": "e1ac7f5e9d3f015fc5891e481d6cbda98b753749da68e3ad5a384e34815a043b",
+  "ref": {
+    "scope": {
+      "orgId": "synthetic",
+      "projectId": "windows-collaboration"
+    },
+    "id": "K-2cd67367-1c78-4c02-a554-b937df58f899",
+    "revision": 1
+  },
+  "citation": "[[wiki:synthetic/windows-collaboration/K-2cd67367-1c78-4c02-a554-b937df58f899@1]]",
+  "outputPath": "C:\\Users\\user\\Documents\\Codex 2\\soloforce2-windows-collaboration\\verification\\windows-20260914\\합성 협업 환경 2yGeTG\\history\\outputs\\analyst\\거래처 집계 보고서.md",
+  "checks": [
+    "stdio MCP round 1: registration/search/read/denied handoff/usage/hash/Korean paths",
+    "stdio MCP round 2: registration/search/read/denied handoff/usage/hash/Korean paths",
+    "worker token cannot review or publish",
+    "revision change rejects stale handoff and usage; output modification detected",
+    "original source change visible and application blocked"
+  ],
+  "usage": {
+    "items": [
+      {
+        "id": "3296a827874d02b3d39112af212cde262783331d9f8cc2eb0418097af69997e4",
+        "agent": "analyst",
+        "jobId": "synthetic-http-mcp",
+        "refs": [
+          {
+            "scope": {
+              "orgId": "synthetic",
+              "projectId": "windows-collaboration"
+            },
+            "id": "K-2cd67367-1c78-4c02-a554-b937df58f899",
+            "revision": 1
+          }
+        ],
+        "snapshots": [
+          "a00f9725d12be2d3bd0279067fedcaadabf2552adfc5b1e0f5895768582a67a5"
+        ],
+        "outputPath": "C:\\Users\\user\\Documents\\Codex 2\\soloforce2-windows-collaboration\\verification\\windows-20260914\\합성 협업 환경 2yGeTG\\history\\outputs\\analyst\\거래처 집계 보고서.md",
+        "locations": [
+          {
+            "citation": "[[wiki:synthetic/windows-collaboration/K-2cd67367-1c78-4c02-a554-b937df58f899@1]]",
+            "lines": [
+              5
+            ]
+          }
+        ],
+        "outputSha256": "44dd8be4d93b962f9a2427c6ae1cee3e3e1f3e72835ae19cbde9cd81616da068",
+        "verification": "citation_present",
+        "semanticApplication": "not_evaluated",
+        "recordedAt": "2026-09-14T01:20:34.165Z",
+        "knowledgeState": "revised",
+        "sourceState": "changed",
+        "outputState": "changed"
+      }
+    ]
+  }
+}

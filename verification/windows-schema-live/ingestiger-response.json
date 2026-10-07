@@ -1,0 +1,125 @@
+{
+  "result": "{\"request_id\":\"7f32dd48fa2f184b14d3adb3a3fc88856180a26d61c3849e338c2423058c9f9b\",\"results\":[{\"unit_id\":\"u-d1dccd2bef9bd4c4541f393b\",\"status\":\"analyzed\",\"needs\":[{\"kind\":\"constraint\",\"title\":\"시스템의 주문 초안 작성 제한\",\"statement\":\"2026-10-01부터 시스템은 주문 초안만 작성한다.\",\"details\":[\"적용 시작일: 2026-10-01\",\"시스템의 역할은 주문 초안 작성으로 한정됨\",\"담당 부서는 본문에서 아직 정해지지 않았다고 명시됨\"],\"departments\":[\"unknown\"],\"patterns\":[],\"evidence\":[\"2026-10-01부터 시스템은 주문 초안만 작성한다.\"],\"claim_status\":\"source_reported\"},{\"kind\":\"fact\",\"title\":\"최종 주문 실행 주체는 사람\",\"statement\":\"최종 주문은 사람이 실행한다.\",\"details\":[\"앞 문장에서 명시된 2026-10-01 적용 시점과 함께 기술됨\",\"시스템이 아닌 사람이 최종 주문을 실행함\",\"담당 부서는 본문에서 아직 정해지지 않았다고 명시됨\"],\"departments\":[\"unknown\"],\"patterns\":[],\"evidence\":[\"최종 주문은 사람이 실행한다.\"],\"claim_status\":\"source_reported\"},{\"kind\":\"constraint\",\"title\":\"자동 주문 금지\",\"statement\":\"자동 주문은 금지한다.\",\"details\":[\"앞 문장에서 명시된 2026-10-01 적용 시점과 함께 기술됨\",\"자동 주문 방식은 금지 대상임\",\"담당 부서는 본문에서 아직 정해지지 않았다고 명시됨\"],\"departments\":[\"unknown\"],\"patterns\":[],\"evidence\":[\"자동 주문은 금지한다.\"],\"claim_status\":\"source_reported\"},{\"kind\":\"unknown\",\"title\":\"담당 부서 미정\",\"statement\":\"담당 부서는 아직 정하지 않았다.\",\"details\":[\"본문에 담당 부서 지정 없음\",\"결정 기한이나 승인 절차는 본문에 언급되지 않음\"],\"departments\":[\"unknown\"],\"patterns\":[],\"evidence\":[\"담당 부서는 아직 정하지 않았다.\"],\"claim_status\":\"source_reported\"}]}]}",
+  "structured_output": {
+    "request_id": "7f32dd48fa2f184b14d3adb3a3fc88856180a26d61c3849e338c2423058c9f9b",
+    "results": [
+      {
+        "unit_id": "u-d1dccd2bef9bd4c4541f393b",
+        "status": "analyzed",
+        "needs": [
+          {
+            "kind": "constraint",
+            "title": "시스템의 주문 초안 작성 제한",
+            "statement": "2026-10-01부터 시스템은 주문 초안만 작성한다.",
+            "details": [
+              "적용 시작일: 2026-10-01",
+              "시스템의 역할은 주문 초안 작성으로 한정됨",
+              "담당 부서는 본문에서 아직 정해지지 않았다고 명시됨"
+            ],
+            "departments": [
+              "unknown"
+            ],
+            "patterns": [],
+            "evidence": [
+              "2026-10-01부터 시스템은 주문 초안만 작성한다."
+            ],
+            "claim_status": "source_reported"
+          },
+          {
+            "kind": "fact",
+            "title": "최종 주문 실행 주체는 사람",
+            "statement": "최종 주문은 사람이 실행한다.",
+            "details": [
+              "앞 문장에서 명시된 2026-10-01 적용 시점과 함께 기술됨",
+              "시스템이 아닌 사람이 최종 주문을 실행함",
+              "담당 부서는 본문에서 아직 정해지지 않았다고 명시됨"
+            ],
+            "departments": [
+              "unknown"
+            ],
+            "patterns": [],
+            "evidence": [
+              "최종 주문은 사람이 실행한다."
+            ],
+            "claim_status": "source_reported"
+          },
+          {
+            "kind": "constraint",
+            "title": "자동 주문 금지",
+            "statement": "자동 주문은 금지한다.",
+            "details": [
+              "앞 문장에서 명시된 2026-10-01 적용 시점과 함께 기술됨",
+              "자동 주문 방식은 금지 대상임",
+              "담당 부서는 본문에서 아직 정해지지 않았다고 명시됨"
+            ],
+            "departments": [
+              "unknown"
+            ],
+            "patterns": [],
+            "evidence": [
+              "자동 주문은 금지한다."
+            ],
+            "claim_status": "source_reported"
+          },
+          {
+            "kind": "unknown",
+            "title": "담당 부서 미정",
+            "statement": "담당 부서는 아직 정하지 않았다.",
+            "details": [
+              "본문에 담당 부서 지정 없음",
+              "결정 기한이나 승인 절차는 본문에 언급되지 않음"
+            ],
+            "departments": [
+              "unknown"
+            ],
+            "patterns": [],
+            "evidence": [
+              "담당 부서는 아직 정하지 않았다."
+            ],
+            "claim_status": "source_reported"
+          }
+        ]
+      }
+    ]
+  },
+  "is_error": false,
+  "session_id": "e014e80d-7c16-469f-8513-2b5b11fb0382",
+  "total_cost_usd": 0.072355,
+  "duration_ms": 14421,
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1516,
+      "outputTokens": 19,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001611,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    },
+    "claude-sonnet-5": {
+      "inputTokens": 2,
+      "outputTokens": 1640,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 13585,
+      "webSearchRequests": 0,
+      "costUSD": 0.070744,
+      "contextWindow": 1000000,
+      "maxOutputTokens": 64000,
+      "thinkingTokens": 767,
+      "canonicalModel": "claude-sonnet-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 1640,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 13585
+  }
+}

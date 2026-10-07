@@ -1,0 +1,11 @@
+{
+  "id": "lead-keeper",
+  "name": "리드지기",
+  "jobTitle": "리드 파이프라인 관리 담당",
+  "team": "경영지원팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "리드 앱(apps/leads)의 보드 관리인. 메일 수신함→리드 등록, 정체(rotting) 리드 감지·다음 액션 제안, 주간 파이프라인 요약(제품별 전환율). 영업 실행(콜드메일 등)은 spf-sales 등 담당 에이전트 몫."
+}

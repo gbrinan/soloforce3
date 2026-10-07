@@ -1,0 +1,16 @@
+# MyMovie External Vendor Pin
+
+## OpenReel core (Action schema reference)
+repo: https://github.com/Augani/openreel-video
+tag: v0.5.0
+commit: 97b50a8c27508e316ccd5a442382bafa458a1914
+license: MIT
+vendored_at: 2026-06-16
+vendored_files:
+  - src/lib/core/vendor/openreel/actions/action-executor.ts
+  - src/lib/core/vendor/openreel/actions/inverse-action-generator.ts
+  - src/lib/core/vendor/openreel/actions/action-validator.ts
+  - src/lib/core/vendor/openreel/actions/action-serializer.ts
+  - src/lib/core/vendor/openreel/types/actions.ts
+  - src/lib/core/vendor/openreel/LICENSE
+note: OpenReel은 WebCodecs/WebGPU 기반 브라우저 전용 에디터. 서버사이드 Node 실행은 직접 호환되지 않아 Action 스키마(JSON 구조) reference로만 사용. 실 executor는 apps/mymovie/src/lib/core/action-executor.ts에서 ffmpeg로 자체 구현.

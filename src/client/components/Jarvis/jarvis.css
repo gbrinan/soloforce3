@@ -1,0 +1,164 @@
+/* 자비스뷰 — 프로토타입(jarvis-view.template.html)을 React 컴포넌트로 이식한 스타일 */
+.jarvis-root {
+  --jv-bg: #05080b;
+  --jv-panel: #0b1216;
+  --jv-line: #17252c;
+  --jv-ink: #dfe7ec;
+  --jv-muted: #7f93a0;
+  --jv-cyan: #4cc6d2;
+  --jv-amber: #f0b650;
+  --jv-green: #7fd184;
+  --jv-red: #e0655c;
+  --jv-mono: "IBM Plex Mono", monospace;
+  position: relative;
+  /* 부모(App)가 flex row — flex:1 없이는 340px 고정 칼럼만큼으로 수축해 무대가 0px가 된다 (2026-08-25 실측: cols "0px 340px") */
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  background: var(--jv-bg);
+  color: var(--jv-ink);
+  overflow: hidden;
+}
+
+.jarvis-scene {
+  position: relative;
+  overflow: hidden;
+  background-color: #000;
+  background-position: center bottom;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.jarvis-scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 8, 11, .55), rgba(5, 8, 11, 0) 40%, rgba(5, 8, 11, .6));
+  pointer-events: none;
+}
+
+.jarvis-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.jarvis-halo { position: relative; width: 320px; height: 320px; }
+.jarvis-halo canvas { position: absolute; inset: -80px; width: 480px; height: 480px; }
+.jarvis-avatar {
+  position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: #000;
+  box-shadow: 0 0 60px color-mix(in srgb, var(--jv-c) 35%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--jv-c) 40%, transparent);
+  transition: box-shadow .4s;
+}
+.jarvis-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; transform: scale(1.12); transition: opacity .35s; }
+.jarvis-avatar-fallback {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  font-size: 96px; font-weight: 600; color: var(--jv-c); background: color-mix(in srgb, var(--jv-c) 22%, #0b1216);
+}
+
+.jarvis-name { font-family: var(--jv-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--jv-c); display: flex; gap: 10px; align-items: center; }
+.jarvis-name .state { color: var(--jv-muted); letter-spacing: .04em; text-transform: none; }
+.jarvis-caption {
+  max-width: 640px; min-height: 58px; text-align: center; font-size: 19px; line-height: 1.5;
+  color: var(--jv-ink); text-shadow: 0 2px 14px #000;
+  /* 장문 보고가 무대를 점령하지 않도록 3줄 클램프 — 전문은 우측 상세 패널로 */
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.jarvis-caption small { display: block; font-size: 12px; color: var(--jv-muted); margin-top: 4px; }
+
+.jarvis-queue { position: absolute; left: 0; right: 0; bottom: 56px; display: flex; justify-content: center; gap: 12px; z-index: 3; padding: 0 12px; }
+.jarvis-queue-more { display: flex; align-items: center; padding: 6px 12px; border-radius: 24px; border: 1px dashed var(--jv-line); background: rgba(8,13,17,.8); font-size: 12px; color: var(--jv-muted); }
+/* 하단 직원 레일 — 전 직원·알바 상태 한 줄 */
+.jarvis-staff-rail { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; align-items: center; gap: 6px; z-index: 3; padding: 0 12px; flex-wrap: wrap; }
+.jarvis-staff-dot { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; background: #0b1216; border: 1px solid var(--jv-line); color: var(--jv-muted); opacity: .55; cursor: default; }
+.jarvis-staff-dot.busy { opacity: 1; border-color: var(--jv-amber); color: var(--jv-amber); box-shadow: 0 0 10px color-mix(in srgb, var(--jv-amber) 40%, transparent); animation: jv-busy 1.6s ease-in-out infinite; }
+@keyframes jv-busy { 0%,100% { box-shadow: 0 0 6px color-mix(in srgb, var(--jv-amber) 30%, transparent); } 50% { box-shadow: 0 0 16px color-mix(in srgb, var(--jv-amber) 60%, transparent); } }
+.jarvis-staff-busyname { font-size: 11px; color: var(--jv-amber); margin-left: 2px; margin-right: 8px; }
+.jarvis-alba-badge { font-size: 11px; color: var(--jv-cyan); border: 1px solid color-mix(in srgb, var(--jv-cyan) 40%, transparent); border-radius: 10px; padding: 2px 8px; margin-left: 10px; }
+@media (prefers-reduced-motion: reduce) { .jarvis-staff-dot.busy { animation: none; } }
+.jarvis-chip {
+  display: flex; align-items: center; gap: 9px; padding: 6px 12px 6px 6px; border-radius: 24px;
+  border: 1px solid var(--jv-line); background: rgba(8, 13, 17, .8); backdrop-filter: blur(6px);
+  font-size: 12px; color: var(--jv-muted); transition: all .3s;
+}
+.jarvis-chip img, .jarvis-chip .fallback-img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: center 18%; opacity: .55; }
+.jarvis-chip .fallback-img { display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; background: color-mix(in srgb, var(--jv-c) 30%, #0b1216); color: var(--jv-c); }
+.jarvis-chip.active { border-color: var(--jv-c); color: var(--jv-ink); box-shadow: 0 0 18px color-mix(in srgb, var(--jv-c) 30%, transparent); }
+.jarvis-chip.active img, .jarvis-chip.active .fallback-img { opacity: 1; }
+.jarvis-chip.waiting { border-style: dashed; }
+.jarvis-chip .n { font-family: var(--jv-mono); font-size: 10px; color: var(--jv-c); opacity: .9; }
+
+.jarvis-mic { position: absolute; top: 18px; left: 18px; z-index: 3; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.jarvis-btn {
+  font: inherit; font-size: 12px; border: 1px solid var(--jv-line); background: rgba(8, 13, 17, .85);
+  color: var(--jv-ink); padding: 7px 12px; border-radius: 8px; cursor: pointer;
+}
+.jarvis-btn:hover { border-color: var(--jv-muted); }
+.jarvis-btn:focus-visible { outline: 2px solid var(--jv-cyan); outline-offset: 2px; }
+.jarvis-btn.rec { border-color: var(--jv-red); color: var(--jv-red); }
+.jarvis-btn.on { border-color: var(--jv-cyan); color: var(--jv-cyan); }
+
+.jarvis-hint { position: absolute; top: 18px; right: 18px; z-index: 3; font-family: var(--jv-mono); font-size: 11px; color: var(--jv-muted); text-align: right; line-height: 1.6; }
+
+.jarvis-banner {
+  position: absolute; top: 60px; left: 18px; right: 18px; z-index: 3; text-align: center;
+  font-size: 11px; color: var(--jv-amber); background: rgba(240, 182, 80, .12); border: 1px solid color-mix(in srgb, var(--jv-amber) 40%, transparent);
+  border-radius: 8px; padding: 6px 10px;
+}
+
+.jarvis-panel { background: var(--jv-panel); border-left: 1px solid var(--jv-line); display: flex; flex-direction: column; min-width: 0; }
+.jarvis-panel h3 { margin: 0; padding: 12px 16px; font-size: 11px; font-family: var(--jv-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--jv-muted); border-bottom: 1px solid var(--jv-line); }
+.jarvis-detail { flex: 1; overflow: auto; padding: 14px 16px; font-size: 13px; line-height: 1.6; }
+.jarvis-detail .m { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed var(--jv-line); }
+.jarvis-detail .who { font-family: var(--jv-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+.jarvis-detail pre { background: #060a0d; border: 1px solid var(--jv-line); border-radius: 6px; padding: 10px; font-family: var(--jv-mono); font-size: 11px; overflow-x: auto; margin: 8px 0 0; white-space: pre-wrap; }
+
+.jarvis-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--jv-line); }
+.jarvis-input input { flex: 1; font: inherit; font-size: 13px; background: #060a0d; border: 1px solid var(--jv-line); color: var(--jv-ink); padding: 8px 10px; border-radius: 8px; }
+.jarvis-input input:focus-visible { outline: 2px solid var(--jv-cyan); }
+
+.jarvis-health { position: absolute; bottom: 18px; left: 18px; z-index: 3; display: flex; gap: 6px; }
+.jarvis-health .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-avatar, .jarvis-chip, .jarvis-avatar img { transition: none; }
+}
+@media (max-width: 900px) {
+  .jarvis-root { grid-template-columns: 1fr; }
+  .jarvis-panel { display: none; }
+}
+
+/* P3 핸즈프리 업그레이드 — 웨이크워드 상태, 마이크 라이브 표시, 웨이크 로그 */
+.jarvis-btn:disabled { opacity: .4; cursor: not-allowed; }
+.jarvis-btn:disabled:hover { border-color: var(--jv-line); }
+
+.jarvis-wake-log {
+  margin-top: 6px; font-size: 10px; color: var(--jv-muted); opacity: .8; max-width: 260px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* 프라이버시 — 마이크가 열려 있는 동안(핸즈프리/웨이크워드 대기 포함) 항상 눈에 띄는 표시를 유지한다. */
+.jarvis-live-pill { color: var(--jv-red) !important; border-color: var(--jv-red) !important; }
+.jarvis-live-pill .live-dot { background: var(--jv-red); animation: jarvis-live-pulse 1.4s ease-in-out infinite; }
+
+@keyframes jarvis-live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--jv-red) 55%, transparent); }
+  50% { opacity: .55; box-shadow: 0 0 0 4px transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-live-pill .live-dot { animation: none; }
+}
+
+.jarvis-metrics { padding: 6px 16px; font-family: var(--jv-mono); font-size: 10px; color: var(--jv-muted); border-bottom: 1px solid var(--jv-line); }
+
+.jarvis-btn.muted { border-color: var(--jv-red); color: var(--jv-red); }

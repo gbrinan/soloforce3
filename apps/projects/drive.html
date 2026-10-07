@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="MyCrew 프로젝트를 Google Drive에 저장하고 새 프로젝트로 가져옵니다.">
+<title>프로젝트 · Google Drive | MyCrew</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--line:#e5e7eb;--muted:#6b7280;--accent:#2563eb;--accent-bg:#eef2ff;--text:#111827;--error:#b91c1c;--space:4px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 -apple-system,"Segoe UI","Malgun Gothic",sans-serif}main{max-width:900px;margin:auto;padding:calc(var(--space)*6) calc(var(--space)*4)}h1{font-size:20px;margin:calc(var(--space)*4) 0}h2{font-size:16px;margin:0 0 calc(var(--space)*3)}p{overflow-wrap:anywhere}a{color:var(--accent)}section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:calc(var(--space)*4);margin-bottom:calc(var(--space)*4)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--space)*4)}.grid section{margin:0}label{display:block;margin:calc(var(--space)*3) 0 calc(var(--space)*2)}select,input,button{font:inherit;min-height:44px;max-width:100%;border:1px solid var(--line);border-radius:6px;padding:calc(var(--space)*2) calc(var(--space)*3)}select,input[type=text]{width:100%;background:var(--panel);color:var(--text)}button{cursor:pointer;background:var(--accent);color:var(--panel)}button.secondary{background:var(--panel);color:var(--accent)}button:disabled{opacity:.5;cursor:default}button:hover:enabled{filter:brightness(.95)}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.row{display:flex;flex-wrap:wrap;gap:calc(var(--space)*2);align-items:center}.muted{color:var(--muted)}#message{min-height:24px}#message[role=alert]{color:var(--error)}#files{max-height:280px;overflow:auto;padding-left:calc(var(--space)*5)}#files li{overflow-wrap:anywhere;margin:calc(var(--space)*2) 0}#preview{margin-top:calc(var(--space)*4)}.consent{display:flex;align-items:center;gap:calc(var(--space)*2)}.consent input{min-height:24px;width:24px;flex:none}[hidden]{display:none!important}@media(max-width:767px){.grid{grid-template-columns:1fr}main{padding-top:calc(var(--space)*4)}}
+p{word-break:keep-all;overflow-wrap:normal}#config,#summary,#message,#files li{overflow-wrap:anywhere;word-break:normal}
+</style>
+</head>
+<body><main>
+<a href="/">MyCrew로 돌아가기</a>
+<h1>프로젝트 · Google Drive</h1>
+<p class="muted">선택한 프로젝트의 지원 문서를 스냅샷으로 저장하고, 다른 PC에서 새 프로젝트로 가져옵니다. 소스 코드와 실행 설정을 포함하는 전체 백업은 아니며, 기존 프로젝트는 덮어쓰지 않습니다.</p>
+<section aria-labelledby="connection-title"><h2 id="connection-title">Google 계정 연결</h2>
+<p id="config" role="status">연결 설정 확인 중…</p>
+<p class="muted">기존 자료 읽기 연결과 별도로 승인합니다. 이 앱이 만든 Drive 파일에만 접근하는 drive.file 권한을 사용합니다.</p>
+<label for="connection">프로젝트 전송 계정</label><select id="connection" disabled><option value="">연결된 계정 없음</option></select>
+<div class="row"><button id="connect" disabled>Google Drive 연결 승인</button><button id="refresh" class="secondary">새로고침</button><button id="revoke" class="secondary" disabled>연결 해제</button></div></section>
+<div class="grid">
+<section aria-labelledby="upload-title"><h2 id="upload-title">Drive에 업로드</h2><p class="muted">MyCrew Projects 폴더에 새 스냅샷을 만듭니다.</p><label for="project">이 PC의 프로젝트</label><select id="project" disabled><option value="">프로젝트 없음</option></select><button id="preview-upload" disabled>업로드할 파일 확인</button></section>
+<section aria-labelledby="import-title"><h2 id="import-title">Drive에서 가져오기</h2><p class="muted">이 앱에서 저장한 스냅샷만 가져올 수 있습니다.</p><label for="snapshot">Drive 스냅샷</label><select id="snapshot" disabled><option value="">스냅샷 없음</option></select><button id="preview-import" disabled>가져올 파일 확인</button></section>
+</div>
+<p id="message" role="status" aria-live="polite"></p>
+<section id="preview" hidden aria-labelledby="preview-title"><h2 id="preview-title">전송 전 확인</h2><p id="summary"></p><ul id="files"></ul>
+<p class="muted">.env·숨김 폴더·Git·node_modules·인증 파일은 제외됩니다. 프로젝트 설정은 이름·고객사·상태·설명·분류·회차 요약만 보존합니다. PDF·Office 파일을 포함해 문서 내용에 개인 자료가 없는지 직접 확인해 주세요. 최대 20MB, 파일당 5MB입니다.</p>
+<div id="target" hidden><label for="category">가져올 카테고리</label><select id="category"><option value="education">교육</option><option value="ax-consulting">컨설팅</option><option value="ax-research">리서치</option><option value="spf">SPF</option></select><label for="slug">새 프로젝트 폴더 이름</label><input id="slug" type="text" maxlength="160" autocomplete="off"></div>
+<label class="consent"><input id="confirm" type="checkbox"><span id="consent-text">표시된 파일의 전송에 동의합니다.</span></label><button id="transfer" disabled>전송</button>
+</section>
+</main><script>
+const $=id=>document.getElementById(id);let preview=null;let configured=false;let working=false;
+const errors={owner_same_origin_required:'이 PC의 localhost 또는 로그인한 소유자 세션에서 실행해 주세요.',owner_required:'소유자 로그인 후 다시 열어 주세요.',project_exists:'같은 이름의 프로젝트가 있습니다. 파일을 다시 확인하고 다른 이름을 입력해 주세요.',preview_expired_repeat_preview:'미리보기가 만료되었거나 이미 사용됐습니다. 파일 확인부터 다시 진행해 주세요.',connection_inactive:'연결이 해제됐습니다. 계정을 다시 연결해 주세요.',secret_content_forbidden:'비밀 값으로 보이는 내용이 발견되어 전송을 중단했습니다.',symlink_forbidden:'심볼릭 링크가 포함되어 전송할 수 없습니다.',project_drive_not_configured:'서버에 Google OAuth 설정이 필요합니다.',project_too_large:'프로젝트가 20MB 또는 파일 수 제한을 초과했습니다.',project_file_too_large:'5MB를 초과하는 파일이 있습니다.',invalid_project_request:'스냅샷 형식 또는 입력값을 확인해 주세요.',project_drive_operation_failed:'Drive 요청에 실패했습니다. Google 권한과 서버 로그를 확인해 주세요.'};
+function message(text,error=false){$('message').textContent=text;$('message').setAttribute('role',error?'alert':'status')}
+async function api(path,body){const response=await fetch('/api/project-drive'+path,{method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(180000)});const data=await response.json();if(!response.ok)throw new Error(errors[data.error]||data.error||'요청에 실패했습니다.');return data}
+function options(id,items,empty){const node=$(id);node.replaceChildren();if(!items.length)node.add(new Option(empty,''));for(const item of items)node.add(new Option(item.label,item.value));node.disabled=working||!items.length}
+function controls(){const connected=Boolean($('connection').value);$('connect').disabled=working||!configured;$('refresh').disabled=working;$('revoke').disabled=working||!connected;$('preview-upload').disabled=working||!$('project').value;$('preview-import').disabled=working||!connected||!$('snapshot').value;$('transfer').disabled=working||!preview||!connected||!$('confirm').checked;for(const id of ['connection','project','snapshot'])$(id).disabled=working||!$(id).value}
+async function action(fn){if(working)return;working=true;controls();message('처리 중…');try{await fn()}catch(error){message(error instanceof Error?error.message:'요청에 실패했습니다.',true)}finally{working=false;controls()}}
+function clearPreview(){preview=null;$('preview').hidden=true;$('confirm').checked=false;controls()}
+async function snapshots(){const id=$('connection').value;if(!id){options('snapshot',[],'연결된 계정 없음');return}const data=await api('/connections/'+encodeURIComponent(id)+'/snapshots');options('snapshot',data.snapshots.map(s=>({value:s.id,label:s.name})),'저장된 스냅샷 없음')}
+async function refresh(){clearPreview();const status=await api('/status');configured=status.configured;$('config').textContent=configured?'연결을 승인한 뒤 파일 확인을 시작하세요. OAuth 리디렉션 주소: '+status.callbackUrl:'Google OAuth 클라이언트와 암호화 키가 서버에 설정되어야 합니다.';if(!configured){message('설정 안내: docs/project-drive.md',true);return}const [connections,projects]=await Promise.all([api('/connections'),api('/local-projects')]);options('connection',connections.connections.filter(c=>c.state==='active').map(c=>({value:c.connectionId,label:c.displayEmail})),'연결된 계정 없음');options('project',projects.projects.map(p=>({value:JSON.stringify(p),label:p.category+' / '+p.slug})),'프로젝트 없음');await snapshots();message('목록을 확인했습니다.')}
+function showPreview(data,kind){preview={...data,kind};$('preview').hidden=false;$('target').hidden=kind!=='import';$('confirm').checked=false;$('preview-title').textContent=kind==='upload'?'업로드할 파일':'가져올 파일';$('transfer').textContent=kind==='upload'?'확인한 파일을 Drive에 업로드':'새 프로젝트로 가져오기';$('summary').textContent=data.project.slug+' · '+data.files.length+'개 파일 · '+(data.files.reduce((n,f)=>n+f.bytes,0)/1024).toFixed(1)+' KB · 제외 '+data.excludedCount+'개 항목';$('files').replaceChildren();for(const file of data.files){const li=document.createElement('li');li.textContent=file.path+' ('+(file.bytes/1024).toFixed(1)+' KB)';$('files').append(li)}$('category').value=data.project.category;$('slug').value=data.project.slug+'-imported';message('파일 목록을 확인하고 전송에 동의해 주세요. 미리보기는 5분간 유효합니다.');$('preview').scrollIntoView({block:'start'})}
+$('refresh').onclick=()=>action(refresh);
+$('connect').onclick=()=>action(async()=>{const data=await api('/oauth/start',{confirm:true});message('Google 승인 화면으로 이동 중…');window.location.assign(data.authorizationUrl)});
+$('revoke').onclick=()=>action(async()=>{await api('/connections/'+encodeURIComponent($('connection').value)+'/revoke',{confirm:true});await refresh()});
+$('connection').onchange=()=>action(async()=>{clearPreview();await snapshots();message('선택한 계정의 스냅샷을 확인했습니다.')});
+$('project').onchange=clearPreview;$('snapshot').onchange=clearPreview;$('confirm').onchange=controls;
+$('preview-upload').onclick=()=>action(async()=>showPreview(await api('/preview-upload',JSON.parse($('project').value)),'upload'));
+$('preview-import').onclick=()=>action(async()=>showPreview(await api('/preview-import',{connectionId:$('connection').value,fileId:$('snapshot').value}),'import'));
+$('transfer').onclick=()=>action(async()=>{if(!preview)return;const current=preview;const result=current.kind==='upload'?await api('/upload',{previewId:current.previewId,connectionId:$('connection').value,confirm:true}):await api('/import',{previewId:current.previewId,target:{category:$('category').value,slug:$('slug').value.trim()},confirm:true});await refresh();message(current.kind==='upload'?'Drive에 새 스냅샷을 저장했습니다.':'새 프로젝트를 만들었습니다: '+result.project.category+'/'+result.project.slug);if(result.url){const link=document.createElement('a');link.href=result.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent=' Drive에서 열기';$('message').append(link)}});
+action(refresh);
+</script></body></html>

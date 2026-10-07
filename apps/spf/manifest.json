@@ -1,0 +1,14 @@
+{
+  "id": "spf",
+  "name": "SPF 콘솔",
+  "version": "0.8.2",
+  "icon": "🥚",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "https://spf-cold-chain-tracker.vercel.app"
+  },
+  "capabilities": [],
+  "autostart": false,
+  "description": "SPF egg 영업 앞단(뉴스·리드·콜드메일·일정) + 물류 뒷단(콜드체인 온도 판정) 운영 콘솔. 외부 호스팅(Vercel)."
+}

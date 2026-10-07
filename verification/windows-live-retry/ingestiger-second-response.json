@@ -1,0 +1,43 @@
+{
+  "result": "```json\n{\n  \"request_id\": \"0421d9d3d933412798dd121652fbce9d0a002a890a536daa697b58df083c62c9\",\n  \"results\": [\n    {\n      \"unit_id\": \"u-d1dccd2bef9bd4c4541f393b\",\n      \"status\": \"ambiguous\",\n      \"needs\": [\n        {\n          \"kind\": \"constraint\",\n          \"title\": \"Order generation mode change effective 2026-10-01\",\n          \"statement\": \"From 2026-10-01, the system generates only draft orders; final order execution is manual only\",\n          \"details\": [\n            \"Effective date: 2026-10-01\",\n            \"System generates draft orders only\",\n            \"Final orders must be executed by people\",\n            \"No automatic final order generation\"\n          ],\n          \"departments\": [],\n          \"patterns\": [],\n          \"evidence\": \"2026-10-01부터 시스템은 주문 초안만 작성한다. 최종 주문은 사람이 실행한다.\",\n          \"claim_status\": \"source_reported\"\n        },\n        {\n          \"kind\": \"constraint\",\n          \"title\": \"Prohibition of automatic order execution\",\n          \"statement\": \"Automatic orders are prohibited\",\n          \"details\": [\n            \"Applies from 2026-10-01\",\n            \"No automatic order generation allowed\",\n            \"Manual initiation required for all orders\"\n          ],\n          \"departments\": [],\n          \"patterns\": [],\n          \"evidence\": \"자동 주문은 금지한다.\",\n          \"claim_status\": \"source_reported\"\n        },\n        {\n          \"kind\": \"unknown\",\n          \"title\": \"Responsible department assignment pending\",\n          \"statement\": \"The responsible department for order management has not yet been decided\",\n          \"details\": [\n            \"Decision status: unresolved\",\n            \"Assignment required before 2026-10-01 implementation\",\n            \"Affects order draft creation and approval workflow\",\n            \"Blocks full implementation clarity\"\n          ],\n          \"departments\": [],\n          \"patterns\": [],\n          \"evidence\": \"담당 부서는 아직 정하지 않았다.\",\n          \"claim_status\": \"source_reported\"\n        }\n      ]\n    }\n  ]\n}\n```\n\n**Processing note:** Unit analyzed. The policy sets a future effective date (2026-10-01) with clear constraints on system behavior, but department responsibility remains unresolved. Full implementation readiness depends on the pending assignment.",
+  "is_error": false,
+  "session_id": "7fd48d0c-3f69-420d-9d9d-70c2b14b1f20",
+  "total_cost_usd": 0.011202400000000001,
+  "duration_ms": 10601,
+  "modelUsage": {
+    "claude-haiku-4-5-20251001": {
+      "inputTokens": 1281,
+      "outputTokens": 19,
+      "cacheReadInputTokens": 0,
+      "cacheCreationInputTokens": 0,
+      "webSearchRequests": 0,
+      "costUSD": 0.001376,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 0,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    },
+    "claude-haiku-4-5": {
+      "inputTokens": 10,
+      "outputTokens": 1407,
+      "cacheReadInputTokens": 8334,
+      "cacheCreationInputTokens": 974,
+      "webSearchRequests": 0,
+      "costUSD": 0.0098264,
+      "contextWindow": 200000,
+      "maxOutputTokens": 32000,
+      "thinkingTokens": 781,
+      "canonicalModel": "claude-haiku-4-5",
+      "provider": "firstParty",
+      "costBasis": "list"
+    }
+  },
+  "usage": {
+    "input_tokens": 10,
+    "output_tokens": 1407,
+    "cache_read_input_tokens": 8334,
+    "cache_creation_input_tokens": 974
+  }
+}

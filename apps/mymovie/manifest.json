@@ -1,0 +1,43 @@
+{
+  "id": "movie",
+  "name": "MyMovie",
+  "version": "0.1.1",
+  "icon": "🎬",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13203"
+  },
+  "ports": {
+    "http": 13203
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [
+    "video.ingest.youtube",
+    "video.ingest.upload",
+    "video.transcode"
+  ],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "MyMovie 영상 편집 (yt-dlp 인제스트 + ffmpeg 트랜스코드, OpenReel 코어 — Step 1/2)",
+  "aiCapabilities": [
+    {
+      "id": "director",
+      "route": "/api/director/run",
+      "title": "AI 디렉터",
+      "desc": "컷·자막·BGM·전환을 자동으로 편집합니다."
+    },
+    {
+      "id": "highlights",
+      "route": "/api/director/highlights",
+      "title": "하이라이트 추출",
+      "desc": "긴 영상에서 숏폼용 하이라이트 구간을 뽑아냅니다."
+    },
+    {
+      "id": "script-to-video",
+      "route": "/api/director/script-to-video",
+      "title": "대본 → 영상",
+      "desc": "대본을 넣으면 내레이션·자막·컷 타임라인을 자동 구성합니다."
+    }
+  ]
+}

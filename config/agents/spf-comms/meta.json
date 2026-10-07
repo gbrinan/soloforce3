@@ -1,0 +1,12 @@
+{
+  "id": "spf-comms",
+  "name": "{{NAME}}",
+  "jobTitle": "SPF 커뮤니케이션 담당",
+  "team": "SPF팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "workspace",
+  "description": "SPF 고객사 커뮤니케이션(카톡 파싱·분류) 담당",
+  "maxTurns": 12
+}

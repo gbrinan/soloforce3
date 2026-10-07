@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { gatewayResponseText } from '../src/server/ai-gateway-response.js';
+import { z } from 'zod';
+import { buildBaseArgs } from '../src/server/ai-gateway.js';
+import { WikiResponseSchema } from '../src/server/wiki/service.js';
+const schema = z.toJSONSchema(WikiResponseSchema, { target: 'draft-7' });
+const args = buildBaseArgs({ prompt: 'Synthetic regression', isolatedText: true, jsonSchema: schema });
+const index = args.indexOf('--json-schema');
+assert.ok(index >= 0, 'CLI must receive structured response schema');
+assert.deepEqual(JSON.parse(args[index + 1]), schema);
+assert.ok(args.includes('--tools') && args.includes('--strict-mcp-config'));
+const decoded = JSON.parse(JSON.stringify(schema));
+assert.equal(decoded.properties.results.items.properties.needs.items.properties.evidence.type, 'array');
+assert.equal(gatewayResponseText({ result: 'ignored prose', structured_output: { results: [] } }, true), '{"results":[]}');
+assert.throws(() => gatewayResponseText({ result: '{}'}, true), /structured_output_missing/);
+assert.throws(() => gatewayResponseText({ is_error: true, structured_output: {} }, true), /response_error/);
+assert.equal(gatewayResponseText({ result: ' ordinary text ' }, false), 'ordinary text');
+console.log(JSON.stringify({ passed: true, realModel: false, schemaEnforcedInArgs: true }));

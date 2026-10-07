@@ -1,0 +1,29 @@
+{
+  "name": "leads",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 13208",
+    "build": "next build",
+    "start": "next start -p 13208 -H 127.0.0.1",
+    "lint": "next lint",
+    "test": "tsx scripts/leads-test.ts"
+  },
+  "dependencies": {
+    "@mantine/core": "^7.17.4",
+    "@mantine/hooks": "^7.17.4",
+    "@mantine/notifications": "^7.17.4",
+    "better-sqlite3": "^12.11.1",
+    "next": "16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

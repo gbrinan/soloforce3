@@ -1,0 +1,11 @@
+{
+  "root": "C:\\Users\\user\\Documents\\Codex 2\\soloforce2-windows-collaboration\\verification\\windows-live-retry\\runtime 한글 AemlgT",
+  "scope": {
+    "orgId": "synthetic",
+    "projectId": "windows-collaboration"
+  },
+  "sourceId": "e3e694f32f3e20a2cc203b3d51c299c2fda0693bb00f58e7c2933865566efdb6",
+  "jobId": "eed506799337e692af3a9791b79a71d54ee235f58a15f4b39e9d2af3b520af28",
+  "requestedModel": "claude-haiku-4-5",
+  "realModel": true
+}

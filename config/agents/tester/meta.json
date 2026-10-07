@@ -1,0 +1,14 @@
+{
+  "id": "tester",
+  "name": "테스터",
+  "jobTitle": "QA·테스트 엔지니어",
+  "team": "개발팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "기능 경로 테스트·에러 재현·엣지케이스 확인·수정 제안 (curl/build/tsc, 재현 스텝 기록)",
+  "postValidation": [
+    "[ -f package.json ] && node -e \"const s=require(String.raw`./package.json`).scripts||{};process.exit(0)\" || echo skip"
+  ]
+}

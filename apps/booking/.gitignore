@@ -1,0 +1,5 @@
+.data/
+.next/
+.build-logs/
+node_modules/
+.env*.local

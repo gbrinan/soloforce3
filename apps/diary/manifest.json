@@ -1,0 +1,39 @@
+{
+  "id": "diary",
+  "name": "내 일기",
+  "version": "0.1.2",
+  "icon": "📔",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13246"
+  },
+  "ports": {
+    "http": 13246
+  },
+  "proxyMode": "passthrough",
+  "capabilities": [],
+  "healthPath": "/api/health",
+  "autostart": true,
+  "description": "내 일기 — 날짜별 일기·무드 기록, AI 감정 분석과 성찰 질문, 데일리 회고 자동 작성 (모든 데이터 로컬 저장)",
+  "aiCapabilities": [
+    {
+      "id": "reflect",
+      "route": "/api/ai/reflect",
+      "title": "AI 감정 분석·성찰 질문",
+      "desc": "일기 내용을 분석해 감정·공감 코멘트·성찰 질문을 생성합니다."
+    },
+    {
+      "id": "writing-prompt",
+      "route": "/api/ai/prompt",
+      "title": "오늘의 글감",
+      "desc": "일기를 쓰지 않은 날, 오늘 쓸 만한 글감을 제안합니다."
+    },
+    {
+      "id": "daily-retro",
+      "route": "/api/retro/daily",
+      "title": "데일리 회고 자동 작성",
+      "desc": "오늘의 일기·할일·회의·지출·독서 기록을 묶어 데일리 회고를 작성합니다."
+    }
+  ]
+}

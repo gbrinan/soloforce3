@@ -1,0 +1,11 @@
+{
+  "id": "insight-researcher",
+  "name": "인사이트리서처",
+  "jobTitle": "리서치 프로젝트 매니저",
+  "team": "리서치팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "다단계 리서치 프로젝트(1차 조사→2차 확장→3차 포커스 인터뷰) 생애주기 관리. 절차·저장규약은 staged-insight-research 방법 파일이 단일 출처"
+}

@@ -1,0 +1,75 @@
+{
+  "@context": {
+    "prov": "http://www.w3.org/ns/prov#"
+  },
+  "schema_version": 1,
+  "meeting": {
+    "id": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0",
+    "project": "demo",
+    "title": "출시 준비 회의 (가상 예제)",
+    "reviewed": false
+  },
+  "entities": [
+    {
+      "id": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0",
+      "type": "Meeting"
+    },
+    {
+      "id": "demo-recording",
+      "type": "Recording"
+    },
+    {
+      "id": "demo",
+      "type": "Project"
+    },
+    {
+      "id": "demo:person:%EB%AF%BC%EC%88%98",
+      "type": "Person",
+      "name": "민수",
+      "identityStatus": "name_only"
+    },
+    {
+      "id": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0:action:0",
+      "type": "Action",
+      "owner": "민수",
+      "task": "고객사 검토 문서 작성",
+      "due": null,
+      "evidence": "고객사 검토 문서는 제가 작성하겠습니다.",
+      "segment": 0
+    },
+    {
+      "id": "launch-checklist-v1",
+      "type": "Document",
+      "uri": "https://example.org/launch-checklist"
+    }
+  ],
+  "relations": [
+    {
+      "from": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0",
+      "to": "demo-recording",
+      "type": "prov:wasDerivedFrom"
+    },
+    {
+      "from": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0",
+      "to": "demo",
+      "type": "belongsTo"
+    },
+    {
+      "from": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0:action:0",
+      "to": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0",
+      "type": "discussedIn"
+    },
+    {
+      "from": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0:action:0",
+      "to": "demo:person:%EB%AF%BC%EC%88%98",
+      "type": "assignedTo"
+    },
+    {
+      "from": "1d334dfaee83f94f84d561c29c8d41ed0e91973e51ca4fe17dd3f0ea01a40cf0",
+      "to": "launch-checklist-v1",
+      "type": "continues",
+      "evidence": "출시 전에 고객사 검토를 완료한다.",
+      "reviewed": false
+    }
+  ]
+}

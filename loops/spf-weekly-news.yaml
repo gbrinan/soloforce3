@@ -1,0 +1,56 @@
+# SPF 주간 뉴스 리서치 루프 — 매주 월요일 08:00 KST. (옵션 B: spf-sales 직접 리서치)
+# spf-sales(Claude)가 WebSearch로 직접 리서치 + Notion 기록. 워커간 위임/Gemini 없음(신뢰성 우선).
+# 뉴스정찰(spf-news-scout, Gemini/agy)은 수동 옵션으로만 유지("뉴스정찰한테 검색 시켜줘").
+loop:
+  id: spf-weekly-news
+  version: "3"
+  owner: genie
+  description: "SPF 주간 뉴스 리서치 + 관심 기업 큐레이션 (spf-sales 직접 WebSearch → Notion 기록)"
+  enabled: true
+
+  trigger:
+    type: cron
+    cron: "0 8 * * 1"
+    timezone: Asia/Seoul
+    catch_up: skip
+
+  steps:
+    - id: weekly-spf-research
+      agent: spf-sales
+      prompt: >
+        [SPF 주간 뉴스 리서치] 이번 주 SPF egg 산업 뉴스를 직접 WebSearch로 조사하고 Notion에 기록하라.
+        draft_only(대외 발신·초대 금지). 뉴스정찰에 위임하지 말고 네 WebSearch 도구로 직접 검색하라.
+
+        1) 리서치: WebSearch로 이번 주 SPF 산업 뉴스를 조사한다. 카테고리:
+        HPAI/조류인플루엔자, 백신·바이오 증설·수주, 검역·규제, 태국 SPF 공급, 화장품·시험,
+        경쟁사(코타바이오SPF·Charles River·Valo) 생산시설·국산화. 각 신호에 출처(매체·날짜·URL)를
+        명기한다. 검색 결과가 없으면 "확인 불가"로 표기하고 지어내지 않는다.
+
+        2) 주간 뉴스 기록: "SPF 주간 뉴스" DB(data_source 7f0bde47-049e-48d3-80de-9307952abf3f)에
+        이번 주 행 1개를 Notion create-page 도구로 생성한다 —
+        주차(예 2026-W29)·기간(이번 주 월~일)·최고 긴급도(CRITICAL/HIGH/WATCH)·영향 섹터(A/B/C/D)·
+        핵심 신호(출처 포함)·검색 상태(검색 기반/확인 불가)·출처.
+
+        3) 관심 기업 갱신: 신호에서 SPF 관심 기업을 추려 "영업 리드" DB
+        (data_source b3765c80-7cae-46a0-9203-5cc21783fa2f)에 Notion create/update-page로 반영한다 —
+        신규는 단계=Lead·신호 출처=해당 뉴스·간이 스코어·긴급도, 기존은 신호 출처·긴급도·다음 액션 갱신.
+        공개 근거 없으면 NQ. 지어내지 않는다.
+
+        4) 완료 후 채팅으로 요약: 이번 주 최고 긴급 신호 1줄 + 신규/갱신 관심 기업 수 +
+        주간 뉴스 DB 링크(https://app.notion.com/p/95f8cff768e94cc3af7df0fbb1a08dbc).
+
+  budget:
+    max_cost_usd_per_run: 5
+    max_duration_minutes: 25
+    max_runs_per_day: 1
+    monthly_cap_usd: 25
+
+  approval:
+    mode: draft_only
+
+  delivery:
+    on_success: summary
+    on_failure: full
+
+  expiry:
+    review_after_days: 30

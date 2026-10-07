@@ -1,0 +1,275 @@
+.workflow-panel {
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+}
+
+.workflow-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.workflow-tabs .mantine-Tabs-list {
+  border-bottom: 1px solid var(--border-default);
+}
+
+.workflow-tabs .mantine-Tabs-tab {
+  color: var(--text-muted);
+  font-size: var(--font-m);
+  font-weight: 600;
+}
+
+.workflow-tabs .mantine-Tabs-tab[data-active] {
+  color: var(--text-primary);
+  border-bottom-color: var(--color-point-1);
+}
+
+.workflow-list-card,
+.workflow-section-card,
+.workflow-detail-head {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.workflow-list-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.workflow-table th {
+  color: var(--text-muted);
+  font-size: var(--font-s);
+  font-weight: 700;
+}
+
+.workflow-table td {
+  border-top-color: var(--border-default);
+}
+
+.workflow-row {
+  cursor: pointer;
+}
+
+.workflow-row:hover {
+  background: var(--bg-elevated);
+}
+
+.workflow-empty {
+  min-height: 220px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.workflow-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workflow-type-card {
+  min-height: 136px;
+  padding: 22px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.workflow-type-card:hover {
+  border-color: var(--color-point-1);
+  background: color-mix(in srgb, var(--color-point-1) 8%, var(--bg-card));
+  transform: translateY(-1px);
+}
+
+.workflow-type-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--bg-muted);
+  color: var(--color-point-1);
+}
+
+.workflow-form {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.workflow-leave-balance {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.workflow-leave-balance.danger {
+  color: var(--accent-danger);
+  background: color-mix(in srgb, var(--accent-danger) 10%, var(--bg-muted));
+  border-color: color-mix(in srgb, var(--accent-danger) 45%, var(--border-default));
+}
+
+.workflow-approver-row {
+  min-width: 0;
+}
+
+.workflow-step-index {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  font-size: var(--font-s);
+  font-weight: 800;
+}
+
+.workflow-detail-head {
+  padding: 18px;
+}
+
+.workflow-flow {
+  margin-top: 18px;
+  width: 100%;
+  overflow-x: auto;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-items: start;
+  gap: 10px;
+  padding-bottom: 4px;
+}
+
+.workflow-node {
+  width: 86px;
+  min-height: 104px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.workflow-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-default);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.workflow-node.requester .workflow-avatar {
+  border-color: var(--color-point-1);
+  background: color-mix(in srgb, var(--color-point-1) 12%, var(--bg-elevated));
+}
+
+.workflow-node.done .workflow-avatar {
+  border-color: var(--accent-success);
+  background: color-mix(in srgb, var(--accent-success) 12%, var(--bg-elevated));
+}
+
+.workflow-node.rejected .workflow-avatar {
+  border-color: var(--accent-danger);
+  background: color-mix(in srgb, var(--accent-danger) 12%, var(--bg-elevated));
+}
+
+.workflow-node.active .workflow-avatar {
+  border-color: var(--color-point-1);
+  background: color-mix(in srgb, var(--color-point-1) 12%, var(--bg-elevated));
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-point-1) 12%, transparent);
+}
+
+.workflow-connector {
+  width: 42px;
+  height: 2px;
+  margin-top: 20px;
+  background: var(--border-default);
+  border-radius: 2px;
+}
+
+.workflow-connector.done {
+  background: var(--accent-success);
+}
+
+.workflow-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workflow-detail-grid > div {
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--bg-muted);
+  min-width: 0;
+}
+
+.workflow-approve-btn,
+.workflow-reject-btn {
+  min-width: 120px;
+  height: 44px;
+  border-radius: 8px;
+  font-weight: 800;
+  color: var(--accent-on-fill);
+}
+
+.workflow-approve-btn {
+  background: var(--accent-success);
+}
+
+.workflow-approve-btn:hover {
+  background: color-mix(in srgb, var(--accent-success) 86%, black);
+}
+
+.workflow-reject-btn {
+  background: var(--accent-danger);
+}
+
+.workflow-reject-btn:hover {
+  background: color-mix(in srgb, var(--accent-danger) 86%, black);
+}
+
+@media (max-width: 720px) {
+  .workflow-type-grid,
+  .workflow-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-table th:nth-child(4),
+  .workflow-table td:nth-child(4) {
+    display: none;
+  }
+}

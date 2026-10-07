@@ -1,0 +1,35 @@
+# Cloudflare Email Worker — wrangler.toml
+# Deploy: wrangler deploy --env production
+# (INBOUND_WEBHOOK_SECRET must be set as a secret first:
+#   wrangler secret put INBOUND_WEBHOOK_SECRET --name mycrew-mail-worker)
+
+name = "mycrew-mail-worker"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# ── R2 Bucket (attachment storage) ───────────────────────────────────────────
+# Create via: wrangler r2 bucket create mycrew-mail-attachments
+[[r2_buckets]]
+binding = "ATTACHMENTS_BUCKET"
+bucket_name = "mycrew-mail-attachments"
+
+# ── Plain environment variables ───────────────────────────────────────────────
+[vars]
+# Full URL of the portal's mail inbound proxy endpoint.
+# Must be publicly reachable by Cloudflare.
+# Cloudflare Tunnel routes mycrew.dooitspace.com -> localhost:3457 (portal).
+INBOUND_WEBHOOK_URL = "https://mycrew.dooitspace.com/api/apps/mail/proxy/api/mail/inbound"
+# 기존 Gmail 수신 유지 — Email Routing 검증 목적지로 원본 포워딩
+FORWARD_ADDRESS = "ysk08900@gmail.com"
+
+# ── Secrets (set via CLI, never stored in this file) ─────────────────────────
+# wrangler secret put INBOUND_WEBHOOK_SECRET --name mycrew-mail-worker
+# Use the same value in portal .env as INBOUND_WEBHOOK_SECRET
+
+# ── Dev / Preview environment ─────────────────────────────────────────────────
+[env.preview]
+vars = { INBOUND_WEBHOOK_URL = "https://<NGROK_OR_TUNNEL_HOST>/api/apps/mail/proxy/api/mail/inbound" }
+
+[env.production]
+name = "mycrew-mail-worker"
+vars = { INBOUND_WEBHOOK_URL = "https://mycrew.dooitspace.com/api/apps/mail/proxy/api/mail/inbound", FORWARD_ADDRESS = "ysk08900@gmail.com" }

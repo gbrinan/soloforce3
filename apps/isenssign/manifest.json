@@ -1,0 +1,35 @@
+{
+  "id": "sign",
+  "name": "MySign",
+  "version": "1.0.2",
+  "icon": "📝",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13202"
+  },
+  "ports": {
+    "http": 13202
+  },
+  "proxyMode": "passthrough",
+  "ws": "/bus",
+  "capabilities": [
+    "contracts.list",
+    "contracts.create",
+    "contracts.sign",
+    "chat-popup",
+    "header-badge",
+    "deep-link"
+  ],
+  "healthPath": "/api/health",
+  "autostart": false,
+  "description": "MySign 전자계약(서명·PDF·바로서트·SMS/메일)",
+  "aiCapabilities": [
+    {
+      "id": "contract-review",
+      "route": "/api/ai/contract-review",
+      "title": "계약서 검토",
+      "desc": "서명 전 계약서의 핵심 조항과 잠재 리스크를 정리해, 서명자가 내용을 쉽게 이해하도록 돕습니다."
+    }
+  ]
+}

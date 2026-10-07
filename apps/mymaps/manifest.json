@@ -1,0 +1,78 @@
+{
+  "id": "mymaps",
+  "name": "내 지도",
+  "version": "0.1.2",
+  "icon": "🗺️",
+  "category": "optional",
+  "entry": {
+    "kind": "iframe",
+    "url": "http://127.0.0.1:13211"
+  },
+  "ports": {
+    "http": 13211
+  },
+  "proxyMode": "passthrough",
+  "healthPath": "/",
+  "autostart": false,
+  "description": "구글 내 지도 클론 — 마커·선·면 레이어 편집 및 KML 내보내기",
+  "setupGuide": {
+    "intro": "키 없이도 무료 지도·검색 폴백으로 동작하지만 검색 결과가 빈약합니다. MapTiler·Google Maps 키를 등록하면 품질이 올라갑니다.",
+    "steps": [
+      {
+        "title": "MapTiler 무료 키 발급",
+        "detail": "cloud.maptiler.com에서 무료 키를 발급합니다 (지도 타일용)."
+      },
+      {
+        "title": "(선택) Google Maps 키 발급",
+        "detail": "GCP Console에서 Maps JavaScript API와 Places API(New)를 활성화한 뒤 API 키를 발급합니다."
+      },
+      {
+        "title": "마이크루에 키 저장",
+        "detail": "마이크루 설정 > 키 관리 > 앱 외부 서비스 연동에서 '지도' 항목에 키를 입력하고 저장합니다. 빌드 시점에 키가 반영되므로 저장 후 자동 재빌드에 수 분이 걸릴 수 있습니다."
+      }
+    ],
+    "envVars": [
+      {
+        "name": "VITE_MAPTILER_KEY",
+        "label": "MapTiler Key"
+      },
+      {
+        "name": "VITE_GOOGLE_MAPS_API_KEY",
+        "label": "Google Maps API Key"
+      }
+    ],
+    "services": [
+      {
+        "name": "MapTiler",
+        "url": "https://cloud.maptiler.com",
+        "desc": "지도 타일 — 무료 키 제공"
+      },
+      {
+        "name": "Google Cloud Console",
+        "url": "https://console.cloud.google.com/apis/library",
+        "desc": "(선택) Maps JavaScript API + Places API(New)"
+      }
+    ],
+    "docsUrl": "https://cloud.maptiler.com"
+  },
+  "aiCapabilities": [
+    {
+      "id": "places",
+      "route": "/ai/places",
+      "title": "장소 제안",
+      "desc": "자연어 요청에 맞는 실제 장소를 좌표와 함께 추천합니다."
+    },
+    {
+      "id": "layer",
+      "route": "/ai/layer",
+      "title": "레이어 플랜",
+      "desc": "\"서울 5성급 호텔\"을 지도 레이어로 자동 구성합니다."
+    },
+    {
+      "id": "note",
+      "route": "/ai/note",
+      "title": "장소 메모 생성",
+      "desc": "장소의 특징·방문 팁을 자동으로 메모합니다."
+    }
+  ]
+}
