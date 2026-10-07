@@ -4,7 +4,7 @@
 // 라벨은 카드 화면의 «내보내기»로 labels.json 을 받아 같은 폴더에 둔다. 집계는 tally.ts.
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { rng, type Candidate } from "./sample.js";
+import { fileId, rng, type Candidate } from "./sample.js";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -26,15 +26,16 @@ const key: Record<string, { left: "A" | "B" }> = {};
 const cards: string[] = [];
 let skipped = 0;
 for (const c of cases) {
-  if (!done.has(c.id)) continue;
-  const b = JSON.parse(readFileSync(path.join(resultsDir, `${c.id}.json`), "utf-8")) as { ok: boolean; result: string };
+  if (!done.has(fileId(c.id))) continue;
+  const b = JSON.parse(readFileSync(path.join(resultsDir, `${fileId(c.id)}.json`), "utf-8")) as { ok: boolean; result: string };
   if (!b.ok || !b.result.trim()) { skipped++; continue; } // 실행 실패는 카드로 만들지 않고 집계에 따로 남긴다
   const left: "A" | "B" = r() < 0.5 ? "A" : "B";
   key[c.id] = { left };
   const [one, two] = left === "A" ? [c.result, b.result] : [b.result, c.result];
   const n = cards.length + 1;
+  const ctx = (c as Candidate & { context?: string }).context ?? "";
   cards.push(`<section class="card" data-id="${c.id}">
-  <h2>${n}. 요청</h2><pre class="req">${esc(c.request)}</pre>
+  <h2>${n}. 요청</h2>${ctx ? `<details><summary>직전 대화 보기</summary><pre class="req">${esc(ctx)}</pre></details>` : ""}<pre class="req">${esc(c.request)}</pre>
   <div class="pair"><div><h3>결과 1</h3><pre>${esc(one)}</pre></div><div><h3>결과 2</h3><pre>${esc(two)}</pre></div></div>
   <fieldset><legend>어느 쪽이 이 요청에 더 쓸모 있나요?</legend>
     ${["1이 낫다", "비슷하다", "2가 낫다", "둘 다 못 쓴다"].map((v) => `<label><input type="radio" name="c-${c.id}" value="${v}"> ${v}</label>`).join("\n    ")}

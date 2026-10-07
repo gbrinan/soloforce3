@@ -89,6 +89,9 @@ export function pickSample(cands: Candidate[], n: number, seed: number, capRatio
   return picked;
 }
 
+/** 결과·프롬프트 파일 이름으로 쓸 수 있게 ID를 바꾼다(채팅 ID에는 «#»이 들어간다). */
+export const fileId = (id: string): string => id.replace(/[^A-Za-z0-9_-]/g, "_");
+
 export const sampleHash = (s: Candidate[]): string =>
   createHash("sha256").update(s.map((c) => c.id).join("\n")).digest("hex");
 

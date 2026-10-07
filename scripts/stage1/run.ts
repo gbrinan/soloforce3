@@ -6,7 +6,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { LANE_AGENTS, type Candidate } from "./sample.js";
+import { LANE_AGENTS, fileId, type Candidate } from "./sample.js";
 
 const MODEL = "claude-sonnet-5"; // 흡수 후보 워커의 기존 모델과 같게 둬 구조 효과만 비교한다
 const TIMEOUT_SEC = 900;
@@ -83,6 +83,17 @@ function parseStream(jsonl: string): Omit<RunResult, "id" | "agent"> {
 
 const outDir = arg("--out");
 const limit = Number(arg("--limit", "10"));
+// --read-dir: B가 읽기 전용으로 볼 데이터 폴더(채팅 단위에서 라이브 history). 쓰기 도구는 여전히 금지.
+const readDir = arg("--read-dir");
+const allowed = readDir ? `${ALLOWED},Read,Glob,Grep` : ALLOWED;
+
+/** 채팅 단위는 직전 대화와 원래 날짜를 함께 준다 — genie가 받았던 맥락과 같게. */
+function buildPrompt(c: Candidate & { context?: string }): string {
+  if (c.context === undefined) return c.request;
+  const when = c.createdAt ? `이 메시지는 ${c.createdAt.slice(0, 10)}에 받은 것이다. 지금 시점의 상태가 그때와 다를 수 있다.\n\n` : "";
+  const data = readDir ? `아난의 업무 데이터는 ${toWsl(readDir)} 에 있다(읽기 전용).\n\n` : "";
+  return `${when}${data}[직전 대화]\n${c.context || "(없음)"}\n\n[아난의 메시지]\n${c.request}`;
+}
 if (!outDir || !existsSync(path.join(outDir, "sample.json"))) {
   console.error(`MISS: ${outDir ?? "--out"}/sample.json 이 없습니다 — sample.ts 를 먼저 실행하세요`);
   process.exit(2);
@@ -100,19 +111,21 @@ execFileSync("wsl", ["-e", "bash", "-lc",
 console.log(`스킬 ${skills.length}개: ${skills.join(", ")}`);
 
 for (const c of cases.slice(0, limit)) {
-  const resultFile = path.join(outDir, "results", `${c.id}.json`);
+  const safeId = fileId(c.id);
+  const resultFile = path.join(outDir, "results", `${safeId}.json`);
   if (existsSync(resultFile)) { console.log(`SKIP ${c.id} (이미 있음)`); continue; }
-  writeFileSync(path.join(outDir, "prompts", `${c.id}.txt`), c.request);
+  writeFileSync(path.join(outDir, "prompts", `${safeId}.txt`), buildPrompt(c));
   const cmd = `cd '${toWsl(sandbox)}' && ` + [
     `timeout ${TIMEOUT_SEC} claude -p --output-format stream-json --verbose`,
     `--settings settings.json --setting-sources project --strict-mcp-config --mcp-config '{"mcpServers":{}}'`,
-    `--allowedTools '${ALLOWED}' --disallowedTools '${DISALLOWED}'`,
+    `--allowedTools '${allowed}' --disallowedTools '${DISALLOWED}'`,
+    readDir ? `--add-dir '${toWsl(readDir)}'` : "",
     `--model ${MODEL} --no-session-persistence --append-system-prompt-file '${toWsl(path.join(outDir, "system.md"))}'`,
-    `< '${toWsl(path.join(outDir, "prompts", `${c.id}.txt`))}' > '${toWsl(path.join(outDir, "runs", `${c.id}.jsonl`))}' 2>&1`,
+    `< '${toWsl(path.join(outDir, "prompts", `${safeId}.txt`))}' > '${toWsl(path.join(outDir, "runs", `${safeId}.jsonl`))}' 2>&1`,
   ].join(" ");
   const started = Date.now();
   try { execFileSync("wsl", ["-e", "bash", "-lc", cmd], { stdio: "ignore", timeout: (TIMEOUT_SEC + 60) * 1000 }); } catch { /* 결과 파싱에서 판정 */ }
-  const jsonl = existsSync(path.join(outDir, "runs", `${c.id}.jsonl`)) ? readFileSync(path.join(outDir, "runs", `${c.id}.jsonl`), "utf-8") : "";
+  const jsonl = existsSync(path.join(outDir, "runs", `${safeId}.jsonl`)) ? readFileSync(path.join(outDir, "runs", `${safeId}.jsonl`), "utf-8") : "";
   const r: RunResult = { id: c.id, agent: c.agent, ...parseStream(jsonl) };
   if (!r.durationMs) r.durationMs = Date.now() - started;
   writeFileSync(resultFile, JSON.stringify(r, null, 2));

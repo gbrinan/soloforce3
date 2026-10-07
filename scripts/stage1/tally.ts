@@ -2,6 +2,7 @@
 //   npx tsx scripts/stage1/tally.ts --out <stage1 폴더>
 // 기준(findings.md «Stage 1 사전 등록»): «A가 낫다» 비율이 30% 이상이면 레인 유지, 미만이면 흡수.
 // 에이전트별 판정은 5건 이상 모인 곳만. 파일럿(30건 미만)은 «판정 보류»로만 보고한다.
+// 채팅 단위(재설계 사전 등록): 판정은 «실시간 데이터 필요» 표시가 없는 카드만 대상으로 한다.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -41,6 +42,8 @@ if (process.argv[1]?.endsWith("tally.ts")) {
   const byAgent: Record<string, Record<Verdict, number>> = {};
   let live = 0;
   let labeled = 0;
+  const judged: Record<Verdict, number> = { A: 0, B: 0, tie: 0, "both-bad": 0 };
+  let judgedN = 0;
   for (const [id, l] of Object.entries(labels)) {
     if (!l.choice || !key[id]) continue;
     labeled++;
@@ -49,12 +52,14 @@ if (process.argv[1]?.endsWith("tally.ts")) {
     const agent = results[id]?.agent ?? "?";
     (byAgent[agent] ??= { A: 0, B: 0, tie: 0, "both-bad": 0 })[v]++;
     if (l.live) live++;
+    else { judged[v]++; judgedN++; }
   }
   const failed = Object.values(results).filter((r) => !r.ok).length;
   const cost = Object.values(results).reduce((s, r) => s + (r.costUsd || 0), 0);
-  const aRate = labeled ? total.A / labeled : 0;
+  const aRate = judgedN ? judged.A / judgedN : 0;
   console.log(`라벨 ${labeled}건 · 실행 실패 ${failed}건 · B안 실행 비용 합계 $${cost.toFixed(2)}`);
   console.log(`A가 낫다 ${total.A} / B가 낫다 ${total.B} / 비슷 ${total.tie} / 둘 다 못 씀 ${total["both-bad"]} · 실시간 데이터 필요 표시 ${live}`);
+  console.log(`판정 대상(실시간 표시 없음) ${judgedN}건: ${JSON.stringify(judged)}`);
   console.log(`«A가 낫다» 비율 ${(aRate * 100).toFixed(1)}% (기준 ${A_BETTER_THRESHOLD * 100}%)`);
   if (labeled < FULL_N) console.log(`판정 보류 — 파일럿(${labeled}건 < ${FULL_N}건). 사전 등록 기준은 전체 표본에서만 적용한다.`);
   else console.log(aRate >= A_BETTER_THRESHOLD ? "판정: 레인 유지" : "판정: 흡수 진행");
