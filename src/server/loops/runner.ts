@@ -11,6 +11,7 @@ import { checkPreRun, checkMidRun, sumRunCost, bumpRunsToday, bumpMonthSpend, cl
 import { runUntilDone } from "./until-done.js";
 import { resolveTier } from "../model-tiers.js";
 import { heldForJobs } from "../external-actions.js";
+import { unavailableFooter, type ResultStatus } from "../../shared/result-envelope.js";
 import type { LoopDefinition, LoopExitReason, LoopRunRecord, LoopRunStepResult, LoopStep } from "./types.js";
 
 // [2026-08-10] 문구 정교화. 기존 "외부 발신·전송·결제·삭제 금지"는 발송이 임무인 스텝과 정면 충돌한다
@@ -38,6 +39,23 @@ export function classifyTerminalLoopJob(
     return { exitReason: "error", error: error || "outputs_missing: 보고 형식 누락(실행 실패 가능성)" };
   }
   return { exitReason: "done" };
+}
+
+/**
+ * 스텝별 결과를 봉투로 — 끝난 잡 상태만 본다. 마지막 잡이 실패·보고 누락이면 그 스텝은 «확인 못 함»,
+ * 일부 잡만 실패했으면 «일부만». 잡이 없는 스텝(스킵 등)은 판단하지 않는다.
+ */
+export function loopStepEnvelopes(
+  steps: Array<{ stepId: string; jobStatuses: string[] }>,
+): Array<{ status: ResultStatus; source: string; error?: string }> {
+  return steps.filter((s) => s.jobStatuses.length > 0).map((s) => {
+    const bad = s.jobStatuses.filter((st) => st === "failed" || st === "outputs_missing");
+    const last = s.jobStatuses[s.jobStatuses.length - 1];
+    const status: ResultStatus = bad.length === 0 ? "ok"
+      : (last === "failed" || last === "outputs_missing") && bad.length === s.jobStatuses.length ? "failed"
+        : "partial";
+    return { status, source: `스텝 ${s.stepId}`, ...(bad.length ? { error: bad.join("·") } : {}) };
+  });
 }
 
 function modelTierGuidance(tier?: LoopStep["model_tier"]): string {
@@ -208,6 +226,12 @@ function buildDeliveryMessage(def: LoopDefinition, record: LoopRunRecord): strin
     lines.push(`  - 스텝 ${s.stepId}${iterInfo}: job ${s.jobIds.length}건`);
   }
   lines.push(`- 비용: $${record.costUsd.toFixed(4)}`);
+  // 실패·보고 누락 스텝은 «결과 없음»이 아니라 «확인 못 함»이다 — 결과 봉투 규약(result-envelope.ts).
+  const stepFooter = unavailableFooter(loopStepEnvelopes(record.steps.map((s) => ({
+    stepId: s.stepId,
+    jobStatuses: s.jobIds.map((id) => getJob(id)?.status ?? "failed"),
+  }))));
+  if (stepFooter) lines.push(stepFooter);
   // 무인 실행에서 막힌 외부 발송 — 실행하지 않았고 승인 요청도 만들지 않았다. 사장님이 보고 직접 요청한다.
   const heldItems = heldForJobs(record.steps.flatMap((s) => s.jobIds));
   if (heldItems.length > 0) {

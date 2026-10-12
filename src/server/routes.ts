@@ -2926,9 +2926,11 @@ export function registerRoutes(app: Hono): void {
   // 메일 인박스 스캔 수동 트리거 (자동은 하루 2회 09:00/17:00 KST — mail-scan.ts)
   app.post("/api/mail-scan", async (c) => {
     const { runMailScan } = await import("./mail-scan.js");
-    const result = await runMailScan();
-    if (!result) return c.json({ ok: false, error: "Gmail 수집 실패 (claude CLI 미설치·미인증 또는 스캔 진행 중)" }, 502);
-    return c.json({ ok: true, ...result });
+    const out = await runMailScan();
+    // 결과 봉투: 진행 중(skipped)·실패(failed)는 성공처럼 보이지 않게 상태 코드를 가른다.
+    if (out.status === "skipped") return c.json({ ok: false, status: out.status, error: out.error }, 409);
+    if (out.status === "failed") return c.json({ ok: false, status: out.status, error: out.error }, 502);
+    return c.json({ ok: true, status: out.status, ...(out.error ? { error: out.error } : {}), ...out.data });
   });
 
   // 프로젝트 4대 분류 현황 — 카테고리별 프로젝트 목록

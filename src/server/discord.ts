@@ -364,15 +364,19 @@ async function buildAgentsEmbed(EmbedBuilder: unknown): Promise<unknown> {
 }
 
 /** 모든 페어링된 채널에 알림 발송 (브릿지 비활성/미페어링 시 안전한 no-op). */
-export async function sendDiscordNotice(text: string): Promise<void> {
-  if (!discordClient) return;
+/** @returns 한 곳 이상에 실제로 전달했으면 true. 미연동이거나 전부 실패하면 false. */
+export async function sendDiscordNotice(text: string): Promise<boolean> {
+  if (!discordClient) return false;
+  let delivered = false;
   for (const ch of getPairedChannels()) {
     try {
       await sendDiscordMessage(ch.channelId, text);
+      delivered = true;
     } catch (err) {
       console.warn(`[Discord] notice 발송 실패 (channelId=${ch.channelId}):`, err instanceof Error ? err.message : err);
     }
   }
+  return delivered;
 }
 
 // ============================================================

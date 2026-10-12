@@ -66,6 +66,19 @@
 - `src/server/provenance.ts`, `scripts/provenance-test.ts`, `scripts/provenance-integration-test.ts` (새로 생성)
 - `src/server/chat.ts`, `src/server/job-notify-gate.ts`, `src/server/external-actions.ts`, `src/server/side-effect-gate.ts`, `src/server/routes.ts`, `src/server/external-inbound.ts`, `src/mcp/safefs-server.ts`, `src/server/loops/runner.ts`, `package.json` (수정)
 
+### Stage 4 M3: 결과 상태 ✅
+
+**작업 내역**:
+
+1. 실측: 메일 스캔 실패가 `null`로 묻히고, 텔레그램 전달 기록이 실제와 무관하게 true였음을 확인.
+2. 공용 결과 봉투(ok·empty·partial·failed·skipped) → 메일 스캔이 봉투를 돌려주고 실패는 «확인 못 함»으로 알림, 분류 누락은 partial과 다이제스트 꼬리말.
+3. 텔레그램·디스코드 notice가 실제 전달 여부를 돌려주게 하고, 루프 요약에 실패·부분 스텝 꼬리말.
+
+**생성/수정 파일**:
+
+- `src/shared/result-envelope.ts`, `scripts/result-envelope-test.ts`, `scripts/mail-scan-outcome-test.ts` (새로 생성)
+- `src/server/mail-scan.ts`, `src/server/telegram.ts`, `src/server/discord.ts`, `src/server/routes.ts`, `src/server/loops/runner.ts`, `package.json` (수정)
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -97,6 +110,9 @@
 | G17 | PASS | 8 passed, 0 failed | 2026-10-13 |
 | G18 | PASS | 3 passed, 0 failed (임시 MYCREW_HOME, 실제 받은 메시지로 대조) | 2026-10-13 |
 | G6 | PASS | `tsc --noEmit` 종료 코드 0 (M2 이후) | 2026-10-13 |
+| G19 | PASS | 5 passed, 0 failed | 2026-10-13 |
+| G20 | PASS | 7 passed, 0 failed (가짜 claude·알림, 임시 MYCREW_HOME) | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M3 이후) | 2026-10-13 |
 
 ## Error Log
 
@@ -114,8 +130,8 @@
 
 | Question | Answer |
 | --- | --- |
-| 1. 현재 어느 단계인가? | Stage 4 M2 완료(브랜치 `cycle4/stage4-gates`), Stage 1은 아난 라벨 대기 |
-| 2. 다음에 할 일은? | Stage 4 M3 결과 상태 → M4 → M5. Stage 1 라벨이 오면 집계 |
+| 1. 현재 어느 단계인가? | Stage 4 M3 완료(브랜치 `cycle4/stage4-gates`), Stage 1은 아난 라벨 대기 |
+| 2. 다음에 할 일은? | Stage 4 M4 레인 필수 필드·티어 → M5. Stage 1 라벨이 오면 집계 |
 | 3. 목표는? | 정책을 도구 스키마에 두고, 싱글 기본 + 개발·인제스트·QA 레인 |
 | 4. 지금까지 배운 것? | findings.md — 측정 도구부터 외부 정답과 대조할 것 |
-| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기, Stage 1 파일럿, Stage 4 M1 승인 계약, M2 출처 표시 |
+| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기, Stage 1 파일럿, Stage 4 M1 승인 계약, M2 출처 표시, M3 결과 상태 |

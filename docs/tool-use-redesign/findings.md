@@ -85,6 +85,13 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - 워커 결과는 지니에게 경계 없이 «후속 조치 즉시 수행» 지시와 함께 전달됐다(`job-notify-gate.ts`).
 - 루프 잡은 `taskTitle`이 `[루프 <id>] <step>`, 루틴은 `[루틴…`으로 시작한다 — 무인 실행 판별에 쓴다.
 
+### Stage 4 M3 착수 전 실측 (2026-10-13)
+
+- `runMailScan`은 수집 실패·파싱 실패·분류 실패·이미 실행 중을 모두 `null`로 돌려주고, 자동 회차는 결과를 버렸다. 실패한 날은 «메일 없음»과 구별되지 않았다.
+- 모델이 분류에서 스레드를 빠뜨리면 조용히 다이제스트에서 사라졌다(누락 건수 표시 없음).
+- `relayDigest`는 예외만 없으면 `telegram: true`로 기록했는데, `sendTelegramNotice`는 토큰이 없거나 전부 실패해도 예외 없이 끝났다 — 전달 기록이 거짓이었다.
+- 루프 요약은 실패 스텝을 «결과: 오류로 중단» 한 줄로만 보였다.
+
 ## Technical Decisions
 
 | Decision | Rationale |
@@ -98,6 +105,9 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 | 발송 마커는 기본 미처리, 지니 출력 경로만 `genieOutput: true`로 켠다 | 호출부 78곳 중 지니 출력은 한 곳. 기본을 닫아 두면 새 호출부가 생겨도 안전하다 |
 | 외부 내용은 경계로 감싸고 안쪽 마커를 전각 `［`로 바꾼다 | 사람은 그대로 읽고, 기계는 마커로 인식하지 않는다. 끝 표식 위조 불가 |
 | 무인 실행(루프·루틴) 발송은 승인 카드 없이 보류, 결과 요약에 표시 | 아난 승인 계획. 새벽 승인 카드에 졸면서 누르는 경로를 없앤다. 사람이 보고 다시 요청하면 그때 승인 카드 |
+| 결과 봉투는 `src/shared/`에 순수 모듈로 | 서버·스크립트·클라이언트가 같은 상태 어휘를 쓴다(SSOT) |
+| 메일 스캔 실패는 사장님에게 알린다, 결과 없음은 조용히 | knowledge-work-plugins «absent is not zero»·«조용한 다이제스트가 성공». 실패를 침묵하면 결과 없음과 같아 보인다 |
+| 메일 스캔에 의존성 주입(`runClaude`·`announce`) | 실패 경로를 실제 함수로 재현하기 위해. 기본값은 기존 동작 |
 | 파트너 회신 마커(지니 내부 턴)는 보류가 아니라 승인 카드 | 파트너 문의 → 지니 초안 → 사장님 승인이 설계된 흐름. 보류하면 회신이 막힌다 |
 | 원장은 고치지 않고 읽을 때 등급을 붙인다 | append-only 원장의 소급 수정은 날조. legacy 로그값은 보존하고 재산정은 따로 낸다 |
 | 테스트 기대값은 라이브 원장 cli 행 | 설계자가 정한 기대값은 검증자=설계자(mandela #5) |
@@ -182,6 +192,7 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - 외부 발송 판정: `src/server/side-effect-gate.ts`, 집행: `src/server/external-actions.ts`
 - 승인 훅: `scripts/mcp-approval-hook.mjs`
 - 출처 표시: `src/server/provenance.ts`
+- 결과 봉투: `src/shared/result-envelope.ts`
 - [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) `02ffa99`
 - 배포 패치 적용 루프: `~/.local/bin/soloforce2-update` (라이브 WSL)
 
