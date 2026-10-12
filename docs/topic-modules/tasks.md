@@ -10,7 +10,7 @@ SPF용 에이전트를 복제하는 게 아니라, 주제 설정 파일을 받�
 
 ## Current Phase
 
-🔄 T2: 모듈 형식과 로더
+🔄 T3: 역할 에이전트
 
 ## Phases
 
@@ -18,11 +18,11 @@ SPF용 에이전트를 복제하는 게 아니라, 주제 설정 파일을 받�
 
 - [x] 스키마·검사기·예시 (gate: T1-G1, T1-G2)
 
-### T2: 모듈 형식과 로더 🔄
+### T2: 모듈 형식과 로더 ✅
 
-- [ ] `modules/<id>/module.json`, 루프 템플릿 × 활성 주제
+- [x] `modules/<id>/module.json`, 루프 템플릿 × 활성 주제, 파일 루프 우선 (gate: T2-G1)
 
-### T3: 역할 에이전트 ⏸️
+### T3: 역할 에이전트 🔄
 
 - [ ] 역할 4개, `spf-*` 별칭, QA·범주 목록을 플래그·사업 단위에서
 
@@ -44,6 +44,7 @@ SPF용 에이전트를 복제하는 게 아니라, 주제 설정 파일을 받�
 | --- | --- | --- | --- |
 | T1-G1 | 주제 설정 형식이 필수 값·형식을 강제하고 오류에 값을 싣지 않는다 | `npx tsx scripts/topic-config-test.ts` | hard |
 | T1-G2 | 리포 예시 주제 설정이 형식을 통과한다 | `npx tsx scripts/topic-check.ts --file config/topics/example.topic.yaml` | hard |
+| T2-G1 | 모듈 × 주제가 켜진 템플릿만 루프로 만들고, 없는 값은 거부하고, 같은 id 파일 루프가 우선한다 | `npx tsx scripts/topic-modules-test.ts` | hard |
 
 ## Descoped
 
