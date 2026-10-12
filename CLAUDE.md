@@ -43,6 +43,14 @@
 - 도구에는 등급(`read`·`write`·`external`)을 붙이고, 읽기 전용 단계의 도구 묶음에 쓰기 등급이 없음을 테스트로 고정한다. `external`은 사람이 발급한 승인 없이 실행되지 않는다.
 - 대상이 없으면 조용히 넘어가지 않고 MISS로 보고하고 0이 아닌 종료 코드를 낸다.
 
+정본 모듈(이 규칙들을 강제하는 곳 — 새 경로는 여기를 가져다 쓴다):
+
+- 외부 발송: 모델은 요청만, 사람 승인 뒤 서버가 보관 내용을 그대로 보낸다 — 판정 `src/server/side-effect-gate.ts`, 집행 `src/server/external-actions.ts`. 외부 발송 경로를 새로 만들 때는 `requestExternalAction`을 거친다.
+- 출처: 지니 자신의 말이 아닌 내용은 `src/server/provenance.ts`로 감싼다. `addGenieMessage`는 `genieOutput: true`일 때만 발송 마커를 실행한다. 루틴·루프 인스턴스 잡의 외부 발송은 보류된다.
+- 결과: 조회 결과는 `src/shared/result-envelope.ts` 봉투로 — 실패를 «0건»이나 침묵으로 바꾸지 않는다.
+- 모델: 위임은 `tier`로만(`resolveDelegateModel`), 내부 source는 `src/server/internal-source-tier.ts` 표에 등록한다(미등록은 standard + 경고). 레인 정의 검사 `scripts/lane-check.ts`.
+- 업무 맥락: 형식 `src/shared/business-context.ts`·`config/business-context.example.yaml`, 값은 `history/business-context.yaml`(커밋 금지). 검사 `scripts/business-context-check.ts`.
+
 ## 앱 규약
 
 - 앱 추가·제거는 `src/server/app-registry.ts` 등록이 정본이다. 레지스트리에 없는 apps/ 폴더는 아카이브 대상 후보다.

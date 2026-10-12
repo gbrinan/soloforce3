@@ -93,6 +93,19 @@
 - `scripts/lane-check.ts`, `scripts/delegate-tier-test.ts` (새로 생성)
 - `src/server/model-tiers.ts`, `src/server/jobs.ts`, `src/server/routes.ts`, `src/mcp/safefs-server.ts`, `src/server/internal-source-tier.ts`, `src/server/chat.ts`, `scripts/internal-source-tier-test.ts`, `package.json` (수정)
 
+### Stage 4 M5: 업무 맥락 형식 ✅
+
+**작업 내역**:
+
+1. 스키마(`src/shared/business-context.ts`, zod strict) — 국가·통화 ISO, 회계연도 MM-DD 실제 날짜, IANA 시간대, 사업 단위 1개 이상·id 중복 없음, 연결 도구는 범주 키, 출력 선호.
+2. 예시 `config/business-context.example.yaml`(실제 사업 정보 없음), 검사기 `scripts/business-context-check.ts`(기본 대상은 history 값 파일, 없으면 MISS 2).
+3. CLAUDE.md에 Stage 4 정본 모듈 위치 기록.
+
+**생성/수정 파일**:
+
+- `src/shared/business-context.ts`, `config/business-context.example.yaml`, `scripts/business-context-check.ts`, `scripts/business-context-test.ts` (새로 생성)
+- `CLAUDE.md`, `package.json` (수정)
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -101,6 +114,7 @@
 | 단가 보정(수정 후) | 같은 4건 | CLI 값 ±1% | 4건 모두 ±1% | ✅ |
 | 원장 리포트 | 라이브 원장 30일 | 등급별 분리 | 의사결정용 $190.32 / legacy 로그 $1,272.31 → 재산정 $214.94 / unpriced 104행 | ✅ |
 | 원장 파일 없음 | 없는 경로 | MISS, 종료 코드 2 | MISS, 2 | ✅ |
+| 업무 맥락 라이브 값 | `MYCREW_HOME=C:/mycrew/mycrew-program` 검사기 | 아직 없음 → MISS 2 | MISS, 2 | ✅ (아난 작성 대기) |
 
 ## Gate Evidence
 
@@ -133,6 +147,9 @@
 | G23 | PASS | internal source model routing: PASS (미등록 3케이스 추가) | 2026-10-13 |
 | G24 | PASS | 라이브 26개 정의 · FAIL 0 · WARN 26(전부 L2) — 읽기 전용 | 2026-10-13 |
 | G6 | PASS | `tsc --noEmit` 종료 코드 0 (M4 이후) | 2026-10-13 |
+| G25 | PASS | 9 passed, 0 failed (검사기 종료 코드 0·1·2 포함) | 2026-10-13 |
+| G26 | PASS | 사업 단위 2개, 연결 범주 4개 — 종료 코드 0 | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M5 이후) | 2026-10-13 |
 
 ## Error Log
 
@@ -151,8 +168,8 @@
 
 | Question | Answer |
 | --- | --- |
-| 1. 현재 어느 단계인가? | Stage 4 M4 완료(브랜치 `cycle4/stage4-gates`), Stage 1은 아난 라벨 대기 |
-| 2. 다음에 할 일은? | Stage 4 M5 업무 맥락 형식. Stage 1 라벨이 오면 집계 |
+| 1. 현재 어느 단계인가? | Stage 4 «높음» 4건 + 업무 맥락 형식(M1~M5) 완료(브랜치 `cycle4/stage4-gates`, PR 전). Stage 1은 아난 라벨 대기 |
+| 2. 다음에 할 일은? | PR 여부는 아난 결정. Stage 4 남은 항목(훅 2종·도구 등급), 업무 맥락 값 작성(아난). Stage 1 라벨이 오면 집계 |
 | 3. 목표는? | 정책을 도구 스키마에 두고, 싱글 기본 + 개발·인제스트·QA 레인 |
 | 4. 지금까지 배운 것? | findings.md — 측정 도구부터 외부 정답과 대조할 것 |
-| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기, Stage 1 파일럿, Stage 4 M1 승인 계약, M2 출처 표시, M3 결과 상태, M4 레인·티어 |
+| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기, Stage 1 파일럿, Stage 4 M1 승인 계약, M2 출처 표시, M3 결과 상태, M4 레인·티어, M5 업무 맥락 형식 |
