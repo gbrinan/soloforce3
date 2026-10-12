@@ -92,7 +92,8 @@ import { checkPartnerRequestRate } from "./external-rate-limit.js";
 import { createPartner as createPartnerForCallback, getPartnerWithTokens } from "./partners.js";
 import { randomBytes } from "node:crypto";
 import { clearPmSession, loadPmSessionInfo } from "./pm-memory.js";
-import { getBusyAgentIds, getActiveJobIdForAgent, setJobSummary, activatePausedJobs, pauseJobForDeps, setJobTaskMeta } from "./jobs.js";
+import { getBusyAgentIds, getActiveJobIdForAgent, setJobSummary, activatePausedJobs, pauseJobForDeps, setJobTaskMeta, setJobModel } from "./jobs.js";
+import { resolveDelegateModel } from "./model-tiers.js";
 import { getGenieAgent } from "../agents/genie.js";
 import { readArchivedJob } from "./audit.js";
 import { getAllWorkerAgents, getWorkerAgent, resolveWorkerRuntime } from "../agent-registry.js";
@@ -824,6 +825,7 @@ export function registerRoutes(app: Hono): void {
       taskId?: string;
       taskTitle?: string;
       effort?: string;
+      tier?: string;
     },
     options: { external: boolean; externalAgentId?: string },
   ) {
@@ -863,6 +865,10 @@ export function registerRoutes(app: Hono): void {
       : (fallbackInstance ?? getOrCreateTaskForTurn(turnId, taskTitle, body.taskId));
     addTodoToTask(task.id, todo.id);
     if (task.routineType === "instance") setTodoRoutineInfo(todo.id, "instance", task.masterTaskId, task.cronExpr);
+    // 모델은 티어 이름으로만 고른다 — 호출자 tier > 루프 스텝이 태스크에 고정한 모델 > 에이전트 정의 모델.
+    // 모르는 티어는 기본 모델로 새지 않게 거부한다(model-tiers.ts resolveDelegateModel).
+    const modelPick = resolveDelegateModel(body.tier, (task as typeof task & { model?: string }).model);
+    if (modelPick.error) throw new Error(modelPick.error);
     const job = createJob(
       request,
       body.projectName?.trim(),
@@ -882,6 +888,7 @@ export function registerRoutes(app: Hono): void {
       body.skipOutput !== false,
     );
     setJobTaskMeta(job.id, task.id, task.instruction);
+    if (modelPick.model) setJobModel(job.id, modelPick.model);
     // ACK 페이로드
     const port = process.env.PORT ?? 3456;
     const callbackBase = `http://127.0.0.1:${port}/api/delegate/callback`;
@@ -925,6 +932,7 @@ export function registerRoutes(app: Hono): void {
       taskId?: string;
       taskTitle?: string;
       effort?: string;
+      tier?: string;
     }>().catch(() => null);
     if (!body?.request?.trim()) {
       return c.json({ error: "request is required" }, 400);

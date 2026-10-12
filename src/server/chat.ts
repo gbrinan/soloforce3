@@ -2234,7 +2234,8 @@ ${tagSection}`;
   // 내부 발화는 source 별로 모델 티어를 고정한다(internal-source-tier.ts).
   // cheap: 단순 안내성(job:notify:ok·scheduler:notify·scheduler:state-change)
   // standard: 정형이지만 후속 판단이 필요한 발화(job:notify:fail·loop:runner·scheduler:trigger·task:report)
-  // 표에 없는 source(job:report·사용자 채팅)는 undefined → 기본 모델 유지.
+  // job:report 는 기본 모델 유지(DEFAULT_MODEL_SOURCES), 사용자 채팅은 내부 호출이 아니라 해당 없음.
+  // 표에 없는 내부 source 는 standard + 경고(2026-10-13) — 기본 모델로 새지 않는다.
   const lightModel = modelForInternalSource(isInternal, options?.source);
   // 원장(cost-log)에 남길 발화 출처. 모델 티어와 «같은 값»을 쓴다 —
   // 두 곳이 다른 어휘를 쓰면 "모델은 haiku 인데 태그는 다른 이름"이 된다.

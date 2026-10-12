@@ -92,6 +92,14 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - `relayDigest`는 예외만 없으면 `telegram: true`로 기록했는데, `sendTelegramNotice`는 토큰이 없거나 전부 실패해도 예외 없이 끝났다 — 전달 기록이 거짓이었다.
 - 루프 요약은 실패 스텝을 «결과: 오류로 중단» 한 줄로만 보였다.
 
+### Stage 4 M4 착수 전 실측 (2026-10-13)
+
+- `DelegateTask`·`/api/delegate`에 모델·티어 필드가 없었다. 잡 모델은 `job.model ?? agentDef.model`이고 둘 다 없으면 `--model` 없이 CLI 기본.
+- 루프 스텝 `model_tier`는 `setTaskModel`로 태스크에 저장만 되고 읽는 곳이 없었다. runner.ts 주석은 «DelegateTask 핸들러가 적용한다»고 했지만 그런 코드는 없었다.
+- `modelForInternalSource`는 표에 없는 내부 source를 `undefined`(기본 모델 opus)로 돌려줬다 — 2026-09-24 비용 누수의 같은 꼴.
+- 조사 보고의 «워커 잡 비용 로그에 source 없음»은 틀렸다 — `logCost(..., "worker:execute")` 등으로 이미 남는다.
+- 레인 검사 결과: 리포 시드 32개 FAIL 0(모델 ID 직접 사용 WARN 31, bypass 권한 genie·qa·spf-comms WARN 3). 라이브 `history/agents.json` 26개 FAIL 0, WARN 26(전부 모델 ID). 시드에선 qa·spf-comms가 workspace인데 라이브 정의엔 권한 값이 없다 — meta.json은 agents.json에 없는 직원만 자동 등록하므로, 라이브는 시드와 별개로 움직인다.
+
 ## Technical Decisions
 
 | Decision | Rationale |
@@ -105,6 +113,9 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 | 발송 마커는 기본 미처리, 지니 출력 경로만 `genieOutput: true`로 켠다 | 호출부 78곳 중 지니 출력은 한 곳. 기본을 닫아 두면 새 호출부가 생겨도 안전하다 |
 | 외부 내용은 경계로 감싸고 안쪽 마커를 전각 `［`로 바꾼다 | 사람은 그대로 읽고, 기계는 마커로 인식하지 않는다. 끝 표식 위조 불가 |
 | 무인 실행(루프·루틴) 발송은 승인 카드 없이 보류, 결과 요약에 표시 | 아난 승인 계획. 새벽 승인 카드에 졸면서 누르는 경로를 없앤다. 사람이 보고 다시 요청하면 그때 승인 카드 |
+| 위임 모델: 호출자 tier > 태스크 고정 모델 > 에이전트 정의, 모르는 티어는 거부 | 모델 ID를 호출자가 직접 쓰지 못하게(«설정에는 티어 이름»). 무시하면 기본 모델로 새는 경로가 된다 |
+| `job:report`는 표에 «기본 모델 유지»로 명시, 그 밖의 미등록 내부 source는 standard + 경고 | 아난 결정. job:report는 사장님이 그대로 읽는 문장이라 기존 의도 유지. frontier로 박지 않은 이유: genie-config 모델 선택을 덮어쓰게 된다 |
+| 레인 검사: model 없음·없는 MCP 참조만 FAIL, 모델 ID·bypass 권한은 WARN | 시드 전체가 모델 ID를 쓴다. 지금 FAIL로 하면 게이트가 항상 빨갛게 되고 아무도 안 본다 |
 | 결과 봉투는 `src/shared/`에 순수 모듈로 | 서버·스크립트·클라이언트가 같은 상태 어휘를 쓴다(SSOT) |
 | 메일 스캔 실패는 사장님에게 알린다, 결과 없음은 조용히 | knowledge-work-plugins «absent is not zero»·«조용한 다이제스트가 성공». 실패를 침묵하면 결과 없음과 같아 보인다 |
 | 메일 스캔에 의존성 주입(`runClaude`·`announce`) | 실패 경로를 실제 함수로 재현하기 위해. 기본값은 기존 동작 |
@@ -204,6 +215,7 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - 승인 훅: `scripts/mcp-approval-hook.mjs`
 - 출처 표시: `src/server/provenance.ts`
 - 결과 봉투: `src/shared/result-envelope.ts`
+- 위임 모델 해석: `src/server/model-tiers.ts` `resolveDelegateModel`, 레인 검사: `scripts/lane-check.ts`
 - [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) `02ffa99`
 - 배포 패치 적용 루프: `~/.local/bin/soloforce2-update` (라이브 WSL)
 

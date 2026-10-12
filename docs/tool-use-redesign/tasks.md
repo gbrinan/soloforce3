@@ -49,7 +49,7 @@
 - [x] M1 승인 저장소 external 규칙 — 지니 의견·자동 규칙·반복 이력 미적용 (gate: G16)
 - [x] M2 출처 표시 — 워커 결과 경계·마커 무력화, 발송 마커는 지니 출력만, 무인 루프 발송은 보류 목록, 승인 카드에 요청 주체 (gate: G17, G18)
 - [x] M3 결과 상태 — 공용 봉투(ok·empty·partial·failed·skipped), 메일 스캔 실패는 «확인 못 함» 알림·일부 누락은 partial, 텔레그램·디스코드 전달 여부는 실제 결과, 루프 요약에 실패 스텝 꼬리말 (gate: G19, G20)
-- [ ] M4 DelegateTask `tier`, 미등록 내부 source는 standard 티어 + 경고, 레인 필수 필드 검사
+- [x] M4 DelegateTask `tier`(모델 ID는 티어 표에서만, 모르는 티어 거부), 루프 스텝 model_tier를 실제 잡에 적용, 미등록 내부 source는 standard + 경고, 레인 정의 검사기 (gate: G21, G22, G23, G24)
 - [ ] M5 업무 맥락 형식(스키마·예시·검사기는 리포, 값은 `history/business-context.yaml`)
 - [ ] 훅 2종 복구(stop-response-hook·agent-event-hook)
 - [ ] 도구 등급(read·write·external)과 읽기 전용 단계 테스트
@@ -78,6 +78,10 @@
 | G18 | 다른 곳에서 온 내용의 회신 마커는 실행되지 않고, 무인 실행 발송은 보류된다 | `npx tsx scripts/provenance-integration-test.ts` | hard |
 | G19 | 결과 봉투가 «없음»과 «확인 못 함»을 가른다 | `npx tsx scripts/result-envelope-test.ts` | hard |
 | G20 | 메일 스캔이 실패·결과 없음·일부 누락·진행 중을 구분하고 실패를 알린다 | `npx tsx scripts/mail-scan-outcome-test.ts` | hard |
+| G21 | 위임 모델은 티어로만 정해지고 모르는 티어는 거부된다, 레인 검사 규칙이 동작한다 | `npx tsx scripts/delegate-tier-test.ts` | hard |
+| G22 | 리포 시드 레인 정의에 model 없는 것·없는 MCP 참조가 없다 | `npx tsx scripts/lane-check.ts` | hard |
+| G23 | 미등록 내부 source가 기본 모델로 새지 않는다 | `npx tsx scripts/internal-source-tier-test.ts` | hard |
+| G24 | 라이브 레인 정의(읽기 전용)에 FAIL이 없다 | `lane-check.ts --agents <라이브 history/agents.json> --registry <라이브 mcp-registry.json>` 결과 기록 | real-surface |
 
 ## Descoped
 
@@ -92,6 +96,8 @@
 | `worker-pty.ts` 훅 배선 | 파일 주석상 pty-adapter 미등록으로 도달 불가 | 해당 경로가 살아나면 terminal-ws와 같은 배선 |
 | 승인 API 토큰 노출 여부 | 이번 범위 밖 | findings «Issues Encountered» 5 |
 | 지니 내부 턴(워커 결과 알림 등)이 낸 텔레그램·디스코드 회신 마커 | 받는 쪽이 사장님 본인 채널이라 외부 발송이 아니다. 최악은 사장님에게 오는 잡음 | findings «Stage 4 M2» |
+| 시드·라이브의 모델 ID를 티어 이름으로 옮기기 | 레인 검사는 경고(L2)로만 센다. 옮기면 runWorkerAgent·어댑터가 티어를 해석해야 해 범위가 커진다 | lane-check WARN L2 |
+| 워커 잡 비용 로그의 source 기록 | 실측해 보니 이미 `worker:plan`·`worker:execute` 등으로 남고 있었다(조사 보고와 다름) | findings «Stage 4 M4» |
 | 다른 커넥터·브리핑 루프의 결과 봉투 적용 | 이번엔 공용 형식과 실패가 가장 조용하던 메일 스캔·루프 요약만. 나머지는 봉투를 가져다 쓰면 된다 | `src/shared/result-envelope.ts` |
 | 보류 목록의 영속 저장 | 서버 재시작 시 사라진다. 보류는 «보내지 않음»이라 사라져도 안전하고, 루프 결과 요약에 이미 실렸다 | `src/server/external-actions.ts` |
 | `npm test` 전체를 게이트로 쓰기 | `route-keyword-collision-test`가 실 `history/agents.json`에 의존해 새 체크아웃에서 실패 | findings.md «Issues Encountered» 1 |

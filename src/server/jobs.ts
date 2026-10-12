@@ -923,6 +923,11 @@ export function setJobTaskMeta(jobId: string, taskId?: string, taskTitle?: strin
   const j = jobs.get(jobId);
   if (j) { j.taskId = taskId; j.taskTitle = taskTitle; saveJobs(); }
 }
+/** 위임 잡의 모델 고정 — runWorkerAgent가 job.model을 에이전트 기본 모델보다 우선한다. 값은 resolveDelegateModel이 정한다. */
+export function setJobModel(jobId: string, model: string): void {
+  const j = jobs.get(jobId) as (Job & { model?: string }) | undefined;
+  if (j) { j.model = model; saveJobs(); }
+}
 export function pauseJobForDeps(jobId: string, depIds: string[]): void {
   const j = jobs.get(jobId);
   if (!j) return;

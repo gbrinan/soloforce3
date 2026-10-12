@@ -38,6 +38,28 @@ export function pickModel(
   return tierModel ?? null;
 }
 
+export const MODEL_TIERS: readonly ModelTier[] = ["cheap", "standard", "frontier"];
+
+export function isModelTier(v: unknown): v is ModelTier {
+  return typeof v === "string" && (MODEL_TIERS as readonly string[]).includes(v);
+}
+
+/**
+ * 위임 잡의 모델 — 호출자 티어 > 태스크에 고정된 모델(루프 스텝 model_tier, runner.ts setTaskModel) > 없음(에이전트 정의 모델).
+ * 호출자는 모델 ID를 직접 쓰지 못하고 티어 이름만 쓴다(CLAUDE.md «스키마와 설정에는 티어 이름»).
+ * 모르는 티어는 조용히 무시하지 않고 오류로 돌려준다 — 무시하면 기본 모델(opus)로 새는 경로가 된다.
+ */
+export function resolveDelegateModel(
+  tier: unknown,
+  taskModel?: string | null,
+): { model?: string; error?: string } {
+  if (tier !== undefined && tier !== null && tier !== "") {
+    if (!isModelTier(tier)) return { error: `unknown-tier: "${String(tier)}" (허용: ${MODEL_TIERS.join(", ")})` };
+    return { model: resolveTier(tier) };
+  }
+  return taskModel ? { model: taskModel } : {};
+}
+
 /**
  * 티어 승격(escalation) — 실패 재시도 시 값싼 모델→상위 모델로 한 단계 올리기 위한 순수 매핑.
  * cheap→standard, standard→frontier, frontier→frontier(이미 최상위 — no-op).
