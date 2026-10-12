@@ -109,6 +109,7 @@
 | G6 | PASS | `tsc --noEmit` 종료 코드 0 (M1 이후) | 2026-10-13 |
 | G17 | PASS | 8 passed, 0 failed | 2026-10-13 |
 | G18 | PASS | 3 passed, 0 failed (임시 MYCREW_HOME, 실제 받은 메시지로 대조) | 2026-10-13 |
+| G18 | PASS | 5 passed, 0 failed (무인 판별 수정 후 — 실제 루틴 인스턴스 태스크 포함) | 2026-10-13 |
 | G6 | PASS | `tsc --noEmit` 종료 코드 0 (M2 이후) | 2026-10-13 |
 | G19 | PASS | 5 passed, 0 failed | 2026-10-13 |
 | G20 | PASS | 7 passed, 0 failed (가짜 claude·알림, 임시 MYCREW_HOME) | 2026-10-13 |
@@ -123,6 +124,7 @@
 | 2026-10-07 | 원장 테스트 기대값 손계산 오류(1154×5) | 1 | 기대값 $0.033273으로 정정 |
 | 2026-10-07 | qa-artifact-base-test 통과 후 미종료로 체인 정지 | 1 | 성공 경로 `process.exit(0)` (findings 3) |
 | 2026-10-13 | 승인 훅 종료 코드 0xC0000409 | 1 | `node:http`+자연 종료 (findings 4) |
+| 2026-10-13 | M2 무인 실행 판별이 루프 잡에서 불일치(저장된 taskTitle은 프롬프트 원문) | 1 | 태스크 routineType 판별로 교체 (findings 6) |
 
 ## 5-Question Reboot Check
 

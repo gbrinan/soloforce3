@@ -1,7 +1,7 @@
 // 출처 표시 단위 테스트 (G17) — src/server/provenance.ts, 워커 결과 알림 포맷, 승인 미리보기의 요청 주체.
 //   npx tsx scripts/provenance-test.ts
 import assert from "node:assert/strict";
-import { fenceUntrusted, isUnattendedTaskTitle, neutralizeMarkers } from "../src/server/provenance.js";
+import { fenceUntrusted, isUnattendedTask, neutralizeMarkers } from "../src/server/provenance.js";
 import { formatBatchedGenieNotice } from "../src/server/job-notify-gate.js";
 import { formatPreview, previewHash, type ExternalAction } from "../src/server/side-effect-gate.js";
 
@@ -52,13 +52,12 @@ test("지니 알림(여러 건)도 각 결과를 경계 안에 넣는다", () =>
   assert.ok(!notice.includes("[REPLY_TO_TELEGRAM"));
 });
 
-test("무인 실행 판별 — 루프·루틴 잡", () => {
-  assert.equal(isUnattendedTaskTitle("[루프 spf-mail-scan] scan"), true);
-  assert.equal(isUnattendedTaskTitle("[루틴·주간 보고] 1회차"), true);
-  assert.equal(isUnattendedTaskTitle("[루틴 아침 브리핑]"), true);
-  assert.equal(isUnattendedTaskTitle("메일 루프 점검해줘"), false);
-  assert.equal(isUnattendedTaskTitle(undefined), false);
-  assert.equal(isUnattendedTaskTitle(""), false);
+test("무인 실행 판별 — 루틴 인스턴스 태스크만", () => {
+  assert.equal(isUnattendedTask({ routineType: "instance" }), true);
+  assert.equal(isUnattendedTask({ routineType: "master" }), false);
+  assert.equal(isUnattendedTask({}), false);
+  assert.equal(isUnattendedTask(undefined), false);
+  assert.equal(isUnattendedTask(null), false);
 });
 
 test("승인 미리보기는 요청 주체를 보이되 해시에는 넣지 않는다", () => {

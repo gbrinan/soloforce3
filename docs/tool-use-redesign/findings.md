@@ -83,7 +83,7 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - `addGenieMessage`(chat.ts)는 내용과 무관하게 `[REPLY_TO_PARTNER]`·`[REPLY_TO_TELEGRAM]`·`[REPLY_TO_DISCORD]` 마커를 실행했다. 이 함수는 워커 결과 원문(jobs.ts 사용자 표시), 루프 결과 요약(on_success=full이면 산출물 본문), 메일 다이제스트도 싣는다 — 메일 본문에 마커 문자열을 넣으면 발송이 일어나는 경로였다.
 - 지니 자신의 출력이 이 함수로 들어오는 곳은 PTY `post_message`(`/api/terminal/message`) 하나다. 헤드리스 채팅 응답은 `_sendMessageImpl`이 따로 마커를 처리한다.
 - 워커 결과는 지니에게 경계 없이 «후속 조치 즉시 수행» 지시와 함께 전달됐다(`job-notify-gate.ts`).
-- 루프 잡은 `taskTitle`이 `[루프 <id>] <step>`, 루틴은 `[루틴…`으로 시작한다 — 무인 실행 판별에 쓴다.
+- ~~루프 잡은 `taskTitle`이 `[루프 <id>] <step>`으로 시작한다~~ — 틀렸다(아래 Issues 6). 무인 실행 판별은 잡이 묶인 태스크의 `routineType === "instance"`로 한다.
 
 ### Stage 4 M3 착수 전 실측 (2026-10-13)
 
@@ -166,6 +166,16 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 
 **결과**: 미해결(후속)
 
+### 6. M2 무인 실행 판별이 루프 잡에서 한 번도 맞지 않았음
+
+**문제**: M2는 잡 `taskTitle`이 `[루프 …]`로 시작하면 무인 실행으로 봤다. M4를 위해 `/api/delegate`를 읽다가, 잡에는 `setJobTaskMeta(job.id, task.id, task.instruction)`로 **태스크 지시문(스텝 프롬프트 원문)**이 저장된다는 것을 확인했다. `[루프 …]` 제목은 요청 본문에만 있고 저장되지 않는다.
+
+**원인**: runner.ts가 보내는 값만 보고, 서버가 실제로 저장하는 값을 확인하지 않았다. 통합 테스트도 `unattended: true`를 직접 넣어 판별 경로를 건너뛰었다.
+
+**해결**: 판별을 «잡이 묶인 태스크가 루틴 인스턴스인가»(`isUnattendedTask`)로 바꿨다. 루프 스텝과 cron 루틴이 모두 `createRoutineInstance`를 쓴다. 통합 테스트에 실제 `tasks.ts`로 만든 인스턴스가 `/api/delegate`의 묶기 경로(`getOrCreateTaskForTurn`)로 판별되는지 추가.
+
+**결과**: 해결됨(라이브 배포 전이라 실제 피해 없음)
+
 ## Negative Corpus
 
 - 잡 `request`를 사람 요청으로 본 Stage 1 첫 설계 — 실제로는 genie의 위임 지시문이라 파일·도구 의존이 숨어 있었다. 파일럿 10건 중 7건이 환경 부재로 멈춤. 비교 단위는 «사람 원문 → 최종 답»이어야 한다.
@@ -174,6 +184,7 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - 재산정 단가로 sonnet-5 $3을 가정한 것 — 공시 단가는 $2. 기억한 단가를 쓰지 말고 공식 표와 CLI 실측으로 확인한다.
 - `.re0/templates/`와 별도 문서로 새 계획 규약을 만들려던 시도 — 리포에 이미 같은 3파일 규약(`templates/`)이 있어 철회.
 - 첫 sonnet fixture 1건만으로 단가를 검증한 것 — 입력·캐시 단가 오차가 서로 상쇄돼 틀린 표로도 통과했다. 출력 위주 행을 더해 판별력을 확보.
+- 보내는 쪽 코드(runner.ts의 `taskTitle`)만 보고 저장되는 값을 가정한 M2 무인 판별 — 경계의 양쪽을 같이 읽어야 한다. 판별 함수에 값을 직접 넣는 테스트는 이 결함을 못 잡는다.
 - python 문자열 치환으로 TS 소스를 고치다 `"\n"`이 실제 줄바꿈으로 들어가 컴파일이 깨졌다 — 이스케이프가 섞인 줄은 Edit 도구로 고친다.
 - 정책 approval 도구를 지니 PTY 권한 조립(`buildPermissionArgs`)에 금지로 넣은 첫 M1 시도 — PTY가 지니의 주 경로라 캘린더 일정 생성까지 막힌다. 승인 카드로 바꿨다.
 

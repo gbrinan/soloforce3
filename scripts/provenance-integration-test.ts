@@ -57,5 +57,24 @@ await test("무인 실행 요청은 승인 카드 없이 보류되고 잡별로 
   assert.equal(ext.heldForJobs(["other-job"]).length, 0);
 });
 
+// 라우트(/api/genie/external-send)가 기대는 데이터 계약: 루프·루틴 잡은 루틴 인스턴스 태스크에 묶인다.
+// (M2 첫 구현은 잡 taskTitle 접두어로 판별했는데, 실제로는 스텝 프롬프트 원문이 저장돼 한 번도 맞지 않았다.)
+const tasks = await import("../src/server/tasks.js");
+const { isUnattendedTask } = await import("../src/server/provenance.js");
+
+await test("루프 스텝 경로(runner.ts)로 만든 인스턴스 태스크는 무인 실행으로 판별된다", () => {
+  const master = tasks.getOrCreateRoutineMaster("주간 거래처 메일 정리", "loop:weekly:send");
+  const instance = tasks.createRoutineInstance(master.id, "주간 거래처 메일 정리");
+  // /api/delegate는 body.taskId(=인스턴스 id)로 이 태스크를 찾아 잡을 묶는다(getOrCreateTaskForTurn).
+  const bound = tasks.getOrCreateTaskForTurn("turn-x", "아무 제목", instance.id);
+  assert.equal(bound.id, instance.id);
+  assert.equal(isUnattendedTask(tasks.getTask(bound.id)), true);
+  assert.equal(isUnattendedTask(tasks.getTask(master.id)), false, "마스터는 실행 단위가 아니다");
+});
+await test("사람이 시킨 일반 태스크는 무인 실행이 아니다", () => {
+  const t = tasks.createTask("genie", "거래처에 견적 회신 보내줘");
+  assert.equal(isUnattendedTask(tasks.getTask(t.id)), false);
+});
+
 console.log(`provenance-integration: ${n} passed, 0 failed`);
 process.exit(0);

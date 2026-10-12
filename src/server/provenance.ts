@@ -34,7 +34,11 @@ export function fenceUntrusted(text: string, attrs: Record<string, string>): str
   ].join("\n");
 }
 
-/** 사람이 지켜보지 않는 실행(루프·루틴)에서 만든 잡인가 — 잡 taskTitle 규약(runner.ts dispatchDirectDelegate). */
-export function isUnattendedTaskTitle(taskTitle: string | undefined | null): boolean {
-  return /^\[(루프|루틴)[\s·.]/.test(taskTitle ?? "");
+/**
+ * 사람이 지켜보지 않는 실행(루프·루틴)에서 만든 잡인가 — 잡이 속한 태스크가 루틴 인스턴스면 그렇다.
+ * 루프 스텝(runner.ts runTaskStep)과 cron 루틴(scheduler.ts)이 모두 createRoutineInstance로 인스턴스를 만들고,
+ * /api/delegate가 잡을 그 태스크에 묶는다(setJobTaskMeta). 잡의 taskTitle은 스텝 프롬프트 원문이라 판별에 쓸 수 없다.
+ */
+export function isUnattendedTask(task: { routineType?: "master" | "instance" } | null | undefined): boolean {
+  return task?.routineType === "instance";
 }

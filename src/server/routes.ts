@@ -75,7 +75,7 @@ import { handleInbound, approveAndReply, rejectAndReply, readFileAsAttachment } 
 import { createBackupZip, restoreFromZip, cleanupBackupFile } from "./data-backup.js";
 import { sendExternal, sendPartnerRequest } from "./external-client.js";
 import { requestExternalAction } from "./external-actions.js";
-import { isUnattendedTaskTitle } from "./provenance.js";
+import { isUnattendedTask } from "./provenance.js";
 import {
   handlePartnerRequest,
   approvePartnerRequest,
@@ -1040,13 +1040,15 @@ export function registerRoutes(app: Hono): void {
     // 루프·루틴 잡에서 온 요청은 사람이 지켜보지 않으므로 승인 카드 없이 보류한다(provenance.ts).
     const jobId = c.req.header("X-Job-Id") || undefined;
     const job = jobId ? getJob(jobId) : undefined;
+    const task = job?.taskId ? getTask(job.taskId) : undefined;
+    const role = c.req.header("X-Agent-Role") ?? "genie";
     const pendingResult = requestExternalAction(
       { kind: "partner-send", target: partnerId, body: message, attachments, meta: { messageType, ourLabel: getGenieName() } },
       {
-        agentRole: c.req.header("X-Agent-Role") ?? "genie",
+        agentRole: role,
         jobId,
-        unattended: isUnattendedTaskTitle(job?.taskTitle),
-        ...(job?.taskTitle ? { origin: `${c.req.header("X-Agent-Role") ?? "genie"} · ${job.taskTitle}` } : {}),
+        unattended: isUnattendedTask(task),
+        ...(task ? { origin: `${role} · ${isUnattendedTask(task) ? "루틴·루프" : "작업"} «${task.instruction.split("\n")[0].slice(0, 60)}»` } : {}),
       },
     );
     return c.json({ ok: true, ...pendingResult });
