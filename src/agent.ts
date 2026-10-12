@@ -12,7 +12,8 @@ import { safeKill } from "./server/utils/platform.js";
 import { OVERLOAD_BACKOFFS_MS, isApiOverloadError, sleep, withJitter } from "./claude-error-retry.js";
 import { startAgentSpan } from "./server/otel-trace.js";
 import { listManifests } from "./server/app-registry.js";
-import { buildMcpServerEntry, getMcpServerDef, resolveCommandPath } from "./server/mcp-registry.js";
+import { buildMcpServerEntry, getMcpServerDef, headlessMcpGrants, resolveCommandPath } from "./server/mcp-registry.js";
+import { getPolicyDisallowedTools } from "./server/service-policies.js";
 import { resolveEffort } from "./server/effort-policy.js";
 import { computeInvocationCost, SessionCostTracker } from "./server/invocation-cost.js";
 
@@ -273,7 +274,7 @@ export function buildPermissionArgs(config: AgentConfig, opts?: { interactive?: 
     "AskUserQuestion", "ExitPlanMode",
     ...(config.extraDisallowedTools ?? []),
   ];
-  args.push("--disallowedTools", disallowed.join(","));
+  args.push("--disallowedTools", [...new Set(disallowed)].join(","));
   const permSettings = buildPermissionSettings(config.writePaths, config.denyPaths);
   const settings: Record<string, unknown> = permSettings ? { ...permSettings } : {};
   if (opts?.hooks) settings.hooks = opts.hooks;
@@ -354,11 +355,17 @@ export async function runAgent(
   // 서버는 하단(line ~401)에서 자식 claude에 부착되지만, --allowedTools 화이트리스트가
   // 활성(길이>0)일 때 mcp__<server> 와일드카드가 없으면 그 서버 도구 호출이 전부 차단된다.
   // (로컬 @notionhq 쓰기 도구 mcp__notion__API-post-page 등이 미동작하던 근본 원인.)
-  // allowlist가 비어 있으면(=전체 허용) 손대지 않는다 — 축소 회귀 방지.
-  if (effectiveAllowedTools.length > 0 && (config.mcpServers?.length ?? 0) > 0) {
-    for (const _srv of config.mcpServers!) {
-      const _wild = `mcp__${_srv}`;
-      if (!effectiveAllowedTools.includes(_wild)) effectiveAllowedTools.push(_wild);
+  // allow 모드 서버만 통째로 허용한다. approval 모드 서버는 사람이 없는 헤드리스에서 승인을 받을 수 없으므로
+  // readTools만 허용하고, 허용 목록 밖 도구도 실행되는 경우엔 통째로 막는다(headlessMcpGrants).
+  const allowlistActive = effectiveAllowedTools.length > 0;
+  const mcpGrants = headlessMcpGrants(
+    config.mcpServers ?? [],
+    Object.fromEntries((config.mcpServers ?? []).map((n) => [n, getMcpServerDef(n)])),
+    { allowlistActive, bypass: permissionModeFor(config.permissionLevel) === "bypassPermissions" },
+  );
+  if (allowlistActive) {
+    for (const _grant of mcpGrants.allow) {
+      if (!effectiveAllowedTools.includes(_grant)) effectiveAllowedTools.push(_grant);
     }
   }
   if (effectiveAllowedTools.length > 0) {
@@ -373,8 +380,11 @@ export async function runAgent(
     "Bash", "TodoRead", "TodoWrite", "SendUserMessage",
     "CronCreate", "CronDelete", "CronList", "ScheduleWakeup",
     ...(config.extraDisallowedTools ?? []),
+    // 서비스 정책의 approval 도구는 모든 헤드리스 경로(지니 채팅 포함)에서 막는다.
+    ...getPolicyDisallowedTools(),
+    ...mcpGrants.disallow,
   ];
-  args.push("--disallowedTools", disallowed.join(","));
+  args.push("--disallowedTools", [...new Set(disallowed)].join(","));
 
   const permSettings = buildPermissionSettings(config.writePaths, config.denyPaths);
   if (permSettings) {

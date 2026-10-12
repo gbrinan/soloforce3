@@ -2,7 +2,10 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { mkdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
-import { emitGlobalEvent } from "./jobs.js";
+// jobs.js는 지연 로딩한다 — agent.ts가 getPolicyDisallowedTools를 쓰므로 정적 import면 agent↔jobs 순환이 생긴다.
+function emitGlobalEvent(event: string, data: unknown): void {
+  void import("./jobs.js").then((m) => m.emitGlobalEvent(event, data)).catch(() => {});
+}
 
 export type PolicyMode = "auto" | "approval";
 
@@ -188,21 +191,32 @@ export async function checkToolPolicy(
 
 // ── 정책 기반 차단 도구 목록 ─────────────────────────────────────────────────
 
-export function getPolicyDisallowedTools(): string[] {
+/**
+ * 정책 기준 도구 묶음. blocked = 꺼진 서비스의 모든 도구(어디서도 쓰지 않는다),
+ * approval = 승인이 필요한 도구(헤드리스는 막고, 지니 PTY는 승인 카드로 보낸다 — terminal-ws.ts).
+ */
+export function getPolicyToolSets(): { blocked: string[]; approval: string[] } {
   const policies = loadServicePolicies();
-  const result: string[] = [];
+  const blocked: string[] = [];
+  const approval: string[] = [];
   for (const p of policies) {
     if (!p.mcpServerId) continue;
     const prefix = "mcp__" + p.mcpServerId.replace(/\./g, "_").replace(/\s+/g, "_") + "__";
     if (!p.enabled) {
-      result.push(...p.readTools.map((t) => prefix + t));
-      result.push(...p.writeTools.map((t) => prefix + t));
+      blocked.push(...p.readTools.map((t) => prefix + t));
+      blocked.push(...p.writeTools.map((t) => prefix + t));
     } else {
-      if (p.writePolicy === "approval") result.push(...p.writeTools.map((t) => prefix + t));
-      if (p.readPolicy === "approval") result.push(...p.readTools.map((t) => prefix + t));
+      if (p.writePolicy === "approval") approval.push(...p.writeTools.map((t) => prefix + t));
+      if (p.readPolicy === "approval") approval.push(...p.readTools.map((t) => prefix + t));
     }
   }
-  return result;
+  return { blocked, approval };
+}
+
+/** 사람이 승인할 수 없는 헤드리스 경로에서 막을 도구 — blocked + approval. */
+export function getPolicyDisallowedTools(): string[] {
+  const { blocked, approval } = getPolicyToolSets();
+  return [...blocked, ...approval];
 }
 
 // ── 설명 생성 헬퍼 ───────────────────────────────────────────────────────────

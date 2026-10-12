@@ -17,7 +17,7 @@ function readMdTitle(absPath: string): string | undefined {
   return undefined;
 }
 import { join, resolve, basename } from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { homedir, tmpdir } from "node:os";
 import { Readable } from "node:stream";
 import { Hono } from "hono";
@@ -74,6 +74,7 @@ import { listMessages, getMessage, countAwaitingApproval, countHidden, setMessag
 import { handleInbound, approveAndReply, rejectAndReply, readFileAsAttachment } from "./external-inbound.js";
 import { createBackupZip, restoreFromZip, cleanupBackupFile } from "./data-backup.js";
 import { sendExternal, sendPartnerRequest } from "./external-client.js";
+import { requestExternalAction } from "./external-actions.js";
 import {
   handlePartnerRequest,
   approvePartnerRequest,
@@ -1027,10 +1028,19 @@ export function registerRoutes(app: Hono): void {
     if (!VALID_TYPES.includes(messageType)) {
       return c.json({ error: `messageType must be one of: ${VALID_TYPES.join(", ")}` }, 400);
     }
-    // filePath → base64 변환
-    const attachments = body?.attachments?.map(a => readFileAsAttachment(a.filePath)).filter((a): a is NonNullable<typeof a> => a !== null);
-    const result = await sendExternal(partnerId, message, { messageType, ourLabel: getGenieName(), ...(attachments?.length ? { attachments } : {}) });
-    return c.json(result);
+    // filePath → base64 변환 — 승인 요청 시점에 읽어 고정한다(승인 뒤 파일이 바뀌어도 승인된 내용만 나간다)
+    const requested = body?.attachments ?? [];
+    const attachments = requested.map(a => readFileAsAttachment(a.filePath)).filter((a): a is NonNullable<typeof a> => a !== null);
+    if (attachments.length !== requested.length) {
+      // 읽지 못한 첨부를 빼고 보내면 사람이 승인한 것과 다른 발송이 된다 — MISS로 거부
+      return c.json({ ok: false, status: 0, errorReason: `attachment MISS (${requested.length - attachments.length}/${requested.length})` }, 400);
+    }
+    // external 등급: 바로 보내지 않고 사람 승인을 요청한다. 승인되면 서버가 이 내용 그대로 보낸다.
+    const pendingResult = requestExternalAction(
+      { kind: "partner-send", target: partnerId, body: message, attachments, meta: { messageType, ourLabel: getGenieName() } },
+      { agentRole: c.req.header("X-Agent-Role") ?? "genie", jobId: c.req.header("X-Job-Id") ?? undefined },
+    );
+    return c.json({ ok: true, ...pendingResult });
   });
 
   // 2) 동료 거래(동료십) 신청
@@ -2328,11 +2338,13 @@ export function registerRoutes(app: Hono): void {
   // 승인 플로우 (Step 7) — MCP 서버 readPaths 밖 접근 시 사장님 승인 요청
   app.post("/api/approvals", async (c) => {
     const body = await c.req.json().catch(() => null) as
-      | { agentRole?: string; tool?: string; path?: string; jobId?: string; reason?: string; sensitive?: boolean }
+      | { agentRole?: string; tool?: string; path?: string; jobId?: string; reason?: string; sensitive?: boolean; external?: boolean }
       | null;
     if (!body?.agentRole || !body?.tool || !body?.path) {
       return c.json({ error: "agentRole, tool, path required" }, 400);
     }
+    // external=true는 승인을 더 엄격하게만 만든다(사람만 허용) — 누가 보내도 권한 상승이 아니다.
+    const external = body.external === true;
     const req = createApproval({
       agentRole: body.agentRole,
       tool: body.tool,
@@ -2340,6 +2352,7 @@ export function registerRoutes(app: Hono): void {
       jobId: body.jobId,
       reason: body.reason,
       sensitive: body.sensitive === true,
+      ...(external ? { external: true, previewHash: createHash("sha256").update(`${body.tool}\n${body.path}`).digest("hex") } : {}),
     });
     return c.json({ id: req.id });
   });

@@ -23,6 +23,7 @@ import { checkRateAndLength, MAX_BODY_LENGTH } from "./external-rate-limit.js";
 import { scanInjection } from "./external-injection-filter.js";
 import { classifyMessage } from "./external-classifier.js";
 import { sendExternal } from "./external-client.js";
+import { requestExternalAction } from "./external-actions.js";
 import { enqueueInternal } from "./genie-queue.js";
 import { addGenieMessage, getGenieName } from "./chat.js";
 import { isOwnerAway } from "./approvals.js";
@@ -471,17 +472,16 @@ export async function processGenieReplyMarker(content: string): Promise<void> {
     }
     // 첨부파일 처리
     const attachments = attachmentPaths.map(p => readFileAsAttachment(p)).filter((a): a is NonNullable<typeof a> => a !== null);
-    const result = await sendExternal(original.partnerId, body, {
-      inReplyToMessageId: original.id,
-      messageType: "reply",
-      ourLabel: OUR_LABEL,
-      ...(attachments.length ? { attachments } : {}),
-    });
-    if (result.ok) {
-      console.log(`[ExternalInbound] 자동 회신 발송: messageId=${messageId} → partnerId=${original.partnerId}`);
-    } else {
-      console.warn(`[ExternalInbound] 자동 회신 실패: ${result.errorReason}`);
+    if (attachments.length !== attachmentPaths.length) {
+      console.warn(`[ExternalInbound] 회신 마커 첨부 MISS (${attachmentPaths.length - attachments.length}/${attachmentPaths.length}) — 회신 요청 안 함: messageId=${messageId}`);
+      continue;
     }
+    // external 등급: 회신도 사람 승인 뒤에만 나간다(서버가 보관한 내용 그대로).
+    const r = requestExternalAction(
+      { kind: "partner-reply", target: original.partnerId, body, attachments, meta: { inReplyTo: original.id, ourLabel: OUR_LABEL } },
+      { agentRole: "genie" },
+    );
+    console.log(`[ExternalInbound] 회신 승인 대기: messageId=${messageId} → partnerId=${original.partnerId} (approval ${r.approvalId.slice(0, 8)})`);
   }
 }
 

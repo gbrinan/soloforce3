@@ -65,10 +65,29 @@
 - 표본: 사용자 메시지 375건 → 행동·변경 제외 202건 → 레인 잡 동반 제외 96건 → seed 20261008로 30건, sha256 `254e3a1dbd92b7935cecc1cb0ed81ddf03cd9ea675548fe7869dbf7286977576`. 파일럿은 앞 10건.
 - 판정: 아난이 «실시간 데이터 필요»로 표시하지 않은 카드만 대상으로 «A가 낫다» 30% 이상이면 레인 유지(재실행 시점이 원래와 달라 그 시점 상태를 묻는 질문은 공정하게 비교할 수 없다). 표시된 카드는 따로 센다.
 
+### Stage 4 착수 근거 — knowledge-work-plugins 분석 (2026-10-12)
+
+anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계약(미리보기 블록, 한 번의 yes는 한 묶음, 반복은 동의가 아님, 승인은 만료)을 대부분 문장으로만 둔다. 같은 저장소에서 legal `signature-request`는 확인이 체크리스트 한 줄뿐이다. 문장 규칙은 스킬마다 지켜지는 정도가 갈린다는 증거로 보고, soloforce에서는 같은 계약을 서버 판정으로 옮긴다. 아난 결정(2026-10-13): «높음» 4건을 Stage 4부터, M1 승인 계약 먼저.
+
+### Stage 4 M1 착수 전 실측 (2026-10-13)
+
+- `SendToPartner`(`safefs-server.ts`)와 `[REPLY_TO_PARTNER]` 마커는 승인 없이 외부 파트너에게 보냈다.
+- 서비스 정책의 approval 도구(gmail 발송 등)는 워커 잡 경로(`jobs.ts` `runWorkerAgent`) 한 곳에서만 막혔다. 지니 채팅 헤드리스·지니 PTY에는 적용되지 않았다.
+- 헤드리스 `runAgent`는 할당된 registry MCP를 mode와 무관하게 `mcp__<서버>`로 전부 허용했다 — approval 모드 무시.
+- PTY 훅이 가리키는 `scripts/mcp-approval-hook.mjs`가 리포 어디에도 없었다. 훅 명령이 실패하면 비차단 오류라 approval 모드 MCP 호출이 그대로 통과한다.
+- 라이브 registry(`history/mcp-registry.json`)의 approval 모드 서버는 supabase(미할당)·hermes-agent(hermes 에이전트) 둘. notion은 allow 모드라 이번 변경의 영향을 받지 않는다.
+- `bypassPermissions`(permLevel admin·workspace)에서는 허용 목록 밖 도구도 실행된다. 막으려면 금지 목록에 넣어야 한다(deny가 allow보다 우선).
+
 ## Technical Decisions
 
 | Decision | Rationale |
 | --- | --- |
+| 외부 발송은 모델이 «요청»만 하고 서버가 보관한 내용을 사람 승인 뒤 그대로 보낸다 | 모델이 승인 뒤 내용을 다시 제출하지 않으므로 바꿔치기가 구조적으로 불가능. slack `send_message_draft`(사람이 보냄)와 같은 분리 |
+| external 승인은 `decisionSource=user`만 허용, 거부는 누구나 | 지니 의견(부재중 즉시 적용)·반복 이력·자동 규칙은 사람의 승인이 아니다. 거부는 안전한 방향 |
+| 판정 규칙은 순수 함수(`side-effect-gate.ts`), 집행은 `external-actions.ts` | 판정을 무거운 서버 모듈 없이 테스트하기 위해 |
+| 정책 approval 도구: 헤드리스는 금지, 지니 PTY는 사람 전용 승인 카드(훅 `--external`) | PTY에서 금지하면 지니가 캘린더 일정도 못 만든다. 헤드리스는 승인할 사람이 없다 |
+| 헤드리스 approval 모드 MCP는 `readTools`만, bypass·allowlist 꺼짐이면 서버 통째로 금지 | 아난 결정 «쓰기 도구만 막기». bypass에서는 목록 밖 도구가 실행되므로 도구 단위 허용이 불가능 |
+| 승인 훅은 실패를 거부로 처리(닫힌 쪽) | 파일이 없던 동안 실패가 통과로 이어졌다 |
 | 원장은 고치지 않고 읽을 때 등급을 붙인다 | append-only 원장의 소급 수정은 날조. legacy 로그값은 보존하고 재산정은 따로 낸다 |
 | 테스트 기대값은 라이브 원장 cli 행 | 설계자가 정한 기대값은 검증자=설계자(mandela #5) |
 | 모르는 claude 모델은 가장 비싼 단가 | 과소계상보다 과대계상이 안전(기존 원칙 유지) |
@@ -106,6 +125,26 @@
 
 **결과**: 해결됨(체인 끝까지 진행)
 
+### 4. 승인 훅이 Windows에서 0xC0000409로 죽음
+
+**문제**: 승인 배선 테스트에서 훅 프로세스가 종료 코드 3221226505(0xC0000409)로 끝났다.
+
+**원인**: fetch 소켓이 닫히는 중에 `process.exit(0)`을 호출했다.
+
+**해결**: keep-alive 없는 `node:http` 요청으로 바꾸고 `process.exit`를 쓰지 않는다. 출력 후 자연 종료.
+
+**결과**: 해결됨(배선 테스트에서 종료 코드 0 확인)
+
+### 5. 승인 API 토큰을 지니가 읽을 수 있는지 미확인
+
+**문제**: `/api/approvals/:id/resolve`는 `source`를 생략하면 사람(user) 결정으로 처리한다. 토큰 검사(`approval-auth.ts`)가 유일한 방어인데, 대시보드 토큰은 `history/.dashboard-approval-token`에 있다.
+
+**원인**: 지니의 읽기 범위·SafeBash 루프백 curl 자동 승인과 결합하면 사람 승인을 흉내 낼 수 있는지 확인하지 않았다.
+
+**해결**: 이번 범위 밖. 후속 과제로 기록.
+
+**결과**: 미해결(후속)
+
 ## Negative Corpus
 
 - 잡 `request`를 사람 요청으로 본 Stage 1 첫 설계 — 실제로는 genie의 위임 지시문이라 파일·도구 의존이 숨어 있었다. 파일럿 10건 중 7건이 환경 부재로 멈춤. 비교 단위는 «사람 원문 → 최종 답»이어야 한다.
@@ -114,6 +153,7 @@
 - 재산정 단가로 sonnet-5 $3을 가정한 것 — 공시 단가는 $2. 기억한 단가를 쓰지 말고 공식 표와 CLI 실측으로 확인한다.
 - `.re0/templates/`와 별도 문서로 새 계획 규약을 만들려던 시도 — 리포에 이미 같은 3파일 규약(`templates/`)이 있어 철회.
 - 첫 sonnet fixture 1건만으로 단가를 검증한 것 — 입력·캐시 단가 오차가 서로 상쇄돼 틀린 표로도 통과했다. 출력 위주 행을 더해 판별력을 확보.
+- 정책 approval 도구를 지니 PTY 권한 조립(`buildPermissionArgs`)에 금지로 넣은 첫 M1 시도 — PTY가 지니의 주 경로라 캘린더 일정 생성까지 막힌다. 승인 카드로 바꿨다.
 
 ## Resources
 
@@ -127,6 +167,9 @@
 
 - 단가 정본: `src/server/invocation-cost.ts`
 - 원장 해석기: `src/server/cost-ledger.ts`
+- 외부 발송 판정: `src/server/side-effect-gate.ts`, 집행: `src/server/external-actions.ts`
+- 승인 훅: `scripts/mcp-approval-hook.mjs`
+- [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) `02ffa99`
 - 배포 패치 적용 루프: `~/.local/bin/soloforce2-update` (라이브 WSL)
 
 ## Learnings

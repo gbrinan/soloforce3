@@ -956,7 +956,8 @@ async function postPartnerJson(
     try {
       response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // 승인 카드에 요청 주체를 남긴다(외부 발송 승인 — external-actions.ts)
+        headers: { "Content-Type": "application/json", "X-Agent-Role": AGENT_ROLE, ...(JOB_ID ? { "X-Job-Id": JOB_ID } : {}) },
         body: JSON.stringify(payload),
       });
       if (response.status >= 500 && attempt === 0) {
@@ -987,7 +988,7 @@ async function postPartnerJson(
 if (SEND_PARTNER_URL) {
   server.tool(
     "SendToPartner",
-    "Send a message to an external partner. Returns messageId on success (synchronous).",
+    "Request sending a message to an external partner. Nothing is sent immediately: the owner must approve, then the server sends exactly this content. Returns an approval ID.",
     {
       partnerId: z.string().describe("동료 ID"),
       message: z.string().describe("발송할 메시지 본문"),
@@ -1002,8 +1003,8 @@ if (SEND_PARTNER_URL) {
       if (!r.ok) {
         return { isError: true, content: [{ type: "text" as const, text: `SEND_FAILED: ${r.text}` }] };
       }
-      const data = r.data as { ok?: boolean; messageId?: string; status?: number; errorReason?: string } | null;
-      if (!data?.ok) {
+      const data = r.data as { ok?: boolean; status?: number | string; approvalId?: string; errorReason?: string } | null;
+      if (!data?.ok || data.status !== "pending_approval" || !data.approvalId) {
         return {
           isError: true,
           content: [{ type: "text" as const, text: `SEND_FAILED: ${data?.errorReason ?? "unknown"} (status=${data?.status ?? 0})` }],
@@ -1012,7 +1013,7 @@ if (SEND_PARTNER_URL) {
       return {
         content: [{
           type: "text" as const,
-          text: `SUCCESS: 메시지 발송 완료\n- 메시지 ID: ${data.messageId}\n- HTTP: ${data.status}\n- 동료: ${input.partnerId}\n- 타입: ${input.messageType ?? "request"}`,
+          text: `PENDING_APPROVAL: 아직 발송되지 않았습니다. 사장님이 승인하면 서버가 이 내용 그대로 발송합니다.\n- 승인 ID: ${data.approvalId}\n- 동료: ${input.partnerId}\n- 타입: ${input.messageType ?? "request"}\n같은 내용을 다시 요청하지 마세요(같은 승인 카드에 합류합니다).`,
         }],
       };
     },

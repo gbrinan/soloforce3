@@ -15,6 +15,7 @@ import { join } from "node:path";
 import { HISTORY_DIR } from "../config.js";
 import { emitGlobalEvent } from "./jobs.js";
 import { getMyProfile } from "./partners.js";
+import { canApplyDecision } from "./side-effect-gate.js";
 
 // 사장님 부재중 모드 — 부재중이면 orchestrator 가드 해제 (마이크루가 전권 판단)
 // 서버 재시작 시 조용히 재석으로 리셋되면 부재중인 사장님 몰래 승인이 쌓이므로
@@ -134,6 +135,11 @@ export interface ApprovalRequest {
   revokedAt?: number;
   // 마이크루 의견 (사장님 응답 전이면 보류, 55초 후 적용)
   genieOpinion?: { allow: boolean; reason?: string };
+  // external 등급(외부 발송) 승인 — 사람만 허용할 수 있고, 자동 규칙·반복 이력·지니 의견을 타지 않는다.
+  // 판정 규칙은 side-effect-gate.ts, 집행은 external-actions.ts.
+  external?: boolean;
+  previewHash?: string;
+  consumedAt?: number;
   decisionSource?:
     | "user"                   // 사장님 (대시보드/chat 버튼)
     | "genie"                  // 마이크루 의견이 55초 후 적용됨
@@ -273,7 +279,7 @@ function isLocalCurlCommand(cmd: string): boolean {
   return urls.every((u) => /^https?:\/\/(127\.0\.0\.1|localhost)([:/]|$)/i.test(u));
 }
 
-export function createApproval(input: { agentRole: string; tool: string; path: string; jobId?: string; reason?: string; sensitive?: boolean }): ApprovalRequest {
+export function createApproval(input: { agentRole: string; tool: string; path: string; jobId?: string; reason?: string; sensitive?: boolean; external?: boolean; previewHash?: string }): ApprovalRequest {
   const req: ApprovalRequest = {
     id: randomUUID(),
     agentRole: input.agentRole,
@@ -283,7 +289,29 @@ export function createApproval(input: { agentRole: string; tool: string; path: s
     reason: input.reason,
     createdAt: Date.now(),
     status: "pending_chat",
+    ...(input.external ? { external: true, previewHash: input.previewHash } : {}),
   };
+
+  // external 등급: 자동 규칙(/tmp·읽기·curl·반복 이력)과 자동 판단을 건너뛰고 사람 결정만 기다린다.
+  // 반복 이력은 동의가 아니다 — 같은 내용이라도 매번 새로 승인받는다.
+  if (req.external) {
+    for (const r of approvals.values()) {
+      if (r.status === "pending_chat" && r.external && r.previewHash === req.previewHash) return r;
+    }
+    approvals.set(req.id, req);
+    emitGlobalEvent("approval-request", req);
+    try { notifier?.(req); } catch (err) {
+      console.error("[Approval] notifier 실패:", err instanceof Error ? err.message : err);
+    }
+    const text = `🔐 ${req.reason ?? req.path}\n\n아래 버튼으로 승인/거부하거나 대시보드에서 처리해 주세요. 지니는 이 요청을 승인할 수 없습니다.`;
+    import("./telegram.js")
+      .then((m) => m.sendApprovalRequestWithButtons(req.id, text))
+      .catch((err) => console.error("[Approval] 텔레그램 버튼 알림 실패:", err instanceof Error ? err.message : err));
+    import("./discord.js")
+      .then((m) => m.sendDiscordApprovalRequestWithButtons(req.id, text))
+      .catch((err) => console.error("[Approval] 디스코드 버튼 알림 실패:", err instanceof Error ? err.message : err));
+    return req;
+  }
 
   // 즉시 체크: /tmp/** 경로 — approval-policy(2026-07-16)에 따라 항상 자동 허용
   // POSIX(/tmp/...) 및 Windows(\tmp\...) 모두 매칭. 끝이 '/tmp' 또는 '\tmp'인 경우도 포함.
@@ -391,6 +419,12 @@ export function resolveApproval(
 
   // 마이크루 응답 → 의견으로 보류 (55초 후 적용)
   req.genieOpinion = { allow, reason };
+  // external 허용은 사람만 — 부재중이어도 지니 의견을 결정으로 적용하지 않는다.
+  if (!canApplyDecision(req.external, source, allow)) {
+    console.log(`[Approval] external 요청 — 마이크루 의견은 기록만: ${id.slice(0, 8)}`);
+    emitGlobalEvent("approval-opinion", { id: req.id, allow, reason, source: "genie" });
+    return req;
+  }
   console.log(`[Approval] 마이크루 의견 접수: ${id.slice(0, 8)} → ${allow ? "allow" : "deny"} (${reason ?? "-"})`);
   // 의견을 대화창에 표시 (결정이 아닌 의견임을 명시)
   emitGlobalEvent("approval-opinion", { id: req.id, allow, reason, source: "genie" });
@@ -418,6 +452,7 @@ export function autoResolveApproval(
   const req = approvals.get(id);
   if (!req) return null;
   if (req.status !== "pending_chat") return req;
+  if (!canApplyDecision(req.external, source, allow)) return req;
   req.status = allow ? "allowed" : "denied";
   req.resolvedAt = Date.now();
   req.decisionSource = source;
@@ -442,6 +477,15 @@ export function getApprovalStatus(id: string): ApprovalRequest | null {
     }
   } catch { /* */ }
   return null;
+}
+
+/** external 승인을 한 번 썼다고 기록한다. 이미 썼으면 false — 같은 승인으로 두 번 실행되지 않는다. */
+export function consumeExternalApproval(id: string): boolean {
+  const req = approvals.get(id);
+  if (!req || !req.external || req.consumedAt) return false;
+  req.consumedAt = Date.now();
+  saveApprovals();
+  return true;
 }
 
 export function getPendingApprovals(): ApprovalRequest[] {
@@ -555,6 +599,7 @@ export function hasApprovalHistory(jobId: string): boolean {
 function autoDecideAttempt(id: string): void {
   const req = approvals.get(id);
   if (!req || req.status !== "pending_chat") return;
+  if (req.external) return; // 사람 결정만 — TTL 만료 시 timeout
   const attempts = (req.autoDecideAttempts ?? 0) + 1;
   req.autoDecideAttempts = attempts;
 

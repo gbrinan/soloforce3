@@ -17,6 +17,33 @@ export interface McpServerDef {
   env?: Record<string, string>;
   // allow: allowedTools에 넣어 승인 없이 사용 / approval: PreToolUse 훅 → 승인카드 경유
   mode?: "allow" | "approval";
+  // approval 모드 서버에서 읽기 전용인 도구 이름(접두어 없이). 사람이 없는 헤드리스 잡은 승인을 받을 수 없어
+  // 이 목록의 도구만 쓴다. 비어 있으면 헤드리스에서 그 서버 도구를 하나도 쓰지 않는다(headlessMcpGrants).
+  readTools?: string[];
+}
+
+/**
+ * 헤드리스 잡(루프·워커)에 줄 registry MCP 권한.
+ * allow 모드 → 서버 전체. approval 모드 → readTools만 허용하고 나머지는 헤드리스 -p가 프롬프트 없이 거부한다.
+ * 단, 허용 목록 밖 도구도 실행되는 경우(bypassPermissions 모드이거나 allowlist가 꺼진 잡)에는
+ * 도구 단위 허용을 표현할 수 없으므로 approval 서버를 통째로 막는다(deny가 allow보다 우선).
+ */
+export function headlessMcpGrants(
+  assigned: string[],
+  defs: Record<string, Pick<McpServerDef, "mode" | "readTools"> | undefined>,
+  opts: { allowlistActive: boolean; bypass: boolean },
+): { allow: string[]; disallow: string[] } {
+  const allow: string[] = [];
+  const disallow: string[] = [];
+  const unlistedRuns = opts.bypass || !opts.allowlistActive;
+  for (const name of assigned) {
+    const def = defs[name];
+    if (!def) continue;
+    if (def.mode === "allow") { allow.push(`mcp__${name}`); continue; }
+    if (unlistedRuns) disallow.push(`mcp__${name}`);
+    else allow.push(...(def.readTools ?? []).map((t) => `mcp__${name}__${t}`));
+  }
+  return { allow, disallow };
 }
 
 const REGISTRY_FILE = join(HISTORY_DIR, "mcp-registry.json");
