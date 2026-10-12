@@ -785,6 +785,7 @@ if (DELEGATE_URL) {
       skipOutput: z.boolean().optional().describe("산출물 파일 생성 생략 여부. 기본값 true(생략). 보고서/분석/리서치/감사 결과가 필요한 작업이면 false를 명시적으로 지정."),
       taskId: z.string().optional().describe("소속 Task ID. 같은 사용자 지시의 후속 위임이면 첫 위임 ACK의 taskId를 전달. 미지정 시 새 Task 자동 생성."),
       taskTitle: z.string().optional().describe("Task 제목 (UI에 표시될 사용자 지시 요약). 미지정 시 request에서 자동 생성."),
+      topic: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional().describe("주제 id(예: spf). topic-sales 같은 주제 모듈 역할에 위임할 때 지정한다. 서버가 그 주제의 지식 파일·기록 위치·범위를 요청 앞에 붙인다. 설정된 주제가 하나뿐이면 생략 가능."),
     },
     async (input: {
       request: string;
@@ -804,9 +805,10 @@ if (DELEGATE_URL) {
       skipOutput?: boolean;
       taskId?: string;
       taskTitle?: string;
+      topic?: string;
     }) => {
       // 응답 단위 dedup window (60초) — 같은 응답 내 동일 (request,agent,cwd) 재호출은 첫 ACK 반환
-      const key = dedupKey(input.request, input.agent, input.cwd);
+      const key = dedupKey(input.request, input.topic ? `${input.agent ?? ""}@${input.topic}` : input.agent, input.cwd);
       const now = Date.now();
       const cached = delegateDedup.get(key);
       if (cached && cached.expiresAt > now) {

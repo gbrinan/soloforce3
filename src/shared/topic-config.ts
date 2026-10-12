@@ -83,6 +83,11 @@ export const TopicConfigSchema = z.object({
   loops: z.record(z.string().regex(SLUG), LoopSetting).default({}),
   /** 이 주제로 지니가 라우팅할 추가 키워드. */
   routeKeywords: z.array(z.string().min(1)).default([]),
+  /**
+   * 예전 전용 에이전트 id → 모듈 역할(예: spf-sales → topic-sales). 그 id로 들어온 위임은 «역할 + 이 주제»로 풀린다.
+   * 예전 에이전트가 아직 등록돼 있으면 그쪽이 받는다(전환 중 동작 불변).
+   */
+  legacyAgents: z.record(z.string().regex(/^[a-z0-9-]+$/), z.string().regex(SLUG)).default({}),
   consoleUrl: z.string().url().optional(),
   updatedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD"),
 }).strict().superRefine((t, ctx) => {

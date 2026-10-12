@@ -1,0 +1,9 @@
+{
+  "id": "topic-business",
+  "name": "주제 영업·소통·물류",
+  "version": "0.1.0",
+  "description": "사업 주제 하나(history/topics/<id>.yaml)를 받아 뉴스 발굴·리드 관리·카톡 소통·물류 추적을 하는 역할 묶음. SPF가 첫 주제다.",
+  "roles": ["topic-sales", "topic-comms", "topic-logistics", "topic-scout"],
+  "loopTemplates": [],
+  "skills": []
+}

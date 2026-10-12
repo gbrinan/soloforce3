@@ -97,6 +97,7 @@ import { resolveDelegateModel } from "./model-tiers.js";
 import { getGenieAgent } from "../agents/genie.js";
 import { readArchivedJob } from "./audit.js";
 import { getAllWorkerAgents, getWorkerAgent, resolveWorkerRuntime } from "../agent-registry.js";
+import { resolveTopicDelegationLive } from "./modules/registry.js";
 import { getSchedulerMessages } from "./scheduler.js";
 import { maybeRunFriendSyncCycle, pingPartnerOnce } from "./friend-sync.js";
 import { getQueueStats, getQueueItems, enqueueInternal } from "./genie-queue.js";
@@ -826,6 +827,8 @@ export function registerRoutes(app: Hono): void {
       taskTitle?: string;
       effort?: string;
       tier?: string;
+      /** 주제 모듈 역할로 갈 때의 주제 id(history/topics/<id>.yaml). */
+      topic?: string;
     },
     options: { external: boolean; externalAgentId?: string },
   ) {
@@ -838,8 +841,13 @@ export function registerRoutes(app: Hono): void {
       stageAgents = ex.stageAgents;
     }
     const skipPlanGate = body.planGate === false ? true : undefined;
+    // 주제: 예전 전용 id(spf-sales 등)는 «역할 + 주제»로 풀고, 주제가 정해지면 맥락 블록을 요청 앞에 붙인다.
+    // 모듈 역할인데 주제를 정할 수 없거나 모르는 주제면 거부한다 — 주제 없는 역할은 어디에 기록할지 모른다.
+    const topicPick = resolveTopicDelegationLive({ agent: body.agent, topic: body.topic }, (id) => !!getWorkerAgent(id));
+    if (topicPick.error) throw new Error(topicPick.error);
+    const agentId = topicPick.agent;
     // skipOutput: 디폴트 true(산출물 생략). 보고서/분석 결과가 필요하면 명시적으로 false 지정 (2026-05-05 정책 변경).
-    let request = body.request.trim();
+    let request = topicPick.context ? `${topicPick.context}\n\n${body.request.trim()}` : body.request.trim();
     if (body.skipOutput !== false) {
       request += "\n\n[시스템 지시] 이 작업은 산출물(보고서/MD 파일) 생성이 불필요합니다. 텍스트 응답만 반환하세요. outputs/ 디렉토리에 파일을 쓰지 마세요.";
     }
@@ -873,7 +881,7 @@ export function registerRoutes(app: Hono): void {
       request,
       body.projectName?.trim(),
       undefined,
-      body.agent?.trim(),
+      agentId,
       body.cwd,
       body.priority,
       body.after,
@@ -933,6 +941,7 @@ export function registerRoutes(app: Hono): void {
       taskTitle?: string;
       effort?: string;
       tier?: string;
+      topic?: string;
     }>().catch(() => null);
     if (!body?.request?.trim()) {
       return c.json({ error: "request is required" }, 400);

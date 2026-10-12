@@ -1,0 +1,15 @@
+{
+  "id": "topic-comms",
+  "name": "주제소통",
+  "jobTitle": "주제 고객 소통(카톡 분류) 담당",
+  "team": "주제팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "주제별 카카오톡 내보내기 파일을 인제스트해 분류하고 넥스트 액션을 리드 기록에 연결한다. 발신 없음.",
+  "maxTurns": 40,
+  "writePaths": ["/history/outputs/topic-comms/**", "/history/agents/topic-comms/**", "/history/topics/**", "/history/attachments/**"],
+  "bashCommands": ["py", "mv", "mkdir"],
+  "bashPaths": ["/history/topics/**"]
+}

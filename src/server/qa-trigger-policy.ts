@@ -17,7 +17,9 @@
 
 /** 외부 발신 가능성이 상시 있는 에이전트. 여기 없어도 어휘·명시 플래그로 걸릴 수 있다. */
 export const EXTERNAL_SEND_AGENTS = new Set<string>([
-  "spf-sales", "spf-comms", "spf-logistics", 
+  "spf-sales", "spf-comms", "spf-logistics",
+  // 주제 모듈 역할(modules/topic-business) — 위 spf-* 의 주제 무관 후속. 전환 동안 둘 다 둔다.
+  "topic-sales", "topic-comms", "topic-logistics",
   "book-keeper", "lead-keeper", "hermes",
 ]);
 

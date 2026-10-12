@@ -1,0 +1,13 @@
+{
+  "id": "topic-sales",
+  "name": "주제영업",
+  "jobTitle": "주제 영업 앞단 담당",
+  "team": "주제팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "주제별 산업 뉴스 발굴 -> 리드 스코어 -> 콜드메일 초안 -> 일정 관리. 주제 값은 위임 때 받는다.",
+  "maxTurns": 40,
+  "writePaths": ["/history/outputs/topic-sales/**", "/history/agents/topic-sales/**", "/history/topics/**", "/history/attachments/**"]
+}

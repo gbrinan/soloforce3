@@ -88,6 +88,11 @@ export function buildStepPrompt(def: LoopDefinition, step: LoopStep, iteration?:
       "\n[산출물 필수] 이 작업의 결과는 반드시 파일로 저장하세요. 다른 직원에게 재위임할 때는 DelegateTask에 skipOutput: false 를 명시하세요.",
     );
   }
+  // 주제 루프의 지니 경유 스텝 — 지니가 대신 위임할 때 주제를 빠뜨리지 않게 프롬프트로 넘긴다.
+  // 직접 위임 스텝은 아래 body의 topic 필드로 전달된다.
+  if (def.topic && !step.agent) {
+    lines.push(`\n[주제] 이 루프의 주제는 "${def.topic}"이다. 직원에게 위임할 때 DelegateTask에 topic: "${def.topic}"을 넘긴다.`);
+  }
   if (iteration !== undefined) {
     lines.push(`\n(완료까지 반복 — ${iteration}번째 시도)`);
   }
@@ -115,6 +120,8 @@ export async function dispatchDirectDelegate(
       // 기존에는 draft_only 경고·state_files 안내·model_tier 가이드가 직접 위임 경로에서 통째로 누락됐다.
       request: buildStepPrompt(def, step),
       agent: agentId,
+      // 주제 루프(modules/*)면 주제를 넘긴다 — /api/delegate가 주제 맥락을 요청 앞에 붙인다.
+      ...(def.topic ? { topic: def.topic } : {}),
       planGate: false,
       // 미지정 시 true(억제) — /api/delegate 기존 기본값 유지. YAML에서 skip_output:false인 스텝만 산출물 허용.
       skipOutput: step.skip_output ?? true,

@@ -7,7 +7,7 @@ import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 import { HISTORY_DIR, PROJECT_SELF_DIR } from "../../config.js";
 import { parseTopicConfig, type TopicConfig } from "../../shared/topic-config.js";
-import { renderTopicTemplate, topicVars } from "./topic-render.js";
+import { renderTopicContext, renderTopicTemplate, topicVars } from "./topic-render.js";
 
 /** 리포에 실린 모듈. MYCREW_MODULES_DIR로 다른 위치를 줄 수 있다(시험·별도 설치). */
 export const MODULES_DIR = process.env.MYCREW_MODULES_DIR || join(PROJECT_SELF_DIR, "modules");
@@ -123,4 +123,53 @@ export function buildTopicLoops(
     }
   }
   return { loops, errors };
+}
+
+/** 모듈 역할 에이전트 시드 폴더(modules/<id>/agents) — 에이전트 레지스트리가 config/agents 다음으로 스캔한다. */
+export function moduleAgentDirs(dir = MODULES_DIR): string[] {
+  return loadModules(dir).modules.map((m) => join(m.dir, "agents")).filter((d) => existsSync(d));
+}
+
+export interface TopicDelegation {
+  agent?: string;
+  topic?: string;
+  /** 위임 요청 앞에 붙일 주제 맥락 */
+  context?: string;
+  error?: string;
+}
+
+/**
+ * 위임의 에이전트·주제를 정한다(순수 — 조회 함수를 받는다).
+ * 1) 등록되지 않은 예전 전용 id(예: spf-sales)는 주제 설정 legacyAgents로 «역할 + 주제»가 된다.
+ * 2) 모듈 역할로 가는 위임은 주제가 필요하다. 명시가 없고 설정된 주제가 하나뿐이면 그것, 아니면 오류.
+ * 3) 주제가 정해지면 맥락 블록을 만든다. 모르는 주제는 오류(기본 주제로 조용히 흘리지 않는다).
+ */
+export function resolveTopicDelegation(
+  input: { agent?: string; topic?: string },
+  deps: { isRegistered: (id: string) => boolean; topics: TopicConfig[]; roleIds: Set<string> },
+): TopicDelegation {
+  let agent = input.agent?.trim() || undefined;
+  let topicId = input.topic?.trim() || undefined;
+  if (agent && !deps.isRegistered(agent)) {
+    const hit = deps.topics.find((t) => t.legacyAgents[agent!]);
+    if (hit) {
+      if (topicId && topicId !== hit.id) return { error: `topic-conflict: ${agent}는 주제 ${hit.id}의 예전 id인데 topic=${topicId}` };
+      topicId = hit.id;
+      agent = hit.legacyAgents[agent];
+    }
+  }
+  if (agent && deps.roleIds.has(agent) && !topicId) {
+    if (deps.topics.length === 1) topicId = deps.topics[0].id;
+    else return { agent, error: `topic-required: ${agent}는 주제 모듈 역할이라 topic이 필요합니다 (가능: ${deps.topics.map((t) => t.id).join(", ") || "주제 설정 없음"})` };
+  }
+  if (!topicId) return { agent };
+  const topic = deps.topics.find((t) => t.id === topicId);
+  if (!topic) return { agent, error: `unknown-topic: "${topicId}" (history/topics/${topicId}.yaml 없음)` };
+  return { agent, topic: topic.id, context: renderTopicContext(topic) };
+}
+
+/** 실제 설치 기준 resolveTopicDelegation. */
+export function resolveTopicDelegationLive(input: { agent?: string; topic?: string }, isRegistered: (id: string) => boolean): TopicDelegation {
+  const roleIds = new Set(loadModules().modules.flatMap((m) => m.roles));
+  return resolveTopicDelegation(input, { isRegistered, topics: loadTopics().topics, roleIds });
 }
