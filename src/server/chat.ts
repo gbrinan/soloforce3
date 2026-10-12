@@ -1792,7 +1792,7 @@ export function getChatHistory(): ChatMessage[] {
 
 export function addGenieMessage(
   content: string,
-  options?: { internal?: boolean; logOnly?: boolean },
+  options?: { internal?: boolean; logOnly?: boolean; genieOutput?: boolean },
 ): void {
   // 온보딩 중 리셋 메시지 억제
   if (onboardingInProgress && content.includes("기분전환")) return;
@@ -1829,6 +1829,10 @@ export function addGenieMessage(
   }
   if (!options?.logOnly) {
     emitGlobalEvent("chat", { id: msg.id, role: "genie", content, timestamp: msg.timestamp });
+  }
+  // 발송 마커는 지니 자신의 출력일 때만 처리한다(genieOutput). 이 함수는 워커 결과·루프 요약·메일 다이제스트도
+  // 그대로 싣기 때문에, 그 본문에 섞인 마커를 실행하면 외부 내용이 발송을 일으킨다(provenance.ts).
+  if (!options?.logOnly && options?.genieOutput) {
     // 동료 자동 회신 마커 후처리 (fire-and-forget, dynamic import로 순환 의존성 회피)
     if (content.includes("[REPLY_TO_PARTNER")) {
       import("./external-inbound.js").then((m) => m.processGenieReplyMarker(content)).catch(() => {});

@@ -78,6 +78,13 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - 라이브 registry(`history/mcp-registry.json`)의 approval 모드 서버는 supabase(미할당)·hermes-agent(hermes 에이전트) 둘. notion은 allow 모드라 이번 변경의 영향을 받지 않는다.
 - `bypassPermissions`(permLevel admin·workspace)에서는 허용 목록 밖 도구도 실행된다. 막으려면 금지 목록에 넣어야 한다(deny가 allow보다 우선).
 
+### Stage 4 M2 착수 전 실측 (2026-10-13)
+
+- `addGenieMessage`(chat.ts)는 내용과 무관하게 `[REPLY_TO_PARTNER]`·`[REPLY_TO_TELEGRAM]`·`[REPLY_TO_DISCORD]` 마커를 실행했다. 이 함수는 워커 결과 원문(jobs.ts 사용자 표시), 루프 결과 요약(on_success=full이면 산출물 본문), 메일 다이제스트도 싣는다 — 메일 본문에 마커 문자열을 넣으면 발송이 일어나는 경로였다.
+- 지니 자신의 출력이 이 함수로 들어오는 곳은 PTY `post_message`(`/api/terminal/message`) 하나다. 헤드리스 채팅 응답은 `_sendMessageImpl`이 따로 마커를 처리한다.
+- 워커 결과는 지니에게 경계 없이 «후속 조치 즉시 수행» 지시와 함께 전달됐다(`job-notify-gate.ts`).
+- 루프 잡은 `taskTitle`이 `[루프 <id>] <step>`, 루틴은 `[루틴…`으로 시작한다 — 무인 실행 판별에 쓴다.
+
 ## Technical Decisions
 
 | Decision | Rationale |
@@ -88,6 +95,10 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 | 정책 approval 도구: 헤드리스는 금지, 지니 PTY는 사람 전용 승인 카드(훅 `--external`) | PTY에서 금지하면 지니가 캘린더 일정도 못 만든다. 헤드리스는 승인할 사람이 없다 |
 | 헤드리스 approval 모드 MCP는 `readTools`만, bypass·allowlist 꺼짐이면 서버 통째로 금지 | 아난 결정 «쓰기 도구만 막기». bypass에서는 목록 밖 도구가 실행되므로 도구 단위 허용이 불가능 |
 | 승인 훅은 실패를 거부로 처리(닫힌 쪽) | 파일이 없던 동안 실패가 통과로 이어졌다 |
+| 발송 마커는 기본 미처리, 지니 출력 경로만 `genieOutput: true`로 켠다 | 호출부 78곳 중 지니 출력은 한 곳. 기본을 닫아 두면 새 호출부가 생겨도 안전하다 |
+| 외부 내용은 경계로 감싸고 안쪽 마커를 전각 `［`로 바꾼다 | 사람은 그대로 읽고, 기계는 마커로 인식하지 않는다. 끝 표식 위조 불가 |
+| 무인 실행(루프·루틴) 발송은 승인 카드 없이 보류, 결과 요약에 표시 | 아난 승인 계획. 새벽 승인 카드에 졸면서 누르는 경로를 없앤다. 사람이 보고 다시 요청하면 그때 승인 카드 |
+| 파트너 회신 마커(지니 내부 턴)는 보류가 아니라 승인 카드 | 파트너 문의 → 지니 초안 → 사장님 승인이 설계된 흐름. 보류하면 회신이 막힌다 |
 | 원장은 고치지 않고 읽을 때 등급을 붙인다 | append-only 원장의 소급 수정은 날조. legacy 로그값은 보존하고 재산정은 따로 낸다 |
 | 테스트 기대값은 라이브 원장 cli 행 | 설계자가 정한 기대값은 검증자=설계자(mandela #5) |
 | 모르는 claude 모델은 가장 비싼 단가 | 과소계상보다 과대계상이 안전(기존 원칙 유지) |
@@ -153,6 +164,7 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - 재산정 단가로 sonnet-5 $3을 가정한 것 — 공시 단가는 $2. 기억한 단가를 쓰지 말고 공식 표와 CLI 실측으로 확인한다.
 - `.re0/templates/`와 별도 문서로 새 계획 규약을 만들려던 시도 — 리포에 이미 같은 3파일 규약(`templates/`)이 있어 철회.
 - 첫 sonnet fixture 1건만으로 단가를 검증한 것 — 입력·캐시 단가 오차가 서로 상쇄돼 틀린 표로도 통과했다. 출력 위주 행을 더해 판별력을 확보.
+- python 문자열 치환으로 TS 소스를 고치다 `"\n"`이 실제 줄바꿈으로 들어가 컴파일이 깨졌다 — 이스케이프가 섞인 줄은 Edit 도구로 고친다.
 - 정책 approval 도구를 지니 PTY 권한 조립(`buildPermissionArgs`)에 금지로 넣은 첫 M1 시도 — PTY가 지니의 주 경로라 캘린더 일정 생성까지 막힌다. 승인 카드로 바꿨다.
 
 ## Resources
@@ -169,6 +181,7 @@ anthropics/knowledge-work-plugins(`02ffa99`)는 외부 발송·지급 승인 계
 - 원장 해석기: `src/server/cost-ledger.ts`
 - 외부 발송 판정: `src/server/side-effect-gate.ts`, 집행: `src/server/external-actions.ts`
 - 승인 훅: `scripts/mcp-approval-hook.mjs`
+- 출처 표시: `src/server/provenance.ts`
 - [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) `02ffa99`
 - 배포 패치 적용 루프: `~/.local/bin/soloforce2-update` (라이브 WSL)
 

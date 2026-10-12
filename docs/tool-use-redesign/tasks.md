@@ -47,7 +47,7 @@
 - [x] M1 외부 발송 판정 규칙 — 미리보기 해시·사람만 허용·한 번만·만료 (gate: G14)
 - [x] M1 승인 배선 — SendToPartner·회신 마커는 승인 뒤 서버가 발송, 정책 approval 도구는 헤드리스 금지·PTY 승인 카드, approval 모드 MCP는 헤드리스에서 readTools만, mcp-approval-hook 복구 (gate: G15)
 - [x] M1 승인 저장소 external 규칙 — 지니 의견·자동 규칙·반복 이력 미적용 (gate: G16)
-- [ ] M2 출처 표시 — 워커 결과 태그, 무인 루프의 외부 발송은 보류 목록으로
+- [x] M2 출처 표시 — 워커 결과 경계·마커 무력화, 발송 마커는 지니 출력만, 무인 루프 발송은 보류 목록, 승인 카드에 요청 주체 (gate: G17, G18)
 - [ ] M3 결과 상태 — ok·empty·failed·partial, 메일 스캔·텔레그램 발송 결과 정직하게
 - [ ] M4 DelegateTask `tier`, 미등록 내부 source는 standard 티어 + 경고, 레인 필수 필드 검사
 - [ ] M5 업무 맥락 형식(스키마·예시·검사기는 리포, 값은 `history/business-context.yaml`)
@@ -74,6 +74,8 @@
 | G14 | 외부 발송 승인 판정이 계약대로다 | `npx tsx scripts/side-effect-gate-test.ts` | hard |
 | G15 | 승인 배선(헤드리스 MCP 권한·정책 도구 분류·승인 훅 실제 프로세스)이 닫힌 쪽으로 동작한다 | `npx tsx scripts/approval-wiring-test.ts` | hard |
 | G16 | 승인 저장소가 external 요청을 사람만 허용한다 | `npx tsx scripts/approvals-external-test.ts` | hard |
+| G17 | 외부 내용의 실행 마커가 무력화되고 경계를 위조할 수 없다 | `npx tsx scripts/provenance-test.ts` | hard |
+| G18 | 다른 곳에서 온 내용의 회신 마커는 실행되지 않고, 무인 실행 발송은 보류된다 | `npx tsx scripts/provenance-integration-test.ts` | hard |
 
 ## Descoped
 
@@ -87,6 +89,8 @@
 | 승인 뒤 발송 목록 줄이기(trim) | 지금 외부 발송은 1건 단위라 필요 없다. 묶음 발송이 생기면 다시 본다 | `src/server/side-effect-gate.ts` |
 | `worker-pty.ts` 훅 배선 | 파일 주석상 pty-adapter 미등록으로 도달 불가 | 해당 경로가 살아나면 terminal-ws와 같은 배선 |
 | 승인 API 토큰 노출 여부 | 이번 범위 밖 | findings «Issues Encountered» 5 |
+| 지니 내부 턴(워커 결과 알림 등)이 낸 텔레그램·디스코드 회신 마커 | 받는 쪽이 사장님 본인 채널이라 외부 발송이 아니다. 최악은 사장님에게 오는 잡음 | findings «Stage 4 M2» |
+| 보류 목록의 영속 저장 | 서버 재시작 시 사라진다. 보류는 «보내지 않음»이라 사라져도 안전하고, 루프 결과 요약에 이미 실렸다 | `src/server/external-actions.ts` |
 | `npm test` 전체를 게이트로 쓰기 | `route-keyword-collision-test`가 실 `history/agents.json`에 의존해 새 체크아웃에서 실패 | findings.md «Issues Encountered» 1 |
 
 ## Notes

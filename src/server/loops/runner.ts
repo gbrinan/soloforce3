@@ -10,6 +10,7 @@ import { appendRunStart, appendRun, loadState, saveState } from "./ledger.js";
 import { checkPreRun, checkMidRun, sumRunCost, bumpRunsToday, bumpMonthSpend, clearStaleBudgetPause } from "./budget.js";
 import { runUntilDone } from "./until-done.js";
 import { resolveTier } from "../model-tiers.js";
+import { heldForJobs } from "../external-actions.js";
 import type { LoopDefinition, LoopExitReason, LoopRunRecord, LoopRunStepResult, LoopStep } from "./types.js";
 
 // [2026-08-10] 문구 정교화. 기존 "외부 발신·전송·결제·삭제 금지"는 발송이 임무인 스텝과 정면 충돌한다
@@ -207,6 +208,12 @@ function buildDeliveryMessage(def: LoopDefinition, record: LoopRunRecord): strin
     lines.push(`  - 스텝 ${s.stepId}${iterInfo}: job ${s.jobIds.length}건`);
   }
   lines.push(`- 비용: $${record.costUsd.toFixed(4)}`);
+  // 무인 실행에서 막힌 외부 발송 — 실행하지 않았고 승인 요청도 만들지 않았다. 사장님이 보고 직접 요청한다.
+  const heldItems = heldForJobs(record.steps.flatMap((s) => s.jobIds));
+  if (heldItems.length > 0) {
+    lines.push(`- ⏸️ 보류된 외부 발송 ${heldItems.length}건 (보내지 않음):`);
+    for (const h of heldItems.slice(0, 5)) lines.push(`  - ${h.kind} → ${h.target}: ${h.excerpt}`);
+  }
   if (record.error) lines.push(`- 상세: ${record.error}`);
   // delivery.on_success=full — 산출물 본문을 메시지에 그대로 포함한다.
   // (텔레그램·디스코드로도 같은 본문이 전달되므로 "폰에서 결과를 바로 읽는" 용도.)

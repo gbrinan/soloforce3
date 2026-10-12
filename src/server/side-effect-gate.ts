@@ -41,7 +41,7 @@ export function previewHash(a: ExternalAction): string {
 }
 
 /** 사람이 승인 버튼을 누르기 전에 보는 미리보기. 건수·대상·되돌릴 수 없음을 고정 형식으로 보인다. */
-export function formatPreview(a: ExternalAction): string {
+export function formatPreview(a: ExternalAction, origin?: string): string {
   const label = a.kind === "partner-reply" ? "파트너 회신" : "파트너 발송";
   const excerpt = a.body.length > 300 ? `${a.body.slice(0, 300)}…(${a.body.length}자)` : a.body;
   const atts = a.attachments.length
@@ -51,6 +51,7 @@ export function formatPreview(a: ExternalAction): string {
     `[외부 발송 승인] ${label} 1건 → ${a.target}`,
     `첨부: ${atts}`,
     `되돌릴 수 없음: 승인하면 이 내용 그대로 즉시 발송됩니다.`,
+    ...(origin ? [`요청 주체: ${origin}`] : []),
     `---`,
     excerpt,
   ].join("\n");

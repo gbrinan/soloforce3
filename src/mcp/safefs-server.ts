@@ -1003,7 +1003,17 @@ if (SEND_PARTNER_URL) {
       if (!r.ok) {
         return { isError: true, content: [{ type: "text" as const, text: `SEND_FAILED: ${r.text}` }] };
       }
-      const data = r.data as { ok?: boolean; status?: number | string; approvalId?: string; errorReason?: string } | null;
+      const data = r.data as { ok?: boolean; status?: number | string; approvalId?: string; heldId?: string; errorReason?: string } | null;
+      if (data?.ok && data.status === "held") {
+        return {
+          content: [{
+            type: "text" as const,
+            text: `HELD: 무인 실행(루프·루틴) 중이라 보내지도 승인을 요청하지도 않았습니다. 루프 결과 요약에 보류로 표시되고, 사장님이 보고 직접 요청합니다.
+- 보류 ID: ${data.heldId}
+- 동료: ${input.partnerId}`,
+          }],
+        };
+      }
       if (!data?.ok || data.status !== "pending_approval" || !data.approvalId) {
         return {
           isError: true,

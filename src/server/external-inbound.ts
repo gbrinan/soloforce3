@@ -479,9 +479,9 @@ export async function processGenieReplyMarker(content: string): Promise<void> {
     // external 등급: 회신도 사람 승인 뒤에만 나간다(서버가 보관한 내용 그대로).
     const r = requestExternalAction(
       { kind: "partner-reply", target: original.partnerId, body, attachments, meta: { inReplyTo: original.id, ourLabel: OUR_LABEL } },
-      { agentRole: "genie" },
+      { agentRole: "genie", origin: `지니 회신 마커 (받은 메시지 ${original.id.slice(0, 8)})` },
     );
-    console.log(`[ExternalInbound] 회신 승인 대기: messageId=${messageId} → partnerId=${original.partnerId} (approval ${r.approvalId.slice(0, 8)})`);
+    console.log(`[ExternalInbound] 회신 ${r.status}: messageId=${messageId} → partnerId=${original.partnerId}`);
   }
 }
 

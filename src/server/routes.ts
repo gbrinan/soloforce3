@@ -75,6 +75,7 @@ import { handleInbound, approveAndReply, rejectAndReply, readFileAsAttachment } 
 import { createBackupZip, restoreFromZip, cleanupBackupFile } from "./data-backup.js";
 import { sendExternal, sendPartnerRequest } from "./external-client.js";
 import { requestExternalAction } from "./external-actions.js";
+import { isUnattendedTaskTitle } from "./provenance.js";
 import {
   handlePartnerRequest,
   approvePartnerRequest,
@@ -1036,9 +1037,17 @@ export function registerRoutes(app: Hono): void {
       return c.json({ ok: false, status: 0, errorReason: `attachment MISS (${requested.length - attachments.length}/${requested.length})` }, 400);
     }
     // external 등급: 바로 보내지 않고 사람 승인을 요청한다. 승인되면 서버가 이 내용 그대로 보낸다.
+    // 루프·루틴 잡에서 온 요청은 사람이 지켜보지 않으므로 승인 카드 없이 보류한다(provenance.ts).
+    const jobId = c.req.header("X-Job-Id") || undefined;
+    const job = jobId ? getJob(jobId) : undefined;
     const pendingResult = requestExternalAction(
       { kind: "partner-send", target: partnerId, body: message, attachments, meta: { messageType, ourLabel: getGenieName() } },
-      { agentRole: c.req.header("X-Agent-Role") ?? "genie", jobId: c.req.header("X-Job-Id") ?? undefined },
+      {
+        agentRole: c.req.header("X-Agent-Role") ?? "genie",
+        jobId,
+        unattended: isUnattendedTaskTitle(job?.taskTitle),
+        ...(job?.taskTitle ? { origin: `${c.req.header("X-Agent-Role") ?? "genie"} · ${job.taskTitle}` } : {}),
+      },
     );
     return c.json({ ok: true, ...pendingResult });
   });
@@ -3474,7 +3483,8 @@ export function registerRoutes(app: Hono): void {
   app.post("/api/terminal/message", async (c) => {
     const body = await c.req.json<{ content: string }>().catch(() => null);
     if (!body?.content?.trim()) return c.json({ ok: false }, 400);
-    addGenieMessage(body.content.trim());
+    // 지니 PTY의 post_message — 지니 자신의 출력이므로 발송 마커를 처리한다.
+    addGenieMessage(body.content.trim(), { genieOutput: true });
     return c.json({ ok: true });
   });
 

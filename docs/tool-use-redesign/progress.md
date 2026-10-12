@@ -53,6 +53,19 @@
 - `scripts/side-effect-gate-test.ts`, `scripts/approval-wiring-test.ts`, `scripts/approvals-external-test.ts` (새로 생성)
 - `src/server/approvals.ts`, `src/server/routes.ts`, `src/server/external-inbound.ts`, `src/mcp/safefs-server.ts`, `src/agent.ts`, `src/server/mcp-registry.ts`, `src/server/service-policies.ts`, `src/server/terminal-ws.ts`, `package.json` (수정)
 
+### Stage 4 M2: 출처 표시 ✅
+
+**작업 내역**:
+
+1. 실측: `addGenieMessage`가 워커 결과·루프 요약·메일 다이제스트에 섞인 발송 마커까지 실행하던 경로 확인.
+2. 마커 처리를 지니 출력(`genieOutput`)으로 한정, 워커 결과를 지니에게 넘길 때 경계로 감싸고 안쪽 마커 무력화.
+3. 무인 실행(루프·루틴 잡) 발송은 보류 목록으로, 루프 결과 요약에 «보류된 외부 발송» 표시. 승인 카드에 요청 주체 표시.
+
+**생성/수정 파일**:
+
+- `src/server/provenance.ts`, `scripts/provenance-test.ts`, `scripts/provenance-integration-test.ts` (새로 생성)
+- `src/server/chat.ts`, `src/server/job-notify-gate.ts`, `src/server/external-actions.ts`, `src/server/side-effect-gate.ts`, `src/server/routes.ts`, `src/server/external-inbound.ts`, `src/mcp/safefs-server.ts`, `src/server/loops/runner.ts`, `package.json` (수정)
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -81,6 +94,9 @@
 | G15 | PASS | 14 passed, 0 failed (훅 실제 프로세스 6건 포함) | 2026-10-13 |
 | G16 | PASS | 7 passed, 0 failed (임시 MYCREW_HOME) | 2026-10-13 |
 | G6 | PASS | `tsc --noEmit` 종료 코드 0 (M1 이후) | 2026-10-13 |
+| G17 | PASS | 8 passed, 0 failed | 2026-10-13 |
+| G18 | PASS | 3 passed, 0 failed (임시 MYCREW_HOME, 실제 받은 메시지로 대조) | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M2 이후) | 2026-10-13 |
 
 ## Error Log
 
@@ -98,8 +114,8 @@
 
 | Question | Answer |
 | --- | --- |
-| 1. 현재 어느 단계인가? | Stage 4 M1 완료(브랜치 `cycle4/stage4-gates`), Stage 1은 아난 라벨 대기 |
-| 2. 다음에 할 일은? | Stage 4 M2 출처 표시 → M3 → M4 → M5. Stage 1 라벨이 오면 집계 |
+| 1. 현재 어느 단계인가? | Stage 4 M2 완료(브랜치 `cycle4/stage4-gates`), Stage 1은 아난 라벨 대기 |
+| 2. 다음에 할 일은? | Stage 4 M3 결과 상태 → M4 → M5. Stage 1 라벨이 오면 집계 |
 | 3. 목표는? | 정책을 도구 스키마에 두고, 싱글 기본 + 개발·인제스트·QA 레인 |
 | 4. 지금까지 배운 것? | findings.md — 측정 도구부터 외부 정답과 대조할 것 |
-| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기, Stage 1 파일럿, Stage 4 M1 승인 계약 |
+| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기, Stage 1 파일럿, Stage 4 M1 승인 계약, M2 출처 표시 |
