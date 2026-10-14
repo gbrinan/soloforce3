@@ -10,6 +10,11 @@
 import { pickRouteCandidate, getAllWorkerAgents } from "../src/agent-registry.js";
 
 const agents = getAllWorkerAgents();
+// 실 데이터가 없으면(워크트리·새 설치 — history/는 gitignore) 22건을 0명에 대고 FAIL로 쏟지 않고 MISS로 멈춘다.
+if (agents.length === 0) {
+  console.log("MISS — history/agents.json이 없거나 비어 있어 라우팅을 검사할 직원이 0명 (MYCREW_HOME 확인)");
+  process.exit(2);
+}
 
 let fail = 0;
 let knownGapObserved = 0;
@@ -79,7 +84,8 @@ check("선생님이 보내주신 자료 노션에 정리해줘", "선생님이 �
 console.log("\n=== 회귀 스캔 — 타 직원 정탐 대표 사례 5건, mentor-advisor 편입 전과 결과 동일해야 한다 ===");
 check("리서치 좀 부탁해", "리서치 좀 부탁해", { agentId: "planner-researcher" });
 check("QA 검증해줘", "QA 검증해줘", { agentId: "qa" });
-check("코퍼스에 인제스트해줘", "코퍼스에 인제스트해줘", { agentId: "ingest-crab" });
+// ingest-crab은 ingestiger로 이름이 바뀌었다(agent-registry.ts resolveNewWorkerId).
+check("코퍼스에 인제스트해줘", "코퍼스에 인제스트해줘", { agentId: "ingestiger" });
 check("정산 내역 확인해줘", "정산 내역 확인해줘", { agentId: "book-keeper" });
 check("리드 파이프라인 정리해줘", "리드 파이프라인 정리해줘", { agentId: "lead-keeper" });
 
