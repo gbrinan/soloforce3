@@ -36,6 +36,76 @@
 
 - `scripts/stage1/` sample.ts·sample-chat.ts·run.ts·cards.ts·tally.ts·stage1-test.ts (새로 생성)
 
+## Session 2026-10-13
+
+### Stage 4 M1: 승인 계약 ✅
+
+**작업 내역**:
+
+1. knowledge-work-plugins 분석 결과로 Stage 4 «높음» 4건을 먼저 하기로 결정(아난). 코드 실측: 외부 발송 무승인, 정책 금지가 워커 경로 한 곳뿐, 헤드리스가 approval 모드 무시, 승인 훅 파일 부재.
+2. 판정 규칙을 순수 함수로 먼저 테스트(17건) → 승인 저장소 external 규칙 → SendToPartner·회신 마커를 «요청 → 사람 승인 → 서버가 보관 내용 그대로 발송»으로 전환.
+3. 정책 approval 도구: 헤드리스 금지, 지니 PTY는 사람 전용 승인 카드. approval 모드 MCP는 헤드리스에서 readTools만. 승인 훅 복구(실패는 거부).
+4. 훅이 Windows에서 0xC0000409로 죽는 문제를 배선 테스트에서 재현·수정(findings 4).
+
+**생성/수정 파일**:
+
+- `src/server/side-effect-gate.ts`, `src/server/external-actions.ts`, `scripts/mcp-approval-hook.mjs` (새로 생성)
+- `scripts/side-effect-gate-test.ts`, `scripts/approval-wiring-test.ts`, `scripts/approvals-external-test.ts` (새로 생성)
+- `src/server/approvals.ts`, `src/server/routes.ts`, `src/server/external-inbound.ts`, `src/mcp/safefs-server.ts`, `src/agent.ts`, `src/server/mcp-registry.ts`, `src/server/service-policies.ts`, `src/server/terminal-ws.ts`, `package.json` (수정)
+
+### Stage 4 M2: 출처 표시 ✅
+
+**작업 내역**:
+
+1. 실측: `addGenieMessage`가 워커 결과·루프 요약·메일 다이제스트에 섞인 발송 마커까지 실행하던 경로 확인.
+2. 마커 처리를 지니 출력(`genieOutput`)으로 한정, 워커 결과를 지니에게 넘길 때 경계로 감싸고 안쪽 마커 무력화.
+3. 무인 실행(루프·루틴 잡) 발송은 보류 목록으로, 루프 결과 요약에 «보류된 외부 발송» 표시. 승인 카드에 요청 주체 표시.
+
+**생성/수정 파일**:
+
+- `src/server/provenance.ts`, `scripts/provenance-test.ts`, `scripts/provenance-integration-test.ts` (새로 생성)
+- `src/server/chat.ts`, `src/server/job-notify-gate.ts`, `src/server/external-actions.ts`, `src/server/side-effect-gate.ts`, `src/server/routes.ts`, `src/server/external-inbound.ts`, `src/mcp/safefs-server.ts`, `src/server/loops/runner.ts`, `package.json` (수정)
+
+### Stage 4 M3: 결과 상태 ✅
+
+**작업 내역**:
+
+1. 실측: 메일 스캔 실패가 `null`로 묻히고, 텔레그램 전달 기록이 실제와 무관하게 true였음을 확인.
+2. 공용 결과 봉투(ok·empty·partial·failed·skipped) → 메일 스캔이 봉투를 돌려주고 실패는 «확인 못 함»으로 알림, 분류 누락은 partial과 다이제스트 꼬리말.
+3. 텔레그램·디스코드 notice가 실제 전달 여부를 돌려주게 하고, 루프 요약에 실패·부분 스텝 꼬리말.
+
+**생성/수정 파일**:
+
+- `src/shared/result-envelope.ts`, `scripts/result-envelope-test.ts`, `scripts/mail-scan-outcome-test.ts` (새로 생성)
+- `src/server/mail-scan.ts`, `src/server/telegram.ts`, `src/server/discord.ts`, `src/server/routes.ts`, `src/server/loops/runner.ts`, `package.json` (수정)
+
+### Stage 4 M4: 레인 필수 필드와 티어 ✅
+
+**작업 내역**:
+
+1. 실측: 위임에 티어 필드 없음, 루프 model_tier가 저장만 되고 안 쓰임, 미등록 내부 source가 기본 모델로 감. 그 과정에서 M2 무인 판별 결함 발견·수정(findings 6).
+2. `resolveDelegateModel`(호출자 tier > 태스크 고정 모델) → `/api/delegate`가 잡에 적용, DelegateTask 스키마에 `tier`.
+3. 미등록 내부 source는 standard + 경고, `job:report`만 기본 모델로 명시.
+4. 레인 정의 검사기 `scripts/lane-check.ts` — 시드(hard)와 라이브(읽기 전용) 모두 FAIL 0.
+
+**생성/수정 파일**:
+
+- `scripts/lane-check.ts`, `scripts/delegate-tier-test.ts` (새로 생성)
+- `src/server/model-tiers.ts`, `src/server/jobs.ts`, `src/server/routes.ts`, `src/mcp/safefs-server.ts`, `src/server/internal-source-tier.ts`, `src/server/chat.ts`, `scripts/internal-source-tier-test.ts`, `package.json` (수정)
+
+### Stage 4 M5: 업무 맥락 형식 ✅
+
+**작업 내역**:
+
+1. 스키마(`src/shared/business-context.ts`, zod strict) — 국가·통화 ISO, 회계연도 MM-DD 실제 날짜, IANA 시간대, 사업 단위 1개 이상·id 중복 없음, 연결 도구는 범주 키, 출력 선호.
+2. 예시 `config/business-context.example.yaml`(실제 사업 정보 없음), 검사기 `scripts/business-context-check.ts`(기본 대상은 history 값 파일, 없으면 MISS 2).
+3. CLAUDE.md에 Stage 4 정본 모듈 위치 기록.
+
+**생성/수정 파일**:
+
+- `src/shared/business-context.ts`, `config/business-context.example.yaml`, `scripts/business-context-check.ts`, `scripts/business-context-test.ts` (새로 생성)
+- `CLAUDE.md`, `package.json` (수정)
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -44,6 +114,7 @@
 | 단가 보정(수정 후) | 같은 4건 | CLI 값 ±1% | 4건 모두 ±1% | ✅ |
 | 원장 리포트 | 라이브 원장 30일 | 등급별 분리 | 의사결정용 $190.32 / legacy 로그 $1,272.31 → 재산정 $214.94 / unpriced 104행 | ✅ |
 | 원장 파일 없음 | 없는 경로 | MISS, 종료 코드 2 | MISS, 2 | ✅ |
+| 업무 맥락 라이브 값 | `MYCREW_HOME=C:/mycrew/mycrew-program` 검사기 | 아직 없음 → MISS 2 | MISS, 2 | ✅ (아난 작성 대기) |
 
 ## Gate Evidence
 
@@ -60,6 +131,25 @@
 | G9 | PASS | 재설계 사전 등록 커밋 6f5416e(2026-10-08 07:49 KST)가 채팅 재실행 결과보다 먼저 | 2026-10-08 |
 | G10 | PASS | 채팅 표본 sha256 254e3a1d…7576, `sample-chat.ts --verify` 재생성 일치 | 2026-10-08 |
 | G11 | PASS | 허용 도구 Skill·WebSearch·WebFetch·Read·Glob·Grep, 쓰기·셸·하위 에이전트 금지, MCP 0개 — 실제 사용 도구는 Read·Grep·Glob·Skill·ToolSearch·CronList·ListAgents(모두 읽기) | 2026-10-08 |
+| G14 | PASS | 17 passed, 0 failed | 2026-10-13 |
+| G15 | PASS | 14 passed, 0 failed (훅 실제 프로세스 6건 포함) | 2026-10-13 |
+| G16 | PASS | 7 passed, 0 failed (임시 MYCREW_HOME) | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M1 이후) | 2026-10-13 |
+| G17 | PASS | 8 passed, 0 failed | 2026-10-13 |
+| G18 | PASS | 3 passed, 0 failed (임시 MYCREW_HOME, 실제 받은 메시지로 대조) | 2026-10-13 |
+| G18 | PASS | 5 passed, 0 failed (무인 판별 수정 후 — 실제 루틴 인스턴스 태스크 포함) | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M2 이후) | 2026-10-13 |
+| G19 | PASS | 5 passed, 0 failed | 2026-10-13 |
+| G20 | PASS | 7 passed, 0 failed (가짜 claude·알림, 임시 MYCREW_HOME) | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M3 이후) | 2026-10-13 |
+| G21 | PASS | 8 passed, 0 failed | 2026-10-13 |
+| G22 | PASS | 32개 정의 · FAIL 0 · WARN 34(L2 31, L3 3) | 2026-10-13 |
+| G23 | PASS | internal source model routing: PASS (미등록 3케이스 추가) | 2026-10-13 |
+| G24 | PASS | 라이브 26개 정의 · FAIL 0 · WARN 26(전부 L2) — 읽기 전용 | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M4 이후) | 2026-10-13 |
+| G25 | PASS | 9 passed, 0 failed (검사기 종료 코드 0·1·2 포함) | 2026-10-13 |
+| G26 | PASS | 사업 단위 2개, 연결 범주 4개 — 종료 코드 0 | 2026-10-13 |
+| G6 | PASS | `tsc --noEmit` 종료 코드 0 (M5 이후) | 2026-10-13 |
 
 ## Error Log
 
@@ -69,6 +159,8 @@
 | 2026-10-07 | `git reset --hard` 자동 모드 차단 | 1 | `git switch -c`로 대체 (findings 2) |
 | 2026-10-07 | 원장 테스트 기대값 손계산 오류(1154×5) | 1 | 기대값 $0.033273으로 정정 |
 | 2026-10-07 | qa-artifact-base-test 통과 후 미종료로 체인 정지 | 1 | 성공 경로 `process.exit(0)` (findings 3) |
+| 2026-10-13 | 승인 훅 종료 코드 0xC0000409 | 1 | `node:http`+자연 종료 (findings 4) |
+| 2026-10-13 | M2 무인 실행 판별이 루프 잡에서 불일치(저장된 taskTitle은 프롬프트 원문) | 1 | 태스크 routineType 판별로 교체 (findings 6) |
 
 ## 5-Question Reboot Check
 
@@ -76,8 +168,8 @@
 
 | Question | Answer |
 | --- | --- |
-| 1. 현재 어느 단계인가? | Stage 1 — 채팅 파일럿 10건 실행 완료, 아난 라벨 대기 |
-| 2. 다음에 할 일은? | 카드 10장 라벨 → 파이프라인 점검 후 나머지 20건 실행 |
+| 1. 현재 어느 단계인가? | Stage 4 «높음» 4건 + 업무 맥락 형식(M1~M5) 완료(브랜치 `cycle4/stage4-gates`, PR 전). Stage 1은 아난 라벨 대기 |
+| 2. 다음에 할 일은? | PR 여부는 아난 결정. Stage 4 남은 항목(훅 2종·도구 등급), 업무 맥락 값 작성(아난). Stage 1 라벨이 오면 집계 |
 | 3. 목표는? | 정책을 도구 스키마에 두고, 싱글 기본 + 개발·인제스트·QA 레인 |
 | 4. 지금까지 배운 것? | findings.md — 측정 도구부터 외부 정답과 대조할 것 |
-| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기 |
+| 5. 완료한 작업은? | 역싱크, 단가 보정, 원장 해석기·리포트, 계획 검사기, Stage 1 파일럿, Stage 4 M1 승인 계약, M2 출처 표시, M3 결과 상태, M4 레인·티어, M5 업무 맥락 형식 |

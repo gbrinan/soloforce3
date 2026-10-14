@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import { CronExpressionParser } from "cron-parser";
 import { HISTORY_DIR } from "../../config.js";
+import { buildTopicLoops, loadModules, loadTopics } from "../modules/registry.js";
 import {
   MAX_ITERATIONS_HARD_CAP,
   type LoopDefinition,
@@ -77,7 +78,7 @@ function validateStep(step: unknown, index: number): { ok: true; step: LoopStep 
   };
 }
 
-function validateLoop(raw: unknown, file: string): { ok: true; def: LoopDefinition } | { ok: false; message: string } {
+export function validateLoop(raw: unknown, file: string): { ok: true; def: LoopDefinition } | { ok: false; message: string } {
   if (!raw || typeof raw !== "object") return { ok: false, message: "빈 파일이거나 객체가 아닙니다" };
   const obj = raw as Record<string, unknown>;
   const loop = (obj.loop ?? obj) as Record<string, unknown>; // "loop:" 최상위 래핑 허용 + 미래환 대비 언래핑도 허용
@@ -175,6 +176,27 @@ export function loadLoops(): LoopLoadResult {
     } catch (err) {
       errors.push({ file, message: err instanceof Error ? err.message : String(err) });
     }
+  }
+
+  // 주제 모듈 루프(modules/<id>/loops 템플릿 × history/topics 설정) — 같은 id의 파일 루프가 있으면 파일이 이긴다.
+  // SPF처럼 손으로 만든 루프를 모듈로 옮기는 동안 같은 루프가 두 번 돌지 않게 한다(파일을 지우면 모듈 루프가 이어받음).
+  try {
+    const { modules, errors: moduleErrors } = loadModules();
+    const { topics, errors: topicErrors } = loadTopics();
+    const built = buildTopicLoops(modules, topics);
+    for (const e of [...moduleErrors, ...topicErrors, ...built.errors]) errors.push(e);
+    for (const t of built.loops) {
+      const result = validateLoop(t.raw, t.file);
+      if (!result.ok) { errors.push({ file: t.templateFile, message: `${String(t.raw.id)}: ${result.message}` }); continue; }
+      if (seenIds.has(result.def.id)) {
+        errors.push({ file: t.file, message: `주제 루프 "${result.def.id}"는 같은 id의 파일 루프가 있어 건너뜀 — 파일 루프 우선` });
+        continue;
+      }
+      seenIds.add(result.def.id);
+      loops.push({ ...result.def, topic: t.raw.topic as string, module: t.raw.module as string });
+    }
+  } catch (err) {
+    errors.push({ file: "modules", message: err instanceof Error ? err.message : String(err) });
   }
 
   return { loops, errors };

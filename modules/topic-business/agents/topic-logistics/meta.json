@@ -1,0 +1,14 @@
+{
+  "id": "topic-logistics",
+  "name": "주제물류",
+  "jobTitle": "주제 물류 추적 담당",
+  "team": "주제팀",
+  "adapter": "claude-code",
+  "model": "claude-sonnet-5",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "주제별 배송을 발주부터 도착까지 하나의 상태로 추적하고 경고 판정을 한다. 대외 액션은 제안만.",
+  "maxTurns": 30,
+  "allowedTools": ["Read", "Write", "Edit", "Grep", "Glob", "WebFetch", "Skill", "TaskCreate", "TaskUpdate", "TaskList", "TaskGet"],
+  "writePaths": ["/history/outputs/topic-logistics/**", "/history/agents/topic-logistics/**", "/history/topics/**", "/history/attachments/**"]
+}

@@ -4,6 +4,7 @@ import { HISTORY_DIR, PROJECT_SELF_DIR } from "./config.js";
 import { syncRoleDirective } from "./role-directive.js";
 import type { AgentConfig } from "./types.js";
 import { getUserTitle } from "./server/user-title.js";
+import { moduleAgentDirs } from "./server/modules/registry.js";
 import { resolveDeprecatedModel, recordSuccession } from "./server/model-catalog.js";
 
 export interface WorkerAgentDef {
@@ -187,7 +188,9 @@ export function ensureAgentDirs(agent: WorkerAgentDef, all?: WorkerAgentDef[]): 
   const newTmplPath = join(PROJECT_SELF_DIR, "config", "agents", agent.id, "role-directive.md");
   // 2순위: config/role-directives/{id}.md (기존 구조 폴백)
   const tmplPath = join(PROJECT_SELF_DIR, "config", "role-directives", `${agent.id}.md`);
-  const seedPath = existsSync(newTmplPath) ? newTmplPath : existsSync(tmplPath) ? tmplPath : null;
+  // 3순위: modules/<모듈>/agents/{id}/role-directive.md (주제 모듈 역할)
+  const moduleTmpl = moduleAgentDirs().map((d) => join(d, agent.id, "role-directive.md")).find((f) => existsSync(f));
+  const seedPath = existsSync(newTmplPath) ? newTmplPath : existsSync(tmplPath) ? tmplPath : moduleTmpl ?? null;
 
   if (seedPath) {
     const existed = existsSync(rdPath);
@@ -222,7 +225,9 @@ function loadAgents(): WorkerAgentDef[] {
     const { mtimeMs } = statSync(AGENTS_FILE);
     const configAgentsDir = join(PROJECT_SELF_DIR, "config", "agents");
     let configDirMtime = 0;
-    try { configDirMtime = statSync(configAgentsDir).mtimeMs; } catch { /* */ }
+    for (const d of [configAgentsDir, ...moduleAgentDirs()]) {
+      try { configDirMtime = Math.max(configDirMtime, statSync(d).mtimeMs); } catch { /* */ }
+    }
     if (cache && mtimeMs === lastMtime && configDirMtime === lastConfigDirMtime) return cache;
     lastMtime = mtimeMs;
     lastConfigDirMtime = configDirMtime;
@@ -235,8 +240,9 @@ function loadAgents(): WorkerAgentDef[] {
     const data = JSON.parse(raw) as { agents: WorkerAgentDef[] };
     const agents = data.agents;
 
-    // 15-D: config/agents/*/meta.json 스캔 → agents.json에 없는 직원 자동 등록
-    const configAgentsScanDir = join(PROJECT_SELF_DIR, "config", "agents");
+    // 15-D: config/agents/*/meta.json 스캔 → agents.json에 없는 직원 자동 등록.
+    // 주제 모듈 역할(modules/<모듈>/agents/*)도 같은 방식으로 등록한다 — 같은 id면 config/agents가 먼저다.
+    for (const configAgentsScanDir of [join(PROJECT_SELF_DIR, "config", "agents"), ...moduleAgentDirs()]) {
     if (existsSync(configAgentsScanDir)) {
       try {
         const subdirs = readdirSync(configAgentsScanDir, { withFileTypes: true })
@@ -289,8 +295,9 @@ function loadAgents(): WorkerAgentDef[] {
           }
         }
       } catch (e) {
-        console.error("[Registry] config/agents 스캔 실패:", e);
+        console.error(`[Registry] ${configAgentsScanDir} 스캔 실패:`, e);
       }
+    }
     }
 
     // 지원 종료 모델 자동 승계 — 카탈로그의 replacement 로 바꿔 읽는다.

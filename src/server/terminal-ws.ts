@@ -25,6 +25,7 @@ import { getGenieAgent } from "../agents/genie.js";
 import { effortForConfig } from "./effort-policy.js";
 import { buildPermissionArgs } from "../agent.js";
 import { resolveAgentMcpServers } from "./mcp-registry.js";
+import { getPolicyToolSets } from "./service-policies.js";
 import { listManifests } from "./app-registry.js";
 import { AgentPty, claudeSessionExists, SUBMIT_RESPONSE_DIRECTIVE, type SpawnSpec } from "./agent-pty.js";
 import { computeMemoryDir } from "../mcp/memory-dir.js";
@@ -173,6 +174,15 @@ async function buildGenieSpawn(): Promise<SpawnSpec> {
     matcher: `mcp__${n}__.*`,
     hooks: [{ type: "command", command: hookCmd, timeout: 70 }],
   }));
+  // 서비스 정책의 approval 도구(gmail 발송·캘린더 생성 등)는 사람만 승인하는 카드로 보낸다(--external).
+  // 꺼진 서비스 도구는 아예 막는다. 헤드리스 경로는 같은 목록을 금지 목록으로 쓴다(agent.ts runAgent).
+  const policyTools = getPolicyToolSets();
+  if (policyTools.approval.length > 0) {
+    preToolUse.push({
+      matcher: `^(${policyTools.approval.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})$`,
+      hooks: [{ type: "command", command: `${hookCmd} --external`, timeout: 70 }],
+    });
+  }
   // 알바(Agent) 스폰 감지 → UI "알바 작업 중" 표시 (fire-and-forget)
   preToolUse.push({ matcher: "Agent", hooks: [{ type: "command", command: agentEventCmd, timeout: 5 }] });
   const hooks = {
@@ -184,7 +194,11 @@ async function buildGenieSpawn(): Promise<SpawnSpec> {
   };
   // appdata는 읽기 전용 GET만이라 승인 없이 허용 (playwright allow 모드와 동일 근거).
   const extraAllowedTools = [...allowNames.map((n) => `mcp__${n}`), "mcp__appdata"];
-  cliArgs.push(...buildPermissionArgs(genieConfig, { interactive: true, hooks, extraAllowedTools }));
+  const genieWithPolicy = {
+    ...genieConfig,
+    extraDisallowedTools: [...(genieConfig.extraDisallowedTools ?? []), ...policyTools.blocked],
+  };
+  cliArgs.push(...buildPermissionArgs(genieWithPolicy, { interactive: true, hooks, extraAllowedTools }));
   if (sessionId && claudeSessionExists(sessionId, process.cwd())) {
     cliArgs.push("--resume", sessionId);
     console.log(`[Terminal] 세션 이어받기: ${sessionId}`);

@@ -1,0 +1,34 @@
+# 주제 설정 — 예시(형식 참고용, 실제 사업 정보 아님)
+# 실제 값은 history/topics/<id>.yaml 에 둔다(gitignore). 이 파일을 복사해 고쳐 쓴다.
+# 주제 id는 history/business-context.yaml 의 businessLines[].id 와 같아야 한다.
+# 검사: npx tsx scripts/topic-check.ts                 (history/topics/*.yaml 전부)
+#       npx tsx scripts/topic-check.ts --file config/topics/example.topic.yaml
+# 스키마: src/shared/topic-config.ts · 설계: docs/topic-modules/
+version: 1
+id: export-trade
+name: 예시 수출 품목
+summary: 해외 바이어에게 소비재를 수출하는 사업
+knowledgeFile: topics/export-trade/knowledge.md   # history/ 아래 — 회사 사실·셀링넘버·경쟁사·ICP·스코어 기준
+docStyleFile: topics/export-trade/doc-style.md     # 선택 — 제안서·회의록 양식
+sectors:
+  - { id: A, label: 대형 유통 }
+  - { id: B, label: 온라인 셀러 }
+news:
+  categories:
+    - { name: 수입 규제·통관, urgency: CRITICAL, sectors: [A, B] }
+    - { name: 경쟁 브랜드 신제품, urgency: WATCH }
+  competitors: [예시 경쟁사 1, 예시 경쟁사 2]
+  rules:
+    - 가격 수치는 유통 단계와 집계 주체를 함께 적는다
+sinks:
+  leads:   { kind: leads-app, label: 영업 리드, pipelineId: export-trade }
+  news:    { kind: notion, label: 주간 뉴스, dataSource: 00000000-0000-0000-0000-000000000000 }
+inputs:
+  mail:  { query: "label:export-trade", windowDays: 2 }
+  kakao: { inboxDir: topics/export-trade/kakao-inbox }
+loops:
+  daily-brief: { enabled: true, cron: "40 8 * * 1-5", maxCostUsdPerRun: 1, monthlyCapUsd: 10 }
+  mail-scan:   { enabled: true, cron: "20 8 * * 1-5" }
+  weekly-news: { enabled: false }
+routeKeywords: [수출, 바이어]
+updatedAt: "2026-10-13"

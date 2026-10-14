@@ -779,11 +779,13 @@ if (DELEGATE_URL) {
       timeoutSec: z.number().optional().describe("작업 타임아웃 초 (기본 600)"),
       leaseSec: z.number().optional().describe("Lease 만료 초 (기본 900=15분). 긴 작업일 때만 명시 — 미지정 시 기본값."),
       maxTurns: z.number().optional().describe("워커 한 턴당 최대 turns (미지정 시 에이전트 정의 기본값)"),
+      tier: z.enum(["cheap", "standard", "frontier"]).optional().describe("모델 티어. 모델 ID는 서버가 티어 표에서 정한다. 미지정 시 에이전트 정의 모델(루프 스텝이면 스텝 티어). 단순 수집·정리는 cheap, 판단이 필요한 일반 작업은 standard, 설계·고난도 분석만 frontier."),
       effort: z.enum(["low", "medium", "high"]).optional().describe("추론 강도. 기본 low. leaseSec/maxTurns를 기본보다 크게 준 긴 작업은 자동으로 medium이 되므로 보통 생략한다. 명시하면 자동 승격보다 우선."),
       selfRestart: z.boolean().optional().describe("self 프로젝트(이 시스템 자체) 수정 작업일 때 true. 잡 완료 후 자동 재시작 큐에 적재."),
       skipOutput: z.boolean().optional().describe("산출물 파일 생성 생략 여부. 기본값 true(생략). 보고서/분석/리서치/감사 결과가 필요한 작업이면 false를 명시적으로 지정."),
       taskId: z.string().optional().describe("소속 Task ID. 같은 사용자 지시의 후속 위임이면 첫 위임 ACK의 taskId를 전달. 미지정 시 새 Task 자동 생성."),
       taskTitle: z.string().optional().describe("Task 제목 (UI에 표시될 사용자 지시 요약). 미지정 시 request에서 자동 생성."),
+      topic: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional().describe("주제 id(예: spf). topic-sales 같은 주제 모듈 역할에 위임할 때 지정한다. 서버가 그 주제의 지식 파일·기록 위치·범위를 요청 앞에 붙인다. 설정된 주제가 하나뿐이면 생략 가능."),
     },
     async (input: {
       request: string;
@@ -798,13 +800,15 @@ if (DELEGATE_URL) {
       leaseSec?: number;
       maxTurns?: number;
       effort?: "low" | "medium" | "high";
+      tier?: "cheap" | "standard" | "frontier";
       selfRestart?: boolean;
       skipOutput?: boolean;
       taskId?: string;
       taskTitle?: string;
+      topic?: string;
     }) => {
       // 응답 단위 dedup window (60초) — 같은 응답 내 동일 (request,agent,cwd) 재호출은 첫 ACK 반환
-      const key = dedupKey(input.request, input.agent, input.cwd);
+      const key = dedupKey(input.request, input.topic ? `${input.agent ?? ""}@${input.topic}` : input.agent, input.cwd);
       const now = Date.now();
       const cached = delegateDedup.get(key);
       if (cached && cached.expiresAt > now) {
@@ -956,7 +960,8 @@ async function postPartnerJson(
     try {
       response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // 승인 카드에 요청 주체를 남긴다(외부 발송 승인 — external-actions.ts)
+        headers: { "Content-Type": "application/json", "X-Agent-Role": AGENT_ROLE, ...(JOB_ID ? { "X-Job-Id": JOB_ID } : {}) },
         body: JSON.stringify(payload),
       });
       if (response.status >= 500 && attempt === 0) {
@@ -987,7 +992,7 @@ async function postPartnerJson(
 if (SEND_PARTNER_URL) {
   server.tool(
     "SendToPartner",
-    "Send a message to an external partner. Returns messageId on success (synchronous).",
+    "Request sending a message to an external partner. Nothing is sent immediately: the owner must approve, then the server sends exactly this content. Returns an approval ID.",
     {
       partnerId: z.string().describe("동료 ID"),
       message: z.string().describe("발송할 메시지 본문"),
@@ -1002,8 +1007,18 @@ if (SEND_PARTNER_URL) {
       if (!r.ok) {
         return { isError: true, content: [{ type: "text" as const, text: `SEND_FAILED: ${r.text}` }] };
       }
-      const data = r.data as { ok?: boolean; messageId?: string; status?: number; errorReason?: string } | null;
-      if (!data?.ok) {
+      const data = r.data as { ok?: boolean; status?: number | string; approvalId?: string; heldId?: string; errorReason?: string } | null;
+      if (data?.ok && data.status === "held") {
+        return {
+          content: [{
+            type: "text" as const,
+            text: `HELD: 무인 실행(루프·루틴) 중이라 보내지도 승인을 요청하지도 않았습니다. 루프 결과 요약에 보류로 표시되고, 사장님이 보고 직접 요청합니다.
+- 보류 ID: ${data.heldId}
+- 동료: ${input.partnerId}`,
+          }],
+        };
+      }
+      if (!data?.ok || data.status !== "pending_approval" || !data.approvalId) {
         return {
           isError: true,
           content: [{ type: "text" as const, text: `SEND_FAILED: ${data?.errorReason ?? "unknown"} (status=${data?.status ?? 0})` }],
@@ -1012,7 +1027,7 @@ if (SEND_PARTNER_URL) {
       return {
         content: [{
           type: "text" as const,
-          text: `SUCCESS: 메시지 발송 완료\n- 메시지 ID: ${data.messageId}\n- HTTP: ${data.status}\n- 동료: ${input.partnerId}\n- 타입: ${input.messageType ?? "request"}`,
+          text: `PENDING_APPROVAL: 아직 발송되지 않았습니다. 사장님이 승인하면 서버가 이 내용 그대로 발송합니다.\n- 승인 ID: ${data.approvalId}\n- 동료: ${input.partnerId}\n- 타입: ${input.messageType ?? "request"}\n같은 내용을 다시 요청하지 마세요(같은 승인 카드에 합류합니다).`,
         }],
       };
     },

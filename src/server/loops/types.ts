@@ -84,8 +84,11 @@ export interface LoopDefinition {
   approval?: LoopApproval;
   delivery?: LoopDelivery;
   expiry?: LoopExpiry;
-  /** 정의 파일 경로 (loader가 채움, 저장은 안 함) */
+  /** 정의 파일 경로 (loader가 채움, 저장은 안 함). 주제 루프는 주제 설정 파일 경로. */
   __filePath?: string;
+  /** 주제 모듈 루프만: 어떤 주제·모듈에서 만들어졌는지 (loader가 채움) */
+  topic?: string;
+  module?: string;
 }
 
 export type LoopExitReason = "done" | "max_iterations" | "budget_exceeded" | "no_progress" | "error" | "paused" | "interrupted";

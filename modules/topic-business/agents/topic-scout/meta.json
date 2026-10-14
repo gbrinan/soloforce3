@@ -1,0 +1,12 @@
+{
+  "id": "topic-scout",
+  "name": "주제정찰",
+  "jobTitle": "주제 산업 뉴스 발굴 담당 (Gemini)",
+  "team": "주제팀",
+  "adapter": "antigravity-cli",
+  "model": "gemini-3.5-flash",
+  "isCore": false,
+  "permLevel": "normal",
+  "description": "topic-sales의 발굴 단계 전담. 주제의 뉴스 범주로 검색해 구조화된 신호로 반환한다. 스코어링·메일·기록은 하지 않는다.",
+  "maxTurns": 8
+}

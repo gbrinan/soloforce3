@@ -25,8 +25,13 @@ assert.equal(modelForInternalSource(false, undefined), undefined, "사용자 대
 assert.equal(modelForInternalSource(true, "job:notify:ok"), "claude-haiku-4-5", "기존 cheap 라우팅이 깨졌다");
 assert.equal(modelForInternalSource(true, "job:notify:fail"), standard, "기존 standard 라우팅이 깨졌다");
 
-// 표에 없는 내부 source 는 여전히 기본 모델(명시적 등재 원칙 유지).
-assert.equal(modelForInternalSource(true, "job:report"), undefined, "미등재 source 처리 규칙이 바뀌었다");
+// 기본 모델 유지는 명시한 source(job:report — 사용자가 그대로 읽는 문장)만.
+assert.equal(modelForInternalSource(true, "job:report"), undefined, "job:report 가 기본 모델에서 내려갔다");
+
+// 2026-10-13: 표에 없는 내부 source 는 기본 모델(opus)로 새지 않고 standard 로 간다(경고 1회).
+assert.equal(modelForInternalSource(true, "new-feature:unregistered"), standard, "미등재 내부 source 가 기본 모델로 샌다");
+assert.equal(modelForInternalSource(true, undefined), standard, "source 없는 내부 호출이 기본 모델로 샌다");
+assert.equal(modelForInternalSource(true, ""), standard, "빈 source 내부 호출이 기본 모델로 샌다");
 
 console.log("internal source model routing: PASS");
 process.exit(0);

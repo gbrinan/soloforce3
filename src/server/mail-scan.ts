@@ -35,6 +35,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { HISTORY_DIR } from "../config.js";
 import { runClaude } from "./claude-cli.js";
+import { envelope, type ResultEnvelope } from "../shared/result-envelope.js";
 
 const GMAIL_SEARCH_TOOLS = ["mcp__claude_ai_Gmail__search_threads"] as const;
 const GMAIL_THREAD_TOOLS = ["mcp__claude_ai_Gmail__get_thread"] as const;
@@ -437,18 +438,17 @@ export interface MailScanResult {
  * 각 send 함수가 조용히 no-op이므로 여기서 따로 분기하지 않는다.
  */
 async function relayDigest(digest: string): Promise<{ telegram: boolean; discord: boolean }> {
+  // 전달 여부는 send 함수가 돌려준 실제 결과다 — 미연동·전부 실패면 false(예전엔 예외만 없으면 true로 기록했다).
   const out = { telegram: false, discord: false };
   try {
     const { sendTelegramNotice } = await import("./telegram.js");
-    await sendTelegramNotice(digest);
-    out.telegram = true;
+    out.telegram = await sendTelegramNotice(digest);
   } catch (e) {
     console.warn("[MailScan] 텔레그램 전달 실패:", e instanceof Error ? e.message : e);
   }
   try {
     const { sendDiscordNotice } = await import("./discord.js");
-    await sendDiscordNotice(digest);
-    out.discord = true;
+    out.discord = await sendDiscordNotice(digest);
   } catch (e) {
     console.warn("[MailScan] 디스코드 전달 실패:", e instanceof Error ? e.message : e);
   }
@@ -457,34 +457,58 @@ async function relayDigest(digest: string): Promise<{ telegram: boolean; discord
 
 let scanning = false;
 
+export type MailScanOutcome = ResultEnvelope<MailScanResult>;
+
+/** 테스트에서 바꿔 끼울 수 있는 의존성. 기본값은 실제 claude CLI와 무아·외부 채널 알림. */
+export interface MailScanDeps {
+  runClaude?: typeof runClaude;
+  /** 사장님에게 알린다(무아 대화창 + 외부 채널). 다이제스트와 «확인 못 함» 알림이 같은 경로를 쓴다. */
+  announce?: (text: string) => Promise<{ telegram: boolean; discord: boolean }>;
+}
+
+async function defaultAnnounce(text: string): Promise<{ telegram: boolean; discord: boolean }> {
+  const { addGenieMessage } = await import("./chat.js"); // 순환 참조 방지
+  addGenieMessage(text, { internal: true });
+  return relayDigest(text);
+}
+
+/** 실패를 사장님에게 알린다 — 조용히 끝나면 «메일 없음»과 구별되지 않는다. 본문·발신자는 넣지 않는다. */
+export function failureNotice(stage: "수집" | "분류", reason: string): string {
+  return `📭 메일 스캔 실패(${stage} 단계): 이번 회차 메일을 확인하지 못했습니다. 메일이 없다는 뜻이 아닙니다.\n- 원인: ${reason.slice(0, 160)}\n- 다음 회차에 다시 확인합니다. 급하면 POST /api/mail-scan 으로 수동 실행하세요.`;
+}
+
 /**
  * 인박스를 한 번 스캔해 검토 필요분만 무아에게 넘긴다.
- * @returns Gmail 수집 자체가 실패하면 null (다음 주기에 재시도)
+ * @returns 결과 봉투 — ok(보고함)·empty(보고할 것 없음)·partial(일부 분류 못 함)·failed(확인 못 함, 사장님에게 알림)·skipped(이미 실행 중)
  */
-export async function runMailScan(): Promise<MailScanResult | null> {
+export async function runMailScan(deps: MailScanDeps = {}): Promise<MailScanOutcome> {
+  const run = deps.runClaude ?? runClaude;
+  const announce = deps.announce ?? defaultAnnounce;
+  const SOURCE = "gmail";
   if (scanning) {
     console.log("[MailScan] 이전 스캔 진행 중 — 이번 회차 건너뜀");
-    return null;
+    return envelope("skipped", SOURCE, { error: "이전 스캔 진행 중" });
   }
   scanning = true;
+  const fail = async (stage: "수집" | "분류", reason: string): Promise<MailScanOutcome> => {
+    console.warn(`[MailScan] ${stage} 실패 — ${reason}`);
+    try { await announce(failureNotice(stage, reason)); } catch (e) {
+      console.warn("[MailScan] 실패 알림 전달 실패:", e instanceof Error ? e.message : e);
+    }
+    return envelope("failed", SOURCE, { error: `${stage}: ${reason}` });
+  };
   try {
     const cfg = loadFilterConfig();
 
     // 1) 수집 — 판단 없는 메타데이터만
-    const fetched = await runClaude(fetchPrompt(cfg), {
+    const fetched = await run(fetchPrompt(cfg), {
       system: FETCH_SYSTEM,
       timeoutMs: FETCH_TIMEOUT_MS,
       allowedTools: GMAIL_SEARCH_TOOLS,
     });
-    if (!fetched.ok) {
-      console.warn(`[MailScan] 수집 실패 — ${fetched.error ?? "원인 불명"}`);
-      return null;
-    }
+    if (!fetched.ok) return await fail("수집", fetched.error ?? "원인 불명");
     const raw = extractJson<unknown[]>(fetched.text ?? "");
-    if (!Array.isArray(raw)) {
-      console.warn("[MailScan] 수집 결과가 JSON 배열이 아님 — 이번 회차 중단");
-      return null;
-    }
+    if (!Array.isArray(raw)) return await fail("수집", "수집 결과가 JSON 배열이 아님");
     const threads: MailThreadMeta[] = raw
       .filter((r): r is Record<string, unknown> => Boolean(r) && typeof r === "object")
       .map((r) => ({
@@ -517,24 +541,18 @@ export async function runMailScan(): Promise<MailScanResult | null> {
 
     if (!passed.length) {
       console.log(`[MailScan] 스캔 ${result.scanned} · 통과 0 · 조용히 종료`);
-      return result;
+      return envelope("empty", SOURCE, { data: result });
     }
 
     // 3) 분류 — 통과분만 LLM에 태운다
-    const classifiedRaw = await runClaude(classifyPrompt(passed), {
+    const classifiedRaw = await run(classifyPrompt(passed), {
       system: CLASSIFY_SYSTEM,
       timeoutMs: CLASSIFY_TIMEOUT_MS,
       allowedTools: GMAIL_THREAD_TOOLS,
     });
-    if (!classifiedRaw.ok) {
-      console.warn(`[MailScan] 분류 실패 — ${classifiedRaw.error ?? "원인 불명"}`);
-      return null;
-    }
+    if (!classifiedRaw.ok) return await fail("분류", classifiedRaw.error ?? "원인 불명");
     const parsed = extractJson<Array<Record<string, unknown>>>(classifiedRaw.text ?? "");
-    if (!Array.isArray(parsed)) {
-      console.warn("[MailScan] 분류 결과가 JSON 배열이 아님 — 이번 회차 중단");
-      return null;
-    }
+    if (!Array.isArray(parsed)) return await fail("분류", "분류 결과가 JSON 배열이 아님");
 
     const byId = new Map(passed.map((t) => [t.threadId, t]));
     const classified: ClassifiedMail[] = [];
@@ -558,6 +576,8 @@ export async function runMailScan(): Promise<MailScanResult | null> {
       });
     }
     result.classified = classified.length;
+    // 모델이 일부 스레드를 빠뜨리면 그만큼은 확인 못 한 것이다 — 다이제스트에 밝히고 partial로 낸다.
+    const unclassified = Math.max(0, passed.length - new Set(classified.map((m) => m.threadId)).size);
 
     // 4) 멱등 — 이미 보고한 건은 침묵. 기한 임박(D-3/D-1)만 예외.
     const today = kstToday();
@@ -574,14 +594,15 @@ export async function runMailScan(): Promise<MailScanResult | null> {
       result.byCategory[m.category] = (result.byCategory[m.category] ?? 0) + 1;
     }
 
-    // 5) 알림 — 0건이면 보내지 않는다(조용한 게 낫다)
-    if (toReport.length) {
-      const digest = renderDigest(toReport, today);
-      const { addGenieMessage } = await import("./chat.js"); // 순환 참조 방지
-      addGenieMessage(digest, { internal: true });
+    // 5) 알림 — 0건이면 보내지 않는다(조용한 게 낫다). 단, 분류 못 한 메일이 있으면 그 사실은 알린다.
+    if (toReport.length || unclassified > 0) {
+      const footer = unclassified > 0
+        ? `⚠️ 분류 못 한 메일 ${unclassified}건 — 이번 다이제스트에 빠졌습니다. 없다는 뜻이 아닙니다.`
+        : "";
+      const digest = [toReport.length ? renderDigest(toReport, today) : "", footer].filter(Boolean).join("\n\n");
+      // 무아 대화창 + 외부 채널 — 아난이 자리에 없어도 기한 임박 건을 놓치지 않게.
+      result.relayed = await announce(digest);
       result.notified = true;
-      // 같은 본문을 외부 채널로도 — 아난이 자리에 없어도 기한 임박 건을 놓치지 않게.
-      result.relayed = await relayDigest(digest);
     }
 
     // 6) 상태 갱신 — 보고한 것만 기록한다(보고 안 한 건 다음에 다시 볼 기회를 남긴다)
@@ -611,7 +632,8 @@ export async function runMailScan(): Promise<MailScanResult | null> {
       `전달 tg=${result.relayed.telegram} dc=${result.relayed.discord} · ` +
       JSON.stringify(result.byCategory),
     );
-    return result;
+    if (unclassified > 0) return envelope("partial", SOURCE, { data: result, error: `분류 못 한 메일 ${unclassified}건` });
+    return envelope(toReport.length ? "ok" : "empty", SOURCE, { data: result });
   } finally {
     scanning = false;
   }

@@ -13,6 +13,7 @@
 import { callGeminiFlash, isTriageEnabled } from "./telegram-triage.js";
 // type-only import — 런타임 의존 없음(위 "스토어 의존 최소화" 원칙 유지).
 import type { JobStatus } from "../types.js";
+import { fenceUntrusted } from "./provenance.js";
 
 /** processCallback에서 넘겨주는 최소 정보 — Job 전체 대신 게이팅에 필요한 필드만 구조적으로 정의. */
 export interface JobNotifyGateInput {
@@ -201,7 +202,9 @@ export function enqueueBatchedNotify(
 export function formatBatchedGenieNotice(items: BatchedNotifyItem[]): string {
   if (items.length === 1) {
     const it = items[0];
-    return `[시스템 알림] "${it.requestPreview}" 작업 ${it.statusText}. 결과: ${it.summary}
+    // 결과 본문은 워커가 가져온 외부 내용일 수 있다 — 경계로 감싸고 안쪽 발송 마커를 무력화한다(provenance.ts).
+    return `[시스템 알림] "${it.requestPreview}" 작업 ${it.statusText}. 결과:
+${fenceUntrusted(it.summary, { job: it.jobId.slice(0, 8) })}
 
 작업 결과는 이미 사용자에게 직접 표시되었습니다.
 당신이 할 일:
@@ -213,7 +216,8 @@ TODO 태그 사용 금지.`;
   }
 
   const list = items
-    .map((it, i) => `${i + 1}. "${it.requestPreview}" — ${it.statusText}. 결과: ${it.summary}`)
+    .map((it, i) => `${i + 1}. "${it.requestPreview}" — ${it.statusText}. 결과:
+${fenceUntrusted(it.summary, { job: it.jobId.slice(0, 8) })}`)
     .join("\n\n");
   return `[시스템 알림] 작업 ${items.length}건이 완료되었습니다.
 

@@ -17,7 +17,7 @@ function readMdTitle(absPath: string): string | undefined {
   return undefined;
 }
 import { join, resolve, basename } from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { homedir, tmpdir } from "node:os";
 import { Readable } from "node:stream";
 import { Hono } from "hono";
@@ -74,6 +74,8 @@ import { listMessages, getMessage, countAwaitingApproval, countHidden, setMessag
 import { handleInbound, approveAndReply, rejectAndReply, readFileAsAttachment } from "./external-inbound.js";
 import { createBackupZip, restoreFromZip, cleanupBackupFile } from "./data-backup.js";
 import { sendExternal, sendPartnerRequest } from "./external-client.js";
+import { requestExternalAction } from "./external-actions.js";
+import { isUnattendedTask } from "./provenance.js";
 import {
   handlePartnerRequest,
   approvePartnerRequest,
@@ -90,10 +92,12 @@ import { checkPartnerRequestRate } from "./external-rate-limit.js";
 import { createPartner as createPartnerForCallback, getPartnerWithTokens } from "./partners.js";
 import { randomBytes } from "node:crypto";
 import { clearPmSession, loadPmSessionInfo } from "./pm-memory.js";
-import { getBusyAgentIds, getActiveJobIdForAgent, setJobSummary, activatePausedJobs, pauseJobForDeps, setJobTaskMeta } from "./jobs.js";
+import { getBusyAgentIds, getActiveJobIdForAgent, setJobSummary, activatePausedJobs, pauseJobForDeps, setJobTaskMeta, setJobModel } from "./jobs.js";
+import { resolveDelegateModel } from "./model-tiers.js";
 import { getGenieAgent } from "../agents/genie.js";
 import { readArchivedJob } from "./audit.js";
 import { getAllWorkerAgents, getWorkerAgent, resolveWorkerRuntime } from "../agent-registry.js";
+import { resolveTopicDelegationLive } from "./modules/registry.js";
 import { getSchedulerMessages } from "./scheduler.js";
 import { maybeRunFriendSyncCycle, pingPartnerOnce } from "./friend-sync.js";
 import { getQueueStats, getQueueItems, enqueueInternal } from "./genie-queue.js";
@@ -822,6 +826,9 @@ export function registerRoutes(app: Hono): void {
       taskId?: string;
       taskTitle?: string;
       effort?: string;
+      tier?: string;
+      /** 주제 모듈 역할로 갈 때의 주제 id(history/topics/<id>.yaml). */
+      topic?: string;
     },
     options: { external: boolean; externalAgentId?: string },
   ) {
@@ -834,8 +841,13 @@ export function registerRoutes(app: Hono): void {
       stageAgents = ex.stageAgents;
     }
     const skipPlanGate = body.planGate === false ? true : undefined;
+    // 주제: 예전 전용 id(spf-sales 등)는 «역할 + 주제»로 풀고, 주제가 정해지면 맥락 블록을 요청 앞에 붙인다.
+    // 모듈 역할인데 주제를 정할 수 없거나 모르는 주제면 거부한다 — 주제 없는 역할은 어디에 기록할지 모른다.
+    const topicPick = resolveTopicDelegationLive({ agent: body.agent, topic: body.topic }, (id) => !!getWorkerAgent(id));
+    if (topicPick.error) throw new Error(topicPick.error);
+    const agentId = topicPick.agent;
     // skipOutput: 디폴트 true(산출물 생략). 보고서/분석 결과가 필요하면 명시적으로 false 지정 (2026-05-05 정책 변경).
-    let request = body.request.trim();
+    let request = topicPick.context ? `${topicPick.context}\n\n${body.request.trim()}` : body.request.trim();
     if (body.skipOutput !== false) {
       request += "\n\n[시스템 지시] 이 작업은 산출물(보고서/MD 파일) 생성이 불필요합니다. 텍스트 응답만 반환하세요. outputs/ 디렉토리에 파일을 쓰지 마세요.";
     }
@@ -861,11 +873,15 @@ export function registerRoutes(app: Hono): void {
       : (fallbackInstance ?? getOrCreateTaskForTurn(turnId, taskTitle, body.taskId));
     addTodoToTask(task.id, todo.id);
     if (task.routineType === "instance") setTodoRoutineInfo(todo.id, "instance", task.masterTaskId, task.cronExpr);
+    // 모델은 티어 이름으로만 고른다 — 호출자 tier > 루프 스텝이 태스크에 고정한 모델 > 에이전트 정의 모델.
+    // 모르는 티어는 기본 모델로 새지 않게 거부한다(model-tiers.ts resolveDelegateModel).
+    const modelPick = resolveDelegateModel(body.tier, (task as typeof task & { model?: string }).model);
+    if (modelPick.error) throw new Error(modelPick.error);
     const job = createJob(
       request,
       body.projectName?.trim(),
       undefined,
-      body.agent?.trim(),
+      agentId,
       body.cwd,
       body.priority,
       body.after,
@@ -880,6 +896,7 @@ export function registerRoutes(app: Hono): void {
       body.skipOutput !== false,
     );
     setJobTaskMeta(job.id, task.id, task.instruction);
+    if (modelPick.model) setJobModel(job.id, modelPick.model);
     // ACK 페이로드
     const port = process.env.PORT ?? 3456;
     const callbackBase = `http://127.0.0.1:${port}/api/delegate/callback`;
@@ -923,6 +940,8 @@ export function registerRoutes(app: Hono): void {
       taskId?: string;
       taskTitle?: string;
       effort?: string;
+      tier?: string;
+      topic?: string;
     }>().catch(() => null);
     if (!body?.request?.trim()) {
       return c.json({ error: "request is required" }, 400);
@@ -1027,10 +1046,29 @@ export function registerRoutes(app: Hono): void {
     if (!VALID_TYPES.includes(messageType)) {
       return c.json({ error: `messageType must be one of: ${VALID_TYPES.join(", ")}` }, 400);
     }
-    // filePath → base64 변환
-    const attachments = body?.attachments?.map(a => readFileAsAttachment(a.filePath)).filter((a): a is NonNullable<typeof a> => a !== null);
-    const result = await sendExternal(partnerId, message, { messageType, ourLabel: getGenieName(), ...(attachments?.length ? { attachments } : {}) });
-    return c.json(result);
+    // filePath → base64 변환 — 승인 요청 시점에 읽어 고정한다(승인 뒤 파일이 바뀌어도 승인된 내용만 나간다)
+    const requested = body?.attachments ?? [];
+    const attachments = requested.map(a => readFileAsAttachment(a.filePath)).filter((a): a is NonNullable<typeof a> => a !== null);
+    if (attachments.length !== requested.length) {
+      // 읽지 못한 첨부를 빼고 보내면 사람이 승인한 것과 다른 발송이 된다 — MISS로 거부
+      return c.json({ ok: false, status: 0, errorReason: `attachment MISS (${requested.length - attachments.length}/${requested.length})` }, 400);
+    }
+    // external 등급: 바로 보내지 않고 사람 승인을 요청한다. 승인되면 서버가 이 내용 그대로 보낸다.
+    // 루프·루틴 잡에서 온 요청은 사람이 지켜보지 않으므로 승인 카드 없이 보류한다(provenance.ts).
+    const jobId = c.req.header("X-Job-Id") || undefined;
+    const job = jobId ? getJob(jobId) : undefined;
+    const task = job?.taskId ? getTask(job.taskId) : undefined;
+    const role = c.req.header("X-Agent-Role") ?? "genie";
+    const pendingResult = requestExternalAction(
+      { kind: "partner-send", target: partnerId, body: message, attachments, meta: { messageType, ourLabel: getGenieName() } },
+      {
+        agentRole: role,
+        jobId,
+        unattended: isUnattendedTask(task),
+        ...(task ? { origin: `${role} · ${isUnattendedTask(task) ? "루틴·루프" : "작업"} «${task.instruction.split("\n")[0].slice(0, 60)}»` } : {}),
+      },
+    );
+    return c.json({ ok: true, ...pendingResult });
   });
 
   // 2) 동료 거래(동료십) 신청
@@ -2328,11 +2366,13 @@ export function registerRoutes(app: Hono): void {
   // 승인 플로우 (Step 7) — MCP 서버 readPaths 밖 접근 시 사장님 승인 요청
   app.post("/api/approvals", async (c) => {
     const body = await c.req.json().catch(() => null) as
-      | { agentRole?: string; tool?: string; path?: string; jobId?: string; reason?: string; sensitive?: boolean }
+      | { agentRole?: string; tool?: string; path?: string; jobId?: string; reason?: string; sensitive?: boolean; external?: boolean }
       | null;
     if (!body?.agentRole || !body?.tool || !body?.path) {
       return c.json({ error: "agentRole, tool, path required" }, 400);
     }
+    // external=true는 승인을 더 엄격하게만 만든다(사람만 허용) — 누가 보내도 권한 상승이 아니다.
+    const external = body.external === true;
     const req = createApproval({
       agentRole: body.agentRole,
       tool: body.tool,
@@ -2340,6 +2380,7 @@ export function registerRoutes(app: Hono): void {
       jobId: body.jobId,
       reason: body.reason,
       sensitive: body.sensitive === true,
+      ...(external ? { external: true, previewHash: createHash("sha256").update(`${body.tool}\n${body.path}`).digest("hex") } : {}),
     });
     return c.json({ id: req.id });
   });
@@ -2904,9 +2945,11 @@ export function registerRoutes(app: Hono): void {
   // 메일 인박스 스캔 수동 트리거 (자동은 하루 2회 09:00/17:00 KST — mail-scan.ts)
   app.post("/api/mail-scan", async (c) => {
     const { runMailScan } = await import("./mail-scan.js");
-    const result = await runMailScan();
-    if (!result) return c.json({ ok: false, error: "Gmail 수집 실패 (claude CLI 미설치·미인증 또는 스캔 진행 중)" }, 502);
-    return c.json({ ok: true, ...result });
+    const out = await runMailScan();
+    // 결과 봉투: 진행 중(skipped)·실패(failed)는 성공처럼 보이지 않게 상태 코드를 가른다.
+    if (out.status === "skipped") return c.json({ ok: false, status: out.status, error: out.error }, 409);
+    if (out.status === "failed") return c.json({ ok: false, status: out.status, error: out.error }, 502);
+    return c.json({ ok: true, status: out.status, ...(out.error ? { error: out.error } : {}), ...out.data });
   });
 
   // 프로젝트 4대 분류 현황 — 카테고리별 프로젝트 목록
@@ -3461,7 +3504,8 @@ export function registerRoutes(app: Hono): void {
   app.post("/api/terminal/message", async (c) => {
     const body = await c.req.json<{ content: string }>().catch(() => null);
     if (!body?.content?.trim()) return c.json({ ok: false }, 400);
-    addGenieMessage(body.content.trim());
+    // 지니 PTY의 post_message — 지니 자신의 출력이므로 발송 마커를 처리한다.
+    addGenieMessage(body.content.trim(), { genieOutput: true });
     return c.json({ ok: true });
   });
 

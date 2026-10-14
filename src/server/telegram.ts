@@ -521,17 +521,21 @@ export async function editMessageReplyMarkup(
 }
 
 /** 모든 페어링된 chat에 알림 발송 (브릿지 비활성/미페어링 시 안전한 no-op). */
-export async function sendTelegramNotice(text: string): Promise<void> {
+/** @returns 한 곳 이상에 실제로 전달했으면 true. 토큰·페어링이 없거나 전부 실패하면 false(전달했다고 기록하지 않게). */
+export async function sendTelegramNotice(text: string): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return;
+  if (!token) return false;
   const chats = getPairedChats();
+  let delivered = false;
   for (const chat of chats) {
     try {
       await sendTelegramMessage(token, chat.chatId, text);
+      delivered = true;
     } catch (err) {
       console.warn(`[Telegram] notice 발송 실패 (chatId=${chat.chatId}):`, err instanceof Error ? err.message : err);
     }
   }
+  return delivered;
 }
 
 /**

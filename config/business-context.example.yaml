@@ -1,0 +1,30 @@
+# 업무 맥락 블록 — 예시(형식 참고용, 실제 사업 정보 아님)
+# 실제 값은 history/business-context.yaml 에 둔다(gitignore). 이 파일을 복사해 고쳐 쓴다.
+# 검사: npx tsx scripts/business-context-check.ts            (history 쪽 실제 파일)
+#       npx tsx scripts/business-context-check.ts --file config/business-context.example.yaml
+# 스키마: src/shared/business-context.ts
+version: 1
+owner:
+  name: 홍길동
+  title: 대표
+country: KR            # ISO 3166-1 alpha-2
+currency: KRW          # 기준 통화, ISO 4217
+timezone: Asia/Seoul   # IANA 시간대
+fiscalYearEnd: "12-31" # MM-DD
+businessLines:
+  - id: export-trade
+    name: 수출 무역
+    description: 해외 거래처 대상 상품 수출
+    currencies: [USD]
+    countries: [SG, HK]
+  - id: consulting
+    name: 컨설팅
+    currencies: [KRW]
+connectedTools:        # 범주 → 도구 이름. 스킬은 범주로 말하고 실제 도구는 여기서 고른다.
+  messenger: [telegram]
+  email: [gmail]
+  calendar: [google-calendar]
+  docs: [notion]
+outputPreference: telegram   # telegram | notion | chat | docx | md
+weeklyCadence: 월요일 오전 브리핑
+updatedAt: "2026-10-13"
